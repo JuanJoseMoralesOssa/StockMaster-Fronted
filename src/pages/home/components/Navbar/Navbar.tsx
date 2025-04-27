@@ -37,16 +37,16 @@ function Navbar() {
             {
                 /* Sidebar for desktop */
                 windowDimensions.width >= 768 ? (
-                    <aside className='hidden md:flex w-58 flex-col fixed inset-y-0'>
+                    <aside className='hidden md:flex w-44 flex-col fixed inset-y-0'>
                         <section className='flex flex-col flex-grow border-r bg-gray-50 h-screen'>
-                            <section className='flex items-center h-16 px-4 border-b bg-white'>
+                            <section className='flex items-center h-16 pl-4 pr-2 border-b bg-white'>
                                 <p className='text-xl font-semibold'>
                                     StockMaster
                                 </p>
                             </section>
                             <NavbarDesktop></NavbarDesktop>
-                            <section className='p-4 border-t hover:bg-gray-300  cursor-pointer'>
-                                <button className='w-full justify-start gap-2 flex items-center p-2 border rounded-lg border-gray-50 hover:bg-gray-600 hover:border-gray-800'>
+                            <section className='p-2 border-t hover:bg-gray-300  cursor-pointer'>
+                                <button className='w-full justify-start gap-2 flex p-1 items-center border rounded-lg border-gray-50 hover:bg-gray-600 hover:border-gray-800'>
                                     <LogOut className='h-5 w-5' />
                                     Cerrar Sesión
                                 </button>

@@ -5,7 +5,7 @@ import navItems from '../../../../constants/NavItems'
 function NavbarDesktop() {
     let location = useLocation().pathname
     return (
-        <nav className='flex-1 space-y-0.5 px-4 overflow-y-auto'>
+        <nav className='flex-1 space-y-0.5 overflow-y-auto w-fit'>
             {navItems.map((item: NavItem) => (
                 <NavLink
                     key={item.href}
