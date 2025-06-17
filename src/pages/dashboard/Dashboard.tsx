@@ -3,17 +3,43 @@ import Person from '../../types/Person';
 import { useAvailableSuppliers } from '../../hooks/useAvailableSuppliers';
 import { useAvailableProducts } from '../../hooks/useAvailableProducts';
 import Filters from './Filters';
-import SupplierAndProduct from './SupplierAndProduct';
+import SupplierProductCharts from './SupplierProductCharts';
+import SupplierCharts from './SupplierCharts';
+import ProductChart from './ProductChart';
+
+interface SupplierProductsResultsProps {
+  date: string;
+  weight_kg: number;
+  type: 'Compra' | 'Gasto';
+}
+
+interface SuppliersResultsProps extends SupplierProductsResultsProps {
+  personId: number;
+}
+
+interface ProductsResultsProps extends SupplierProductsResultsProps {
+  productId: number;
+}
 
 export default function SupplierPaymentReport() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [suppliers, setSuppliers] = useState<Person[]>([]);
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [supplierProductResults, setSupplierProductResults] = useState<SupplierProductsResultsProps[]>([]);
+  const [suppliersResults, setSuppliersResults] = useState<SuppliersResultsProps[]>([]);
+  const [productsResults, setProductsResults] = useState<ProductsResultsProps[]>([]);
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'withDebt' | 'fullyPaid'>('all');
+  const date = new Date()
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+    startDate:
+      date.getFullYear() + '-' +
+      (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+      // date.getDate().toString().padStart(2, '0'),
+      '01',
+    endDate:
+      date.getFullYear() + '-' +
+      (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+      date.getDate().toString().padStart(2, '0'),
     supplierId: '',
     productId: '',
   });
@@ -46,58 +72,325 @@ export default function SupplierPaymentReport() {
         // const data = await response.json();
 
         // Simulación de datos para demostración
-        const mockData = [
+        const mockData: any[] = [
           {
-            id: 1,
-            name: 'Proveedor A',
-            purchases: [
-              { date: '2025-04-20', total_kg: 800 },
-              { date: '2025-04-25', total_kg: 1500 }
-            ],
-            expenses: [
-              { date: '2025-04-20', total_kg: 700 },
-              { date: '2025-04-25', total_kg: 1000 }
-            ]
+            "date": "2025-04-17T20:18:40.000Z",
+            "weight_kg": 21,
+            "type": "Compra"
           },
           {
-            id: 2,
-            name: 'Proveedor B',
-            purchases: [
-              { date: '2025-04-15', total_kg: 1000 },
-              { date: '2025-04-20', total_kg: 800 }
-            ],
-            expenses: [
-              { date: '2025-04-20', total_kg: 700 },
-              { date: '2025-04-25', total_kg: 500 }
-            ]
+            "date": "2025-04-17T20:23:52.000Z",
+            "weight_kg": 12,
+            "type": "Compra"
           },
           {
-            id: 3,
-            name: 'Proveedor C',
-            purchases: [
-              { date: '2025-04-10', total_kg: 1500 },
-              { date: '2025-04-15', total_kg: 1000 }
-            ],
-            expenses: [
-              { date: '2025-04-20', total_kg: 1200 },
-              { date: '2025-04-25', total_kg: 1000 }
-            ]
+            "date": "2025-04-17T20:23:52.000Z",
+            "weight_kg": 21,
+            "type": "Compra"
           },
           {
-            id: 4,
-            name: 'Proveedor D',
-            purchases: [
-              { date: '2025-03-30', total_kg: 2000 },
-              { date: '2025-04-10', total_kg: 1500 }
-            ],
-            expenses: [
-              { date: '2025-04-20', total_kg: 1500 },
-              { date: '2025-04-25', total_kg: 1000 }
-            ]
+            "date": "2025-04-17T20:23:52.000Z",
+            "weight_kg": 21,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-04-17T20:59:12.000Z",
+            "weight_kg": 1,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-04-17T20:59:12.000Z",
+            "weight_kg": 1,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-04-17T21:05:20.000Z",
+            "weight_kg": 10,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-04-17T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-04-17T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-05-17T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-05-17T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-17T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-17T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-18T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-18T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-18T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-18T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-19T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-19T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-20T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-20T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-21T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-21T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-22T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-22T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-23T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-23T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-24T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-24T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-25T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-25T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-26T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-26T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
+          },
+          {
+            "date": "2025-06-27T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+          {
+            "date": "2025-06-27T22:26:05.000Z",
+            "weight_kg": 90,
+            "type": "Compra"
           }
-        ];
+        ]
 
-        setSuppliers(mockData);
+        // Simulación de datos para proveedores
+        const suppliersMockData: any[] = [
+          {
+            "personId": 1,
+            "date": "2025-04-17T20:18:40.000Z",
+            "weight_kg": 21,
+            "type": "Compra"
+          },
+          {
+            "personId": 2,
+            "date": "2025-04-17T20:23:52.000Z",
+            "weight_kg": 12,
+            "type": "Compra"
+          },
+          {
+            "personId": 3,
+            "date": "2025-04-17T20:23:52.000Z",
+            "weight_kg": 21,
+            "type": "Compra"
+          },
+          {
+            "personId": 4,
+            "date": "2025-04-17T20:23:52.000Z",
+            "weight_kg": 21,
+            "type": "Compra"
+          },
+          {
+            "personId": 5,
+            "date": "2025-04-17T20:59:12.000Z",
+            "weight_kg": 1,
+            "type": "Compra"
+          },
+          {
+            "personId": 6,
+            "date": "2025-04-17T20:59:12.000Z",
+            "weight_kg": 1,
+            "type": "Compra"
+          },
+          {
+            "personId": 7,
+            "date": "2025-04-17T21:05:20.000Z",
+            "weight_kg": 10,
+            "type": "Gasto"
+          },
+          {
+            "personId": 8,
+            "date": "2025-04-17T21:10:07.000Z",
+            "weight_kg": 12,
+            "type": "Gasto"
+          },
+        ]
+
+        // Simulación de datos para productos
+        const productsMockData: any[] = [
+          {
+            productId: 1,
+            date: '2025-04-17T20:18:40.000Z',
+            weight_kg: 21,
+            type: 'Compra',
+          },
+          {
+            productId: 2,
+            date: '2025-04-17T20:23:52.000Z',
+            weight_kg: 12,
+            type: 'Compra',
+          },
+          {
+            productId: 3,
+            date: '2025-04-17T20:23:52.000Z',
+            weight_kg: 21,
+            type: 'Compra',
+          },
+          {
+            productId: 4,
+            date: '2025-04-17T20:23:52.000Z',
+            weight_kg: 21,
+            type: 'Compra',
+          },
+          {
+            productId: 1,
+            date: '2025-04-20T10:15:30.000Z',
+            weight_kg: 15,
+            type: 'Gasto',
+          },
+          {
+            productId: 2,
+            date: '2025-04-21T09:30:00.000Z',
+            weight_kg: 10,
+            type: 'Gasto',
+          },
+          {
+            productId: 3,
+            date: '2025-04-22T14:45:20.000Z',
+            weight_kg: 10,
+            type: 'Gasto',
+          },
+
+          {
+            productId: 1,
+            date: '2025-03-17T20:23:52.000Z',
+            weight_kg: 22,
+            type: 'Compra',
+          },
+          {
+            productId: 1,
+            date: '2025-03-17T10:15:30.000Z',
+            weight_kg: 12,
+            type: 'Gasto',
+          },
+          {
+            productId: 1,
+            date: '2025-02-17T20:23:52.000Z',
+            weight_kg: 22,
+            type: 'Compra',
+          },
+          {
+            productId: 1,
+            date: '2025-02-17T10:15:30.000Z',
+            weight_kg: 12,
+            type: 'Gasto',
+          },
+
+          {
+            productId: 1,
+            date: '2025-01-17T20:23:52.000Z',
+            weight_kg: 22,
+            type: 'Compra',
+          },
+          {
+            productId: 1,
+            date: '2025-01-17T10:15:30.000Z',
+            weight_kg: 12,
+            type: 'Gasto',
+          },
+        ]
+
+
+
+        setSupplierProductResults(mockData);
+        setSuppliersResults(suppliersMockData);
+        setProductsResults(productsMockData);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching supplier payment data:', err);
@@ -137,7 +430,18 @@ export default function SupplierPaymentReport() {
           <button
             onClick={() => {
               setFilters(
-                { ...filters, startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], supplierId: '', productId: '' }
+                {
+                  ...filters,
+                  startDate:
+                    date.getFullYear() + '-' +
+                    (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+                    '01',
+                  endDate:
+                    date.getFullYear() + '-' +
+                    (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
+                    date.getDate().toString().padStart(2, '0'),
+                  supplierId: '', productId: ''
+                }
               )
               setSelectedFilter('all')
             }}
@@ -153,17 +457,64 @@ export default function SupplierPaymentReport() {
         filters={filters}
         products={products}
         setFilters={setFilters}
-        setSelectedFilter={setSelectedFilter}
+        setSelectedFilter={(filter: string) => setSelectedFilter(filter as 'all' | 'withDebt' | 'fullyPaid')}
         selectedFilter={selectedFilter}
       />
 
-      <SupplierAndProduct
-        suppliers={suppliers}
-        filters={filters}
-        selectedFilter={selectedFilter}
-      />
+      {
+        filters.supplierId &&
+        filters.productId &&
+        supplierProductResults.length > 0 &&
+        (
+          <SupplierProductCharts
+            results={supplierProductResults}
+            supplier={availableSuppliers.find(s => s.id === Number(filters.supplierId)) ?? {} as Person}
+            product={products.find(p => p.id === Number(filters.productId)) ?? { id: 0, name: 'Unknown Product' }}
+            filters={filters}
+            selectedFilter={selectedFilter}
+          />
+        )
+      }
+      {
+        filters.supplierId &&
+        !filters.productId &&
+        (
+          <SupplierCharts
+            selectedFilter={selectedFilter}
+            results={productsResults}
+            products={products}
+            filters={filters}
+          />
+        )
+      }
+      {
+        !filters.supplierId &&
+        filters.productId &&
+        (
+          <ProductChart
+            selectedFilter="all"
+            results={suppliersResults}
+            suppliers={availableSuppliers}
+            filters={{
+              startDate: "2025-04-01",
+              endDate: "2025-04-30",
+              supplierId: "",
+              productId: ""
+            }}
+          />
+        )
+      }
+
+      {/* {
+        suppliers.length === 0 &&
+        (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-xl font-semibold text-gray-600">No hay datos disponibles para los filtros seleccionados.</div>
+          </div>
+        )
+      } */}
 
 
-    </div>
+    </div >
   );
 }
