@@ -12,7 +12,6 @@ interface FiltersProps {
 function Filters({ availableSuppliers, filters, products, setFilters, setSelectedFilter, selectedFilter }: Readonly<FiltersProps>) {
   return (
     <div>
-      {/* Filtros y controles */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <div className="flex flex-wrap gap-4 justify-between items-center">
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center w-full md:w-fit">

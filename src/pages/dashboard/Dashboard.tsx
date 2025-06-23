@@ -43,21 +43,18 @@ export default function SupplierPaymentReport() {
     supplierId: '',
     productId: '',
   });
-
   const {
     products,
     // loading: productsLoading,
     // error: productsError,
     // refreshProducts,
   } = useAvailableProducts()
-
   const {
     suppliers: availableSuppliers,
     // loading: suppliersLoading,
     // error: suppliersError,
     // refreshSuppliers,
   } = useAvailableSuppliers()
-
 
   // Colores para los gráficos
   // const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a83232', '#8884d8'];
@@ -453,15 +450,13 @@ export default function SupplierPaymentReport() {
       </div>
 
       <Filters
-        availableSuppliers={availableSuppliers}
         filters={filters}
-        products={products}
         setFilters={setFilters}
-        setSelectedFilter={(filter: string) => setSelectedFilter(filter as 'all' | 'withDebt' | 'fullyPaid')}
+        products={products}
+        availableSuppliers={availableSuppliers}
         selectedFilter={selectedFilter}
-      />
-
-      {
+        setSelectedFilter={(filter: string) => setSelectedFilter(filter as 'all' | 'withDebt' | 'fullyPaid')}
+      />      {
         filters.supplierId &&
         filters.productId &&
         supplierProductResults.length > 0 &&
@@ -505,16 +500,17 @@ export default function SupplierPaymentReport() {
         )
       }
 
-      {/* {
-        suppliers.length === 0 &&
+      {
+        !filters.startDate &&
+        !filters.endDate &&
+        !filters.supplierId &&
+        !filters.productId &&
         (
           <div className="flex justify-center items-center h-64">
-            <div className="text-xl font-semibold text-gray-600">No hay datos disponibles para los filtros seleccionados.</div>
+            <div className="text-xl font-semibold text-gray-600">Por favor, selecciona filtros para ver los resultados.</div>
           </div>
         )
-      } */}
-
-
+      }
     </div >
   );
 }
