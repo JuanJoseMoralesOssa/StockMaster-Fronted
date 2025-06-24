@@ -1,4 +1,3 @@
-import React from 'react';
 import * as XLSX from 'xlsx';
 import {
   BarChart,
@@ -14,17 +13,15 @@ import {
   Cell,
 } from 'recharts';
 import Product from '../../types/Product';
+import { ProductsResults } from '../../types/DashboardResults';
+import { useEffect, useState } from 'react';
+import { EXPENSE, PURCHASE } from '../../constants/cts';
 
 interface Filters { startDate: string; endDate: string; supplierId: string; productId: string }
 
 interface ProductReportProps {
   selectedFilter: 'all' | 'withDebt' | 'fullyPaid';
-  results: {
-    productId: number,
-    date: string,
-    weight_kg: number,
-    type: 'Compra' | 'Gasto',
-  }[];
+  results: ProductsResults[];
   products: Product[];
   filters: Filters;
 }
@@ -54,12 +51,20 @@ interface DailyData {
 const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
-const isInMonth = (dateStr: string, month: number, year: number): boolean => {
-  const d = new Date(dateStr);
-  return d.getMonth() === month && d.getFullYear() === year;
-};
+
 
 const ProductReport: React.FC<ProductReportProps> = ({ selectedFilter, results, products, filters }) => {
+
+  if (results.length === 0) {
+    console.warn('SupplierCharts - No products found for the selected date range.');
+    return (
+      <div className="text-center text-gray-500 p-8">
+        <h3 className="text-lg font-semibold mb-2">No hay datos para mostrar</h3>
+        <p>No se encontraron productos para el rango de fechas seleccionado.</p>
+        <p className="text-sm mt-2">Filtros: {filters.startDate} - {filters.endDate}</p>
+      </div>
+    );
+  }
 
   // Validar filtros
   if (!filters.supplierId || !filters.startDate || !filters.endDate) {
@@ -73,18 +78,9 @@ const ProductReport: React.FC<ProductReportProps> = ({ selectedFilter, results, 
     }
   });
 
-  const filteredProducts = results.filter((product) => {
-    const productDate = new Date(product.date);
-    const startDate = new Date(filters.startDate);
-    const endDate = new Date(filters.endDate);
-    return productDate >= startDate && productDate <= endDate;
-  });
 
-  if (filteredProducts.length === 0) {
-    console.warn('No products found for the selected date range.');
-  }
 
-  const monthlyData: Record<string, MonthlyData> = filteredProducts.reduce((acc: Record<string, MonthlyData>, product) => {
+  const monthlyData: Record<string, MonthlyData> = results.reduce((acc: Record<string, MonthlyData>, product) => {
     const date = new Date(product.date);
     const monthName = formatMonthName(date);
     const key = `${monthName}-${product.productId}`; // Unique key for month and product
@@ -100,9 +96,9 @@ const ProductReport: React.FC<ProductReportProps> = ({ selectedFilter, results, 
     }
 
     acc[key].Total += product.weight_kg;
-    if (product.type === 'Compra') {
+    if (product.type === EXPENSE) {
       acc[key].Pagado += product.weight_kg;
-    } else if (product.type === 'Gasto') {
+    } else if (product.type === PURCHASE) {
       acc[key].Pendiente += product.weight_kg;
     }
 
@@ -142,7 +138,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ selectedFilter, results, 
   // Agrupar datos por producto, mes y día para las gráficas diarias
   const dailyDataByProduct: Record<number, Record<string, DailyData[]>> = {};
 
-  filteredProducts.forEach((product) => {
+  results.forEach((product) => {
     const date = new Date(product.date);
     const monthName = formatMonthName(date);
     const dayNumber = date.getDate();
@@ -170,9 +166,9 @@ const ProductReport: React.FC<ProductReportProps> = ({ selectedFilter, results, 
     }
 
     existingDay.Total += product.weight_kg;
-    if (product.type === 'Compra') {
+    if (product.type === EXPENSE) {
       existingDay.Pagado += product.weight_kg;
-    } else if (product.type === 'Gasto') {
+    } else if (product.type === PURCHASE) {
       existingDay.Pendiente += product.weight_kg;
     }
   });
@@ -245,7 +241,6 @@ const ProductReport: React.FC<ProductReportProps> = ({ selectedFilter, results, 
     { name: 'Total Pagado', value: totals.Pagado },
     { name: 'Total Pendiente', value: totals.Pendiente },
   ];
-
   return (
     <div>
       {/* Summary Cards */}
@@ -471,4 +466,4 @@ const ProductReport: React.FC<ProductReportProps> = ({ selectedFilter, results, 
   );
 };
 
-export default React.memo(ProductReport);
+export default ProductReport;

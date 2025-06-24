@@ -14,6 +14,8 @@ import {
   Cell,
 } from 'recharts';
 import Person from '../../types/Person';
+import { SuppliersResults } from '../../types/DashboardResults';
+import { EXPENSE, PURCHASE } from '../../constants/cts';
 
 interface Filters {
   startDate: string;
@@ -24,12 +26,7 @@ interface Filters {
 
 interface ProductChartProps {
   selectedFilter: 'all' | 'withDebt' | 'fullyPaid';
-  results: {
-    personId: number;
-    date: string;
-    weight_kg: number;
-    type: 'Compra' | 'Gasto';
-  }[];
+  results: SuppliersResults[];
   suppliers: Person[];
   filters: Filters;
 }
@@ -62,7 +59,6 @@ const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} 
 
 const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, suppliers, filters }) => {
 
-  // Validar filtros
   if (!filters.startDate || !filters.endDate) {
     return <div className="text-center text-gray-500">Por favor selecciona un rango de fechas.</div>;
   }
@@ -74,18 +70,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
     }
   });
 
-  const filteredData = results.filter((item) => {
-    const itemDate = new Date(item.date);
-    const startDate = new Date(filters.startDate);
-    const endDate = new Date(filters.endDate);
-    return itemDate >= startDate && itemDate <= endDate;
-  });
-
-  if (filteredData.length === 0) {
-    console.warn('No se encontraron datos para el rango de fechas seleccionado.');
-  }
-
-  const monthlyData: Record<string, MonthlyData> = filteredData.reduce((acc: Record<string, MonthlyData>, item) => {
+  const monthlyData: Record<string, MonthlyData> = results.reduce((acc: Record<string, MonthlyData>, item) => {
     const date = new Date(item.date);
     const monthName = formatMonthName(date);
     const key = `${monthName}-${item.personId}`; // Unique key for month and supplier
@@ -102,9 +87,9 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
     }
 
     acc[key].Total += item.weight_kg;
-    if (item.type === 'Compra') {
+    if (item.type === EXPENSE) {
       acc[key].Pagado += item.weight_kg;
-    } else if (item.type === 'Gasto') {
+    } else if (item.type === PURCHASE) {
       acc[key].Pendiente += item.weight_kg;
     }
 
@@ -144,7 +129,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
   // Agrupar datos por proveedor, mes y día para las gráficas diarias
   const dailyDataBySupplier: Record<number, Record<string, DailyData[]>> = {};
 
-  filteredData.forEach((item) => {
+  results.forEach((item) => {
     const date = new Date(item.date);
     const monthName = formatMonthName(date);
     const dayNumber = date.getDate();
@@ -172,9 +157,9 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
     }
 
     existingDay.Total += item.weight_kg;
-    if (item.type === 'Compra') {
+    if (item.type === EXPENSE) {
       existingDay.Pagado += item.weight_kg;
-    } else if (item.type === 'Gasto') {
+    } else if (item.type === PURCHASE) {
       existingDay.Pendiente += item.weight_kg;
     }
   });

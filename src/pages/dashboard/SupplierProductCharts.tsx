@@ -2,13 +2,11 @@ import * as XLSX from 'xlsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import Person from '../../types/Person';
 import Product from '../../types/Product';
+import { DashboardResult } from '../../types/DashboardResults';
+import { EXPENSE, PURCHASE } from '../../constants/cts';
 
 interface SupplierAndProductProps {
-  results: {
-    date: string;
-    weight_kg: number;
-    type: "Compra" | "Gasto";
-  }[];
+  results: DashboardResult[];
   supplier: Person;
   product: Product;
   selectedFilter: string;
@@ -124,8 +122,8 @@ function SupplierProductCharts({
   const monthlyData = processMonthlyData();
   const dailyByMonth = groupDailyDataByMonth();
 
-  const productPurchases = results.filter((result) => result.type === 'Compra');
-  const productExpenses = results.filter((result) => result.type === 'Gasto');
+  const productPurchases = results.filter((result) => result.type === PURCHASE);
+  const productExpenses = results.filter((result) => result.type === EXPENSE);
   const totalPurchases = productPurchases.reduce((acc, purchase) => acc + purchase.weight_kg, 0);
   const totalExpenses = productExpenses.reduce((acc, expense) => acc + expense.weight_kg, 0);
   const pendingAmount = totalPurchases - totalExpenses;
@@ -195,8 +193,8 @@ function SupplierProductCharts({
               <p className="text-xl font-bold text-blue-600">
                 {
                   results.filter(s => {
-                    const totalOwed = (s.type === 'Compra' ? s.weight_kg : 0) -
-                      (s.type === 'Gasto' ? s.weight_kg : 0);
+                    const totalOwed = (s.type === PURCHASE ? s.weight_kg : 0) -
+                      (s.type === EXPENSE ? s.weight_kg : 0);
                     return totalOwed > 0;
                   }).length
                 }
@@ -208,8 +206,8 @@ function SupplierProductCharts({
               <p className="text-xl font-bold text-blue-600">
                 {
                   results.filter(s => {
-                    const totalOwed = (s.type === 'Compra' ? s.weight_kg : 0) -
-                      (s.type === 'Gasto' ? s.weight_kg : 0);
+                    const totalOwed = (s.type === PURCHASE ? s.weight_kg : 0) -
+                      (s.type === EXPENSE ? s.weight_kg : 0);
                     return totalOwed <= 0;
                   }).length
                 }
