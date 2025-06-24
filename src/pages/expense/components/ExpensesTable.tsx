@@ -8,73 +8,59 @@ import {
 import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Expense from '../../../types/Expense'
-import { useAvailableExpenses } from '../../../hooks/useAvailableExpenses'
 import { expenseService } from '../../../services/ExpenseService'
+import { useServerPagination } from '../../../hooks/useServerPagination'
+import Pagination from '../../components/pagination/Pagination'
 import ExpensesDetailsTable from '../../expense_details/ExpenseDetailsTable'
 import ExpenseDetails from '../../../types/ExpenseDetails'
 
 const headersTable = ['Fecha', 'Total kg', 'Acciones']
 
 export default function ExpensesTable() {
-    const [isLoading, setIsLoading] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
-    const {
-        expenses,
-        setExpenses,
-        error: expensesError,
-        loading: expensesLoading,
-        refreshExpenses,
-    } = useAvailableExpenses()
-
-    const [selectedExpense, setSelectedExpense] = useState<Expense>(
-        {} as Expense
-    )
+    const [selectedExpense, setSelectedExpense] = useState<Expense>({} as Expense)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
-    // useEffect(() => {
-    //     fetchExpenses()
-    //         .then((expenses) => setLocalExpenses(expenses))
-    //         .catch((error) => {
-    //             setLocalExpenses([])
-    //             console.error('Error al cargar las compras', error)
-    //             alert('Error al cargar las compras')
-    //         })
-    // }, [])
+    const [isLoading, setIsLoading] = useState(false)
 
-    // const getPersonName = (personId: number) => {
-    //     return (
-    //         persons.find((person) => person.id === personId)?.name ??
-    //         'Proveedor no encontrado'
-    //     )
-    // }
-
-
+    // Server-side pagination
+    const {
+        data: expenses,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+        goToPage,
+        setItemsPerPage,
+        refresh
+    } = useServerPagination({
+        fetchFunction: expenseService.getAllPaginatedWithDetails.bind(expenseService),
+        initialPage: 1,
+        initialLimit: 10,
+    })
     const handleDelete = async (id: number) => {
-        setIsLoading(true)
-        await expenseService.delete(id).catch((error) => {
-            console.error('Error al eliminar la compra', error)
-            alert('Error al eliminar la compra')
-        })
-        await expenseService.deleteWithDetails(id).catch(error => {
-            console.error('Error al eliminar los detalles de la compra', error)
-            alert('Error al eliminar los detalles de la compra')
-        })
-        setExpenses(
-            expenses.filter((expense) => expense.id !== id)
-        )
-        setIsDeleteConfirmOpen(false)
-        setIsLoading(false)
+        try {
+            await expenseService.delete(id)
+            await expenseService.deleteWithDetails(id)
+            refresh() // Refresca los datos de la página actual
+            setIsDeleteConfirmOpen(false)
+        } catch (error) {
+            console.error('Error al eliminar el gasto', error)
+            alert('Error al eliminar el gasto')
+        }
     }
 
     const handleEdit = async () => {
         setIsLoading(true)
         if (!selectedExpense.id) {
-            alert('Error al editar la compra: ID no definido')
+            alert('Error al editar el gasto: ID no definido')
             setIsLoading(false)
             return
         }
         if (!selectedExpense.date) {
-            alert('Error al editar la compra: Fecha no definida')
+            alert('Error al editar el gasto: Fecha no definida')
             setIsLoading(false)
             return
         }
@@ -82,7 +68,7 @@ export default function ExpensesTable() {
         for (const detail of selectedExpense.expense_details ?? []) {
             if (detail.toDelete) continue
             if (!detail.productId || !detail.personId) {
-                alert(':( Error al editar la compra: Producto o persona indefinida en detalle a crear')
+                alert(':( Error al editar el gasto: Producto o persona indefinida en detalle a crear')
                 setIsLoading(false)
                 bad = true
                 break
@@ -92,11 +78,11 @@ export default function ExpensesTable() {
 
         const updatedExpense = await expenseService.updateWithDetails(selectedExpense)
             .catch((error: unknown) => {
-                console.error('Error al editar la compra', error)
+                console.error('Error al editar el gasto', error)
                 if (error instanceof Error) {
-                    alert(`Error al editar la compra: ${error.message}`);
+                    alert(`Error al editar el gasto: ${error.message}`);
                 } else {
-                    alert('Error al editar la compra');
+                    alert('Error al editar el gasto');
                 }
                 return null
             })
@@ -104,31 +90,21 @@ export default function ExpensesTable() {
             selectedExpense.total_kg = updatedExpense.total_kg ?? 0;
         }
 
-        setExpenses(
-            expenses.map((expense) =>
-                expense.id === selectedExpense.id ? selectedExpense : expense
-            )
-        )
+        refresh() // Refresh data after edit
         setIsEditModalOpen(false)
         setIsLoading(false)
-    }
-
-    // Si hay datos cargando, mostrar un indicador de carga
-    if (expensesLoading) {
-        return <div className='p-4 text-center'>Cargando datos...</div>
-    }
-
-    // Si hay errores, mostrar un mensaje de error
-    if (expensesError) {
+    }    // Loading state
+    if (loading) {
+        return <div className='p-4 text-center'>Cargando gastos...</div>
+    }    // Error state
+    if (error) {
         return (
             <div className='p-4 bg-red-50 border border-red-200 rounded-md text-red-600'>
-                <p className='font-medium'>Error al cargar datos:</p>
-                <p>{expensesError?.message}</p>
+                <p className='font-medium'>Error al cargar gastos:</p>
+                <p>{error}</p>
                 <button
                     className='mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 rounded-md text-sm'
-                    onClick={() => {
-                        refreshExpenses()
-                    }}>
+                    onClick={() => refresh()}>
                     Reintentar
                 </button>
             </div>
@@ -344,9 +320,20 @@ export default function ExpensesTable() {
                         }
                         className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
                         Eliminar
-                    </button>
-                </section>
+                    </button>                </section>
             </Modal>
+
+            {/* Pagination */}
+            <div className="mt-4">
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={goToPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
+            </div>
         </section >
     )
 }

@@ -5,53 +5,41 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../../components/dropdown/DropdownMenu'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import User from '../../../types/User'
 import { userService } from '../../../services/User'
-
-// const sample_users: User[] = [
-//     {
-//         id: 1,
-//         name: 'admin',
-//         role: 'admin',
-//         password: '********',
-//     },
-//     {
-//         id: 2,
-//         name: 'user1',
-//         role: 'oficina',
-//         password: '********',
-//     },
-// ]
+import { useServerPagination } from '../../../hooks/useServerPagination'
+import Pagination from '../../components/pagination/Pagination'
 
 const headersTable = ['Usuario', 'Rol', 'Acciones']
-
-const fetchUsers = async (): Promise<User[]> => {
-    return await userService.getAll();
-}
 
 export default function UsersTable() {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User>({} as User)
-    const [users, setUsers] = useState<User[]>([])
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [passwordError, setPasswordError] = useState('')
-    const [isLoading, setIsLoading] = useState(true)
 
-    useEffect(() => {
-        fetchUsers().then((res) => {
-            setUsers(res)
-        })
-            .catch((error) => {
-                console.error('Error al cargar los usuarios', error)
-                setUsers([])
-                alert('Error al cargar los usuarios')
-            })
-    }, [])
+    // Server-side pagination
+    const {
+        data: users,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+        goToPage,
+        setItemsPerPage,
+        refresh
+    } = useServerPagination({
+        fetchFunction: userService.getAllPaginated.bind(userService),
+        initialPage: 1,
+        initialLimit: 10,
+    })
 
     const validatePassword = () => {
         if (newPassword && newPassword.length < 6) {
@@ -66,41 +54,62 @@ export default function UsersTable() {
     }
 
     const handleDelete = async (id: number) => {
-        setIsLoading(true)
-        await userService.delete(id).catch((error) => {
+        try {
+            await userService.delete(id)
+            refresh() // Refresh data after delete
+            setIsDeleteConfirmOpen(false)
+        } catch (error) {
             console.error('Error al eliminar el usuario', error)
             alert('Error al eliminar el usuario')
-        })
-        setUsers(users.filter((user) => user.id !== id))
-        setIsDeleteConfirmOpen(false)
-        setIsLoading(false)
+        }
     }
 
     const handleEdit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setIsLoading(true)
         if (newPassword && !validatePassword()) {
             return
         }
 
-        const updatedUser = {
-            ...selectedUser,
-            password: newPassword || selectedUser.password,
-        }
-        if (updatedUser.id !== undefined) {
-            await userService.update(updatedUser.id, updatedUser)
-            setUsers(
-                users.map((user) => (user.id === selectedUser.id ? updatedUser : user))
-            )
-        } else {
-            console.error('User ID is undefined. Cannot update user.')
+        try {
+            const updatedUser = {
+                ...selectedUser,
+                password: newPassword || selectedUser.password,
+            }
+            if (updatedUser.id !== undefined) {
+                await userService.update(updatedUser.id, updatedUser)
+                refresh() // Refresh data after edit
+                setIsEditModalOpen(false)
+                setNewPassword('')
+                setConfirmPassword('')
+                setPasswordError('')
+            } else {
+                console.error('User ID is undefined. Cannot update user.')
+                alert('Error al actualizar el usuario')
+            }
+        } catch (error) {
+            console.error('Error al actualizar el usuario', error)
             alert('Error al actualizar el usuario')
         }
-        setIsLoading(false)
-        setIsEditModalOpen(false)
-        setNewPassword('')
-        setConfirmPassword('')
-        setPasswordError('')
+    }
+
+    // Loading state
+    if (loading) {
+        return <div className='p-4 text-center'>Cargando usuarios...</div>
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className='p-4 bg-red-50 border border-red-200 rounded-md text-red-600'>
+                <p className='font-medium'>Error al cargar usuarios:</p>
+                <p>{error}</p>
+                <button
+                    className='mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 rounded-md text-sm'
+                    onClick={() => refresh()}>
+                    Reintentar
+                </button>
+            </div>
+        )
     }
 
     return (
@@ -126,9 +135,7 @@ export default function UsersTable() {
                                         <button
                                             className='fixed inset-0 z-0 w-full h-full bg-transparent cursor-default'
                                             onClick={() => setIsOpen(false)}>
-                                            <span className='sr-only'>
-                                                Cerrar menú
-                                            </span>
+                                            <span className='sr-only'>Cerrar menú</span>
                                         </button>
                                     )}
                                     <DropdownMenuTrigger
@@ -141,28 +148,24 @@ export default function UsersTable() {
                                         <span className='sr-only'>Abrir menú</span>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent
-                                        isOpen={
-                                            isOpen && selectedUser.id === user.id
-                                        }>
+                                        isOpen={isOpen && selectedUser.id === user.id}>
                                         <DropdownMenuItem
                                             className='text-blue-600 hover:text-blue-800'
                                             onClick={() => {
-                                                setSelectedUser(user)
                                                 setIsEditModalOpen(true)
                                                 setIsOpen(false)
                                             }}>
                                             <Pencil className='mr-2 h-4 w-4' />
-                                            <p>Editar</p>
+                                            <span>Editar</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             className='text-red-600'
                                             onClick={() => {
-                                                setSelectedUser(user)
                                                 setIsDeleteConfirmOpen(true)
                                                 setIsOpen(false)
                                             }}>
                                             <Trash2 className='mr-2 h-4 w-4' />
-                                            Eliminar
+                                            <span>Eliminar</span>
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -182,59 +185,54 @@ export default function UsersTable() {
                     setPasswordError('')
                 }}>
                 <h2 className='text-xl font-semibold mb-4'>Editar Usuario</h2>
-                <form onSubmit={handleEdit}>
-                    <section className='mb-4'>
+                <form onSubmit={handleEdit} className='space-y-4'>
+                    <div>
                         <label
-                            htmlFor='name'
+                            htmlFor='userName'
                             className='block text-sm font-medium text-gray-700'>
-                            Nombre de Usuario
+                            Nombre de usuario
                         </label>
                         <input
-                            name='name'
-                            id='name'
+                            id='userName'
                             type='text'
-                            value={selectedUser.name}
+                            value={selectedUser.name || ''}
                             onChange={(e) =>
                                 setSelectedUser({
                                     ...selectedUser,
                                     name: e.target.value,
                                 })
                             }
-                            className='mt-1 p-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         />
-                    </section>
-                    <section className='mb-4'>
+                    </div>
+                    <div>
                         <label
-                            htmlFor='role'
+                            htmlFor='userRole'
                             className='block text-sm font-medium text-gray-700'>
                             Rol
                         </label>
                         <select
-                            name='role'
-                            id='role'
-                            required
-                            className='mt-1 p-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-                            value={selectedUser.role}
+                            id='userRole'
+                            value={selectedUser.role || ''}
                             onChange={(e) =>
                                 setSelectedUser({
                                     ...selectedUser,
                                     role: e.target.value,
                                 })
-                            }>
-                            <option value=''>Selecciona un rol</option>
-                            <option value='admin'>Administrador</option>
+                            }
+                            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'>
+                            <option value='admin'>Admin</option>
                             <option value='oficina'>Oficina</option>
                             <option value='operador'>Operador</option>
                         </select>
-                    </section>
-                    <section className='mb-4'>
+                    </div>
+                    <div>
                         <label
                             htmlFor='newPassword'
                             className='block text-sm font-medium text-gray-700'>
-                            Nueva Contraseña (opcional)
+                            Nueva contraseña (opcional)
                         </label>
                         <input
-                            name='newPassword'
                             id='newPassword'
                             type='password'
                             value={newPassword}
@@ -242,33 +240,30 @@ export default function UsersTable() {
                                 setNewPassword(e.target.value)
                                 setPasswordError('')
                             }}
-                            className='mt-1 p-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         />
-                    </section>
-                    {newPassword && (
-                        <section className='mb-4'>
-                            <label
-                                htmlFor='confirmPassword'
-                                className='block text-sm font-medium text-gray-700'>
-                                Confirmar Nueva Contraseña
-                            </label>
-                            <input
-                                name='confirmPassword'
-                                id='confirmPassword'
-                                type='password'
-                                value={confirmPassword}
-                                onChange={(e) => {
-                                    setConfirmPassword(e.target.value)
-                                    setPasswordError('')
-                                }}
-                                className='mt-1 p-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-                            />
-                        </section>
-                    )}
+                    </div>
+                    <div>
+                        <label
+                            htmlFor='confirmPassword'
+                            className='block text-sm font-medium text-gray-700'>
+                            Confirmar contraseña
+                        </label>
+                        <input
+                            id='confirmPassword'
+                            type='password'
+                            value={confirmPassword}
+                            onChange={(e) => {
+                                setConfirmPassword(e.target.value)
+                                setPasswordError('')
+                            }}
+                            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                        />
+                    </div>
                     {passwordError && (
-                        <p className='text-red-500 text-sm mb-4'>{passwordError}</p>
+                        <p className='text-red-600 text-sm'>{passwordError}</p>
                     )}
-                    <section className='flex justify-end'>
+                    <div className='flex justify-end space-x-2'>
                         <button
                             type='button'
                             onClick={() => {
@@ -277,16 +272,15 @@ export default function UsersTable() {
                                 setConfirmPassword('')
                                 setPasswordError('')
                             }}
-                            className='mr-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'>
+                            className='px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                             Cancelar
                         </button>
                         <button
-                            disabled={!isLoading}
                             type='submit'
-                            className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                            className='px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                             Guardar
                         </button>
-                    </section>
+                    </div>
                 </form>
             </Modal>
 
@@ -294,34 +288,40 @@ export default function UsersTable() {
             <Modal
                 isOpen={isDeleteConfirmOpen}
                 onClose={() => setIsDeleteConfirmOpen(false)}>
-                <h2 className='text-xl font-semibold mb-4'>
-                    Confirmar Eliminación de Usuario
-                </h2>
+                <h2 className='text-xl font-semibold mb-4'>Confirmar Eliminación</h2>
                 <p className='mb-4'>
-                    ¿Estás seguro de que deseas eliminar al usuario{' '}
-                    <p className='font-semibold text-red-600 inline-block'>
-                        {selectedUser.name}
-                    </p>
-                    ?
+                    ¿Estás seguro de que deseas eliminar el usuario{' '}
+                    <strong className='text-red-600'>{selectedUser.name}</strong>?
                 </p>
-                <section className='flex justify-end'>
+                <div className='flex justify-end space-x-2'>
                     <button
                         type='button'
                         onClick={() => setIsDeleteConfirmOpen(false)}
-                        className='mr-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'>
+                        className='px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                         Cancelar
                     </button>
                     <button
-                        disabled={!isLoading}
                         type='button'
                         onClick={() =>
                             selectedUser.id && handleDelete(selectedUser.id)
                         }
-                        className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
+                        className='px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
                         Eliminar
                     </button>
-                </section>
+                </div>
             </Modal>
+
+            {/* Pagination */}
+            <div className="mt-4">
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={goToPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
+            </div>
         </section>
     )
 }

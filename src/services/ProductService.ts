@@ -1,4 +1,5 @@
 import Product from '../types/Product'
+import { PaginatedResponse } from '../types/PaginatedResponse'
 import { ApiService } from './ApiService'
 // import axios from 'axios'
 // import { Config } from '../config/Config'
@@ -6,6 +7,14 @@ import { ApiService } from './ApiService'
 export class ProductService extends ApiService<Product> {
     constructor() {
         super('products')
+    }
+
+    // Método específico para obtener productos paginados
+    async getAllPaginated(
+        page: number = 1,
+        limit: number = 10
+    ): Promise<PaginatedResponse<Product>> {
+        return this.getPaginated(page, limit)
     }
 
     // // Aquí puedes agregar métodos específicos para productos

@@ -1,5 +1,6 @@
 import axios from 'axios'
 import Purchase from '../types/Purchase'
+import { PaginatedResponse } from '../types/PaginatedResponse'
 import { ApiService } from './ApiService'
 import { purchaseDetailsService } from './PurchaseDetailsService'
 
@@ -160,6 +161,32 @@ export class PurchaseService extends ApiService<Purchase> {
       await axios.delete(`${this.getUrl()}/${id}/purchase-details`)
     } catch (error) {
       this.handleError(error, 'Error deleting purchase with details')
+    }
+  }
+
+  // Método específico para obtener compras paginadas
+  async getAllPaginated(page: number = 1, limit: number = 10): Promise<PaginatedResponse<Purchase>> {
+    return this.getPaginated(page, limit)
+  }
+
+  async getAllPaginatedWithDetails(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<PaginatedResponse<Purchase>> {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        filter: JSON.stringify({
+          include: [{ relation: 'purchase_details' }],
+          order: ['date DESC'],
+        }),
+      })
+      return await this.handleResponse<PaginatedResponse<Purchase>>(
+        axios.get(`${this.getUrl()}?${params.toString()}`)
+      )
+    } catch (error) {
+      this.handleError(error, 'Error getting paginated purchases with details')
     }
   }
 }

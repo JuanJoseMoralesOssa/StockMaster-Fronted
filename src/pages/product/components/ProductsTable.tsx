@@ -5,10 +5,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../../components/dropdown/DropdownMenu'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Product from '../../../types/Product'
 import { productService } from '../../../services/ProductService'
+import { useServerPagination } from '../../../hooks/useServerPagination'
+import Pagination from '../../components/pagination/Pagination'
 
 // const my_products: Product[] = [
 //     {
@@ -53,66 +55,65 @@ const headersTable = [
 // }
 
 export default function ProductsTable() {
-    const [loading, setLoading] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<Product>({} as Product)
-    const [products, setProducts] = useState<Product[]>([])
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
 
-    useEffect(() => {
-        // Fetch products from API
-
-        productService.getAll()
-            .then((data) => {
-                setProducts(data)
-            })
-            .catch((error) => {
-                console.error('Error al cargar los productos', error)
-                setProducts([])
-                alert('Error al cargar los productos')
-            })
-    }, [])
+    // Usar paginación del servidor
+    const {
+        data: products,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+        goToPage,
+        setItemsPerPage,
+        refresh
+    } = useServerPagination({
+        fetchFunction: productService.getAllPaginated.bind(productService),
+        initialPage: 1, initialLimit: 10,
+    })
 
     const handleDelete = async (id: number) => {
-        // Handle delete action
-        setLoading(true)
-        console.log(`Deleting product with id: ${id}`)
-        await productService.delete(id).catch((error) => {
+        try {
+            console.log(`Deleting product with id: ${id}`)
+            await productService.delete(id)
+            refresh() // Refresca los datos de la página actual
+            setIsDeleteConfirmOpen(false)
+        } catch (error) {
             console.error('Error al eliminar el producto', error)
             alert('Error al eliminar el producto')
-        })
-        setProducts(products.filter((product) => product.id !== id))
-        setIsDeleteConfirmOpen(false)
-        setLoading(false)
+        }
     }
 
     const editProduct = async (id: number) => {
-        setLoading(true)
-        await productService
-            .update(id, selectedProduct)
-            .then(() => {
-                setProducts(
-                    products.map((product) =>
-                        product.id === selectedProduct.id
-                            ? selectedProduct
-                            : product
-                    )
-                )
-                setIsEditModalOpen(false)
-            })
-            .catch((error) => {
-                console.error(
-                    'Error al actualizar el producto',
-                    error
-                )
-                alert('Error al actualizar el producto')
-            })
-        setLoading(false)
+        try {
+            await productService.update(id, selectedProduct)
+            refresh() // Refresca los datos de la página actual
+            setIsEditModalOpen(false)
+        } catch (error) {
+            console.error('Error al actualizar el producto', error)
+            alert('Error al actualizar el producto')
+        }
     }
 
     return (
         <section className='px-2 py-4 overflow-x-auto sm:overflow-visible'>
+            {loading && (
+                <div className="flex justify-center items-center py-8">
+                    <div className="text-gray-500">Cargando productos...</div>
+                </div>
+            )}
+
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    Error: {error}
+                </div>
+            )}
+
             <table className='w-full border border-gray-50 rounded-xl table-auto text-sm sm:text-base'>
                 <thead>
                     <tr className='bg-gray-50 text-left text-gray-600 uppercase text-xs sm:text-sm'>
@@ -122,8 +123,7 @@ export default function ProductsTable() {
                             </th>
                         ))}
                     </tr>
-                </thead>
-                <tbody className='bg-white sectionide-y sectionide-gray-200'>
+                </thead>                <tbody className='bg-white sectionide-y sectionide-gray-200'>
                     {products.map((p) => (
                         <tr key={p.id} className='text-sm sm:text-base'>
                             <td className='p-2 whitespace-nowrap'>{p.name}</td>
@@ -279,7 +279,14 @@ export default function ProductsTable() {
                         Eliminar
                     </button>
                 </section>
-            </Modal>
+            </Modal>            {/* Pagination */}            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={goToPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
         </section>
     )
 }

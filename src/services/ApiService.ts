@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios'
 import { Config } from '../config/Config'
+import { PaginatedResponse } from '../types/PaginatedResponse'
 
 // Base URL para todas las peticiones
 const API_BASE_URL = Config.LOGIC_URL
@@ -68,9 +69,24 @@ export class ApiService<T> {
   // Métodos CRUD genéricos
   async getAll(): Promise<T[]> {
     try {
-      return await this.handleResponse<T[]>(axios.get(this.getUrl(), defaultConfig))
+      return await this.handleResponse<T[]>(axios.get(`${this.getUrl()}/all`, defaultConfig))
     } catch (error) {
       this.handleError(error, `Error getting all ${this.endpoint}`)
+    }
+  }
+
+  // Método para obtener datos paginados
+  async getPaginated(page: number = 1, limit: number = 10): Promise<PaginatedResponse<T>> {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+      })
+      return await this.handleResponse<PaginatedResponse<T>>(
+        axios.get(`${this.getUrl()}?${params.toString()}`, defaultConfig)
+      )
+    } catch (error) {
+      this.handleError(error, `Error getting paginated ${this.endpoint}`)
     }
   }
 

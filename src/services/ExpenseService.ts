@@ -1,5 +1,6 @@
 import axios from 'axios'
 import Expense from '../types/Expense'
+import { PaginatedResponse } from '../types/PaginatedResponse'
 import { ApiService } from './ApiService'
 import { expenseDetailsService } from './ExpenseDetailsService'
 
@@ -160,6 +161,32 @@ export class ExpenseService extends ApiService<Expense> {
       await axios.delete(`${this.getUrl()}/${id}/expense-details`)
     } catch (error) {
       this.handleError(error, 'Error deleting expense with details')
+    }
+  }
+
+  // Método específico para obtener gastos paginados
+  async getAllPaginated(page: number = 1, limit: number = 10): Promise<PaginatedResponse<Expense>> {
+    return this.getPaginated(page, limit)
+  }
+
+  async getAllPaginatedWithDetails(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<PaginatedResponse<Expense>> {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        filter: JSON.stringify({
+          include: [{ relation: 'expense_details' }],
+          order: ['date DESC'],
+        }),
+      })
+      return await this.handleResponse<PaginatedResponse<Expense>>(
+        axios.get(`${this.getUrl()}?${params.toString()}`)
+      )
+    } catch (error) {
+      this.handleError(error, 'Error getting paginated expenses with details')
     }
   }
 }

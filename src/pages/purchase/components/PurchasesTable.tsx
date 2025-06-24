@@ -8,8 +8,9 @@ import {
 import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Purchase from '../../../types/Purchase'
-import { useAvailablePurchases } from '../../../hooks/useAvailablePurchases'
 import { purchaseService } from '../../../services/PurchaseService'
+import { useServerPagination } from '../../../hooks/useServerPagination'
+import Pagination from '../../components/pagination/Pagination'
 import PurchasesDetailsTable from '../../purchase_details/PurchaseDetailsTable'
 import PurchaseDetails from '../../../types/PurchaseDetails'
 
@@ -18,52 +19,37 @@ const headersTable = ['Fecha', 'Total kg', 'Acciones']
 export default function PurchasesTable() {
     const [isLoading, setIsLoading] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
-    const {
-        purchases,
-        setPurchases,
-        error: purchasesError,
-        loading: purchasesLoading,
-        refreshPurchases,
-    } = useAvailablePurchases()
-
-    const [selectedPurchase, setSelectedPurchase] = useState<Purchase>(
-        {} as Purchase
-    )
+    const [selectedPurchase, setSelectedPurchase] = useState<Purchase>({} as Purchase)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
-    // useEffect(() => {
-    //     fetchPurchases()
-    //         .then((purchases) => setLocalPurchases(purchases))
-    //         .catch((error) => {
-    //             setLocalPurchases([])
-    //             console.error('Error al cargar las compras', error)
-    //             alert('Error al cargar las compras')
-    //         })
-    // }, [])
 
-    // const getPersonName = (personId: number) => {
-    //     return (
-    //         persons.find((person) => person.id === personId)?.name ??
-    //         'Proveedor no encontrado'
-    //     )
-    // }
-
-
+    // Server-side pagination
+    const {
+        data: purchases,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+        goToPage,
+        setItemsPerPage,
+        refresh
+    } = useServerPagination({
+        fetchFunction: purchaseService.getAllPaginatedWithDetails.bind(purchaseService),
+        initialPage: 1,
+        initialLimit: 10,
+    })
     const handleDelete = async (id: number) => {
-        setIsLoading(true)
-        await purchaseService.delete(id).catch((error) => {
+        try {
+            await purchaseService.delete(id)
+            await purchaseService.deleteWithDetails(id)
+            refresh() // Refresh data after delete
+            setIsDeleteConfirmOpen(false)
+        } catch (error) {
             console.error('Error al eliminar la compra', error)
             alert('Error al eliminar la compra')
-        })
-        await purchaseService.deleteWithDetails(id).catch(error => {
-            console.error('Error al eliminar los detalles de la compra', error)
-            alert('Error al eliminar los detalles de la compra')
-        })
-        setPurchases(
-            purchases.filter((purchase) => purchase.id !== id)
-        )
-        setIsDeleteConfirmOpen(false)
-        setIsLoading(false)
+        }
     }
 
     const handleEdit = async () => {
@@ -104,31 +90,23 @@ export default function PurchasesTable() {
             selectedPurchase.total_kg = updatedPurchase.total_kg ?? 0;
         }
 
-        setPurchases(
-            purchases.map((purchase) =>
-                purchase.id === selectedPurchase.id ? selectedPurchase : purchase
-            )
-        )
+        refresh() // Refresh data after edit
         setIsEditModalOpen(false)
         setIsLoading(false)
+    }    // Loading state
+    if (loading) {
+        return <div className='p-4 text-center'>Cargando compras...</div>
     }
 
-    // Si hay datos cargando, mostrar un indicador de carga
-    if (purchasesLoading) {
-        return <div className='p-4 text-center'>Cargando datos...</div>
-    }
-
-    // Si hay errores, mostrar un mensaje de error
-    if (purchasesError) {
+    // Error state
+    if (error) {
         return (
             <div className='p-4 bg-red-50 border border-red-200 rounded-md text-red-600'>
-                <p className='font-medium'>Error al cargar datos:</p>
-                <p>{purchasesError?.message}</p>
+                <p className='font-medium'>Error al cargar compras:</p>
+                <p>{error}</p>
                 <button
                     className='mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 rounded-md text-sm'
-                    onClick={() => {
-                        refreshPurchases()
-                    }}>
+                    onClick={() => refresh()}>
                     Reintentar
                 </button>
             </div>
@@ -344,9 +322,20 @@ export default function PurchasesTable() {
                         }
                         className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
                         Eliminar
-                    </button>
-                </section>
+                    </button>                </section>
             </Modal>
+
+            {/* Pagination */}
+            <div className="mt-4">
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={goToPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
+            </div>
         </section >
     )
 }

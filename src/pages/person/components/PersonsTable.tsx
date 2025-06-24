@@ -5,10 +5,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../../components/dropdown/DropdownMenu'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Person from '../../../types/Person'
 import { personService } from '../../../services/PersonService'
+import { useServerPagination } from '../../../hooks/useServerPagination'
+import Pagination from '../../components/pagination/Pagination'
 
 // const sample_persons: Person[] = [
 //     {
@@ -28,59 +30,64 @@ import { personService } from '../../../services/PersonService'
 const headersTable = ['Nombre', 'Acciones']
 
 export default function PersonsTable() {
-    const [loading, setLoading] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
     const [selectedPerson, setSelectedPerson] = useState<Person>({} as Person)
-    const [persons, setPersons] = useState<Person[]>([])
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
 
-    useEffect(() => {
-        personService.getAll()
-            .then((data) => {
-                setPersons(data)
-            })
-            .catch((error) => {
-                console.error('Error al cargar los personas', error)
-                setPersons([])
-                alert('Error al cargar los personas')
-            })
-    }, [])
+    // Usar paginación del servidor
+    const {
+        data: persons,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+        goToPage,
+        setItemsPerPage,
+        refresh
+    } = useServerPagination({
+        fetchFunction: personService.getAllPaginated.bind(personService),
+        initialPage: 1, initialLimit: 10,
+    })
 
     const handleDelete = async (id: number) => {
-        setLoading(true)
-        await personService.delete(id).catch(() => {
-            console.error('Error al eliminar la persona', id)
+        try {
+            await personService.delete(id)
+            refresh() // Refresca los datos de la página actual
+            setIsDeleteConfirmOpen(false)
+        } catch (error) {
+            console.error('Error al eliminar la persona', error)
             alert('Error al eliminar la persona')
-        })
-        setPersons(persons.filter((person) => person.id !== id))
-        setIsDeleteConfirmOpen(false)
-        setLoading(false)
+        }
     }
+
     const handleEdit = async (id: number) => {
-        await personService
-            .update(id, selectedPerson)
-            .then(() => {
-                setPersons(
-                    persons.map((person) =>
-                        person.id === selectedPerson.id
-                            ? selectedPerson
-                            : person,
-                    ),
-                )
-                setIsEditModalOpen(false)
-            })
-            .catch((error) => {
-                console.error(
-                    'Error al actualizar la persona',
-                    error,
-                )
-                alert('Error al actualizar la persona')
-            })
+        try {
+            await personService.update(id, selectedPerson)
+            refresh() // Refresca los datos de la página actual
+            setIsEditModalOpen(false)
+        } catch (error) {
+            console.error('Error al actualizar la persona', error)
+            alert('Error al actualizar la persona')
+        }
     }
 
     return (
         <section className='px-2 py-4 overflow-x-auto sm:overflow-visible'>
+            {loading && (
+                <div className="flex justify-center items-center py-8">
+                    <div className="text-gray-500">Cargando personas...</div>
+                </div>
+            )}
+
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    Error: {error}
+                </div>
+            )}
+
             <table className='w-full border border-gray-50 rounded-xl table-auto text-sm sm:text-base'>
                 <thead>
                     <tr className='bg-gray-50 text-left text-gray-600 uppercase text-xs sm:text-sm'>
@@ -90,8 +97,7 @@ export default function PersonsTable() {
                             </th>
                         ))}
                     </tr>
-                </thead>
-                <tbody className='bg-white divide-y divide-gray-200'>
+                </thead>                <tbody className='bg-white divide-y divide-gray-200'>
                     {persons.map((person) => (
                         <tr key={person.id} className='text-sm sm:text-base'>
                             <td className='p-2 whitespace-nowrap'>{person.name}</td>
@@ -218,10 +224,16 @@ export default function PersonsTable() {
                             selectedPerson.id && handleDelete(selectedPerson.id)
                         }
                         className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
-                        Eliminar
-                    </button>
+                        Eliminar                    </button>
                 </section>
-            </Modal>
+            </Modal>            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={goToPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
         </section>
     )
 }

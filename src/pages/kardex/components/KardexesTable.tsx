@@ -5,10 +5,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../../components/dropdown/DropdownMenu'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Kardex from '../../../types/Kardex'
 import { kardexService } from '../../../services/KardexService'
+import { useServerPagination } from '../../../hooks/useServerPagination'
+import Pagination from '../../components/pagination/Pagination'
 
 const headersTable = [
     'Fecha',
@@ -21,96 +23,71 @@ const headersTable = [
     'Acciones',
 ]
 
-// const my_kardexes: Kardex[] = [
-//     {
-//         id: 1,
-//         date: '2025-02-16T21:33:09.422Z',
-//         input: 10,
-//         output: 0,
-//         balance: 10,
-//         balance_record: true,
-//         operation: 1,
-//         productId: 1,
-//         product: {
-//             id: 1,
-//             name: 'Producto A',
-//         },
-//     },
-//     {
-//         id: 2,
-//         date: '2025-02-17T21:33:09.422Z',
-//         input: 0,
-//         output: 5,
-//         balance: 5,
-//         balance_record: true,
-//         operation: 2,
-//         productId: 2,
-//         product: {
-//             id: 2,
-//             name: 'Producto B',
-//         },
-//     },
-// ]
-
-// const fetchKardexByProducts = async () => {
-//     await new Promise((resolve) => setTimeout(resolve, 1000))
-//     return my_kardexes
-// }
-
 export default function KardexesTable() {
-    const [loading, setLoading] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
     const [selectedKardex, setSelectedKardex] = useState<Kardex>({} as Kardex)
-    const [kardexEntries, setKardexEntries] = useState<Kardex[]>([])
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
 
-    useEffect(() => {
-        // Aquí se debería obtener el kardex real, por ejemplo:
-        // fetchKardexByProducts().then(setKardexEntries)
-        kardexService.getKardexByProducts().then((response) => {
-            setKardexEntries(response)
-        }).catch((error) => {
-            console.error('Error al obtener el kardex', error)
+    // Usar paginación del servidor
+    const {
+        data: kardexEntries,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+        goToPage,
+        setItemsPerPage,
+        refresh } = useServerPagination({
+            fetchFunction: kardexService.getAllPaginated.bind(kardexService),
+            initialPage: 1,
+            initialLimit: 10,
         })
-    }, [])
 
     const handleDelete = async (id: number) => {
-        setLoading(true)
-        await kardexService.delete(id).then(() => {
+        try {
+            await kardexService.delete(id)
             console.log('Registro del kardex eliminado', id)
-            alert('Registro del kardex eliminado con éxito')
-        }).catch((error) => {
+            refresh() // Refresca los datos de la página actual
+            setIsDeleteConfirmOpen(false)
+        } catch (error) {
             console.error('Error al eliminar el registro del kardex', error)
             alert('Error al eliminar el registro del kardex')
-        })
-        setKardexEntries(kardexEntries.filter((entry) => entry.id !== id))
-        setIsDeleteConfirmOpen(false)
-        setLoading(false)
+        }
     }
 
     const handleEdit = async (id: number) => {
-        setLoading(true)
-        const { product, ...rest } = selectedKardex
-        if (product?.id) {
-            rest.productId = product?.id
-        }
-        await kardexService.update(id, rest).then(() => {
+        try {
+            const { product, ...rest } = selectedKardex
+            if (product?.id) {
+                rest.productId = product?.id
+            }
+            await kardexService.update(id, rest)
             console.log('Registro del kardex actualizado', selectedKardex)
-            alert('Registro del kardex actualizado con éxito')
-        })
-        // Actualiza el registro del kardex en el estado local
-        setKardexEntries(
-            kardexEntries.map((entry) =>
-                entry.id === selectedKardex.id ? selectedKardex : entry
-            )
-        )
-        setIsEditModalOpen(false)
-        setLoading(false)
+            refresh() // Refresca los datos de la página actual
+            setIsEditModalOpen(false)
+        } catch (error) {
+            console.error('Error al actualizar el kardex', error)
+            alert('Error al actualizar el kardex')
+        }
     }
 
     return (
         <section className='space-y-4 px-2 py-4 overflow-x-auto sm:overflow-visible '>
+            {loading && (
+                <div className="flex justify-center items-center py-8">
+                    <div className="text-gray-500">Cargando kardex...</div>
+                </div>
+            )}
+
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    Error: {error}
+                </div>
+            )}
+
             <table className='w-full border border-gray-50 rounded-xl table-auto text-sm sm:text-base'>
                 <thead>
                     <tr className='bg-gray-50'>
@@ -313,10 +290,19 @@ export default function KardexesTable() {
                             selectedKardex?.id && handleDelete(selectedKardex.id)
                         }
                         className='px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700'>
-                        Eliminar
-                    </button>
+                        Eliminar                    </button>
                 </section>
             </Modal>
+
+            {/* Pagination Component */}
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={goToPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
         </section>
     )
 }
