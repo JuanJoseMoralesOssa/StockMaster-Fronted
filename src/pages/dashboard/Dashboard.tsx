@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import Person from '../../types/Person';
 import { useAvailableSuppliers } from '../../hooks/useAvailableSuppliers';
 import { useAvailableProducts } from '../../hooks/useAvailableProducts';
 import Filters from './Filters';
-import SupplierProductCharts from './SupplierProductCharts';
-import SupplierCharts from './SupplierCharts';
-import ProductChart from './ProductChart';
 import { dashboardService } from '../../services/DashboardService';
 import { DashboardResult, ProductsResults, SuppliersResults } from '../../types/DashboardResults';
+import ModeToggleDashboard from './ModeToggle';
+import RenderingWithMode from './RenderingWithMode';
+
+type DashboardMode = 'detailed' | 'general';
 
 export default function SupplierPaymentReport() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dashboardMode, setDashboardMode] = useState<DashboardMode>('detailed');
 
   const [supplierProductResults, setSupplierProductResults] = useState<DashboardResult[]>([]);
   const [suppliersResults, setSuppliersResults] = useState<SuppliersResults[]>([]);
@@ -47,6 +48,16 @@ export default function SupplierPaymentReport() {
 
   // Colores para los gráficos
   // const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a83232', '#8884d8'];
+
+  const handleModeChange = (newMode: DashboardMode) => {
+    setDashboardMode(newMode);
+    // Limpiar resultados al cambiar de modo para evitar confusión
+    setSupplierProductResults([]);
+    setSuppliersResults([]);
+    setProductsResults([]);
+    setError(null);
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -140,8 +151,11 @@ export default function SupplierPaymentReport() {
         <div className='flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-fit'>
           <button
             onClick={fetchData}
-            className='px-4 py-2 rounded-2xl w-full md:w-fit text-white bg-blue-600 hover:text-gray-50 hover:bg-blue-700'>
-            Buscar
+            className={`px-4 py-2 rounded-2xl w-full md:w-fit text-white transition-colors ${dashboardMode === 'detailed'
+              ? 'bg-blue-600 hover:bg-blue-700'
+              : 'bg-green-600 hover:bg-green-700'
+              }`}>
+            {dashboardMode === 'detailed' ? '🔍 Buscar Detallado' : '⚡ Buscar General'}
           </button>
           <button
             onClick={() => {
@@ -170,55 +184,30 @@ export default function SupplierPaymentReport() {
         </div>
       </div>
 
+      <ModeToggleDashboard
+        dashboardMode={dashboardMode}
+        handleModeChange={handleModeChange}
+      />
+
       <Filters
         filters={filters}
         setFilters={setFilters}
-        products={products}
+        products={products.filter(p => typeof p.id === 'number').map(p => ({ id: p.id as number, name: p.name }))}
         availableSuppliers={availableSuppliers} selectedFilter={selectedFilter}
         setSelectedFilter={(filter: string) => setSelectedFilter(filter as 'all' | 'withDebt' | 'fullyPaid')}
       />
 
-      {filters.supplierId &&
-        filters.productId &&
-        supplierProductResults.length > 0 &&
-        (
-          <SupplierProductCharts
-            key={`supplier-product-${filters.supplierId}-${filters.productId}-${filters.startDate}-${filters.endDate}`}
-            results={supplierProductResults}
-            supplier={availableSuppliers.find(s => s.id === Number(filters.supplierId)) ?? {} as Person}
-            product={products.find(p => p.id === Number(filters.productId)) ?? { id: 0, name: 'Unknown Product' }}
-            filters={filters}
-            selectedFilter={selectedFilter} />
-        )
-      }
-
-      {filters.supplierId &&
-        !filters.productId &&
-        productsResults.length > 0 &&
-        (
-          <SupplierCharts
-            key={`supplier-${filters.supplierId}-${filters.startDate}-${filters.endDate}`}
-            selectedFilter={selectedFilter}
-            results={productsResults}
-            products={products}
-            filters={filters}
-          />
-        )
-      }
-
-      {!filters.supplierId &&
-        filters.productId &&
-        suppliersResults.length > 0 &&
-        (
-          <ProductChart
-            key={`product-${filters.productId}-${filters.startDate}-${filters.endDate}`}
-            selectedFilter="all"
-            results={suppliersResults}
-            suppliers={availableSuppliers}
-            filters={filters}
-          />
-        )
-      }
+      <RenderingWithMode
+        dashboardMode={dashboardMode}
+        filters={filters}
+        products={products.filter(p => typeof p.id === 'number').map(p => ({ id: p.id as number, name: p.name }))}
+        availableSuppliers={availableSuppliers.filter(s => typeof s.id === 'number' &&
+          s.id !== undefined).map(s => ({ id: s.id as number, name: s.name }))}
+        suppliersResults={suppliersResults}
+        productsResults={productsResults}
+        supplierProductResults={supplierProductResults}
+        selectedFilter={selectedFilter}
+      />
 
       {
         !filters.startDate &&

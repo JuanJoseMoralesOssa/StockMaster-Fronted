@@ -1,9 +1,10 @@
 import * as XLSX from 'xlsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import Person from '../../types/Person';
-import Product from '../../types/Product';
-import { DashboardResult } from '../../types/DashboardResults';
-import { EXPENSE, PURCHASE } from '../../constants/cts';
+import Person from '../../../types/Person';
+import Product from '../../../types/Product';
+import { DashboardResult } from '../../../types/DashboardResults';
+import { EXPENSE, PURCHASE } from '../../../constants/cts';
+
 
 interface SupplierAndProductProps {
   results: DashboardResult[];

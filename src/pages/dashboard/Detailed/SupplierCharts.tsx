@@ -1,4 +1,3 @@
-import React from 'react';
 import * as XLSX from 'xlsx';
 import {
   BarChart,
@@ -13,21 +12,16 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import Person from '../../types/Person';
-import { SuppliersResults } from '../../types/DashboardResults';
-import { EXPENSE, PURCHASE } from '../../constants/cts';
+import { ProductsResults } from '../../../types/DashboardResults';
+import Product from '../../../types/Product';
+import { EXPENSE, PURCHASE } from '../../../constants/cts';
 
-interface Filters {
-  startDate: string;
-  endDate: string;
-  supplierId: string;
-  productId: string;
-}
+interface Filters { startDate: string; endDate: string; supplierId: string; productId: string }
 
-interface ProductChartProps {
+interface ProductReportProps {
   selectedFilter: 'all' | 'withDebt' | 'fullyPaid';
-  results: SuppliersResults[];
-  suppliers: Person[];
+  results: ProductsResults[];
+  products: Product[];
   filters: Filters;
 }
 
@@ -36,10 +30,10 @@ interface MonthlyData {
   Total: number;
   Pagado: number;
   Pendiente: number;
-  personId: number;
+  productId: number
 }
 
-interface SupplierMonthlyData {
+interface ProductMonthlyData {
   month: string;
   Total: number;
   Pagado: number;
@@ -57,59 +51,73 @@ const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep
 
 const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
 
-const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, suppliers, filters }) => {
 
-  if (!filters.startDate || !filters.endDate) {
-    return <div className="text-center text-gray-500">Por favor selecciona un rango de fechas.</div>;
+const ProductReport: React.FC<ProductReportProps> = ({ selectedFilter, results, products, filters }) => {
+
+  if (results.length === 0) {
+    console.warn('SupplierCharts - No products found for the selected date range.');
+    return (
+      <div className="text-center text-gray-500 p-8">
+        <h3 className="text-lg font-semibold mb-2">No hay datos para mostrar</h3>
+        <p>No se encontraron productos para el rango de fechas seleccionado.</p>
+        <p className="text-sm mt-2">Filtros: {filters.startDate} - {filters.endDate}</p>
+      </div>
+    );
   }
 
-  const suppliersMap = new Map<number, string>();
-  suppliers.forEach((supplier) => {
-    if (supplier.id !== undefined && supplier.name !== undefined) {
-      suppliersMap.set(supplier.id, supplier.name);
+  // Validar filtros
+  if (!filters.supplierId || !filters.startDate || !filters.endDate) {
+    return <div className="text-center text-gray-500">Por favor selecciona un producto y un rango de fechas.</div>;
+  }
+
+  const productsMap = new Map<number, string>();
+  products.forEach((product) => {
+    if (product.id !== undefined && product.name !== undefined) {
+      productsMap.set(product.id, product.name);
     }
   });
 
-  const monthlyData: Record<string, MonthlyData> = results.reduce((acc: Record<string, MonthlyData>, item) => {
-    const date = new Date(item.date);
-    const monthName = formatMonthName(date);
-    const key = `${monthName}-${item.personId}`; // Unique key for month and supplier
-    const supplierName = suppliersMap.get(item.personId) || 'Proveedor Desconocido';
 
+
+  const monthlyData: Record<string, MonthlyData> = results.reduce((acc: Record<string, MonthlyData>, product) => {
+    const date = new Date(product.date);
+    const monthName = formatMonthName(date);
+    const key = `${monthName}-${product.productId}`; // Unique key for month and product
+    const productName = productsMap.get(product.productId) || 'Desconocido';
     if (!acc[key]) {
       acc[key] = {
-        name: monthName + ` (${supplierName})`,
+        name: monthName + ` (${productName})`,
         Total: 0,
         Pagado: 0,
         Pendiente: 0,
-        personId: item.personId,
+        productId: product.productId,
       };
     }
 
-    acc[key].Total += item.weight_kg;
-    if (item.type === EXPENSE) {
-      acc[key].Pagado += item.weight_kg;
-    } else if (item.type === PURCHASE) {
-      acc[key].Pendiente += item.weight_kg;
+    acc[key].Total += product.weight_kg;
+    if (product.type === EXPENSE) {
+      acc[key].Pagado += product.weight_kg;
+    } else if (product.type === PURCHASE) {
+      acc[key].Pendiente += product.weight_kg;
     }
 
     return acc;
   }, {});
 
-  const monthlyDataArray = Object.values(monthlyData);
+  const monthlyDataArray = Object.values(monthlyData); // Convert object to array
 
-  // Agrupar datos por proveedor para las gráficas individuales
-  const dataBySupplier: Record<number, SupplierMonthlyData[]> = {};
+  // Agrupar datos por producto para las gráficas individuales
+  const dataByProduct: Record<number, ProductMonthlyData[]> = {};
 
   monthlyDataArray.forEach((item) => {
-    if (!dataBySupplier[item.personId]) {
-      dataBySupplier[item.personId] = [];
+    if (!dataByProduct[item.productId]) {
+      dataByProduct[item.productId] = [];
     }
 
-    // Extraer solo el mes sin el nombre del proveedor
+    // Extraer solo el mes sin el nombre del producto
     const monthOnly = item.name.split(' (')[0];
 
-    dataBySupplier[item.personId].push({
+    dataByProduct[item.productId].push({
       month: monthOnly,
       Total: item.Total,
       Pagado: item.Pagado,
@@ -117,34 +125,34 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
     });
   });
 
-  // Ordenar los datos por mes para cada proveedor
-  Object.keys(dataBySupplier).forEach((personId) => {
-    dataBySupplier[parseInt(personId)].sort((a, b) => {
+  // Ordenar los datos por mes para cada producto
+  Object.keys(dataByProduct).forEach((productId) => {
+    dataByProduct[parseInt(productId)].sort((a, b) => {
       const monthA = monthNames.indexOf(a.month.split(' ')[0]);
       const monthB = monthNames.indexOf(b.month.split(' ')[0]);
       return monthA - monthB;
     });
   });
 
-  // Agrupar datos por proveedor, mes y día para las gráficas diarias
-  const dailyDataBySupplier: Record<number, Record<string, DailyData[]>> = {};
+  // Agrupar datos por producto, mes y día para las gráficas diarias
+  const dailyDataByProduct: Record<number, Record<string, DailyData[]>> = {};
 
-  results.forEach((item) => {
-    const date = new Date(item.date);
+  results.forEach((product) => {
+    const date = new Date(product.date);
     const monthName = formatMonthName(date);
     const dayNumber = date.getDate();
     const dayString = `Día ${dayNumber}`;
 
-    if (!dailyDataBySupplier[item.personId]) {
-      dailyDataBySupplier[item.personId] = {};
+    if (!dailyDataByProduct[product.productId]) {
+      dailyDataByProduct[product.productId] = {};
     }
 
-    if (!dailyDataBySupplier[item.personId][monthName]) {
-      dailyDataBySupplier[item.personId][monthName] = [];
+    if (!dailyDataByProduct[product.productId][monthName]) {
+      dailyDataByProduct[product.productId][monthName] = [];
     }
 
     // Buscar si ya existe el día en el array
-    let existingDay = dailyDataBySupplier[item.personId][monthName].find(d => d.day === dayString);
+    let existingDay = dailyDataByProduct[product.productId][monthName].find(d => d.day === dayString);
 
     if (!existingDay) {
       existingDay = {
@@ -153,21 +161,21 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
         Pagado: 0,
         Pendiente: 0,
       };
-      dailyDataBySupplier[item.personId][monthName].push(existingDay);
+      dailyDataByProduct[product.productId][monthName].push(existingDay);
     }
 
-    existingDay.Total += item.weight_kg;
-    if (item.type === EXPENSE) {
-      existingDay.Pagado += item.weight_kg;
-    } else if (item.type === PURCHASE) {
-      existingDay.Pendiente += item.weight_kg;
+    existingDay.Total += product.weight_kg;
+    if (product.type === EXPENSE) {
+      existingDay.Pagado += product.weight_kg;
+    } else if (product.type === PURCHASE) {
+      existingDay.Pendiente += product.weight_kg;
     }
   });
 
-  // Ordenar los días dentro de cada mes para cada proveedor
-  Object.keys(dailyDataBySupplier).forEach((personId) => {
-    Object.keys(dailyDataBySupplier[parseInt(personId)]).forEach((month) => {
-      dailyDataBySupplier[parseInt(personId)][month].sort((a, b) => {
+  // Ordenar los días dentro de cada mes para cada producto
+  Object.keys(dailyDataByProduct).forEach((productId) => {
+    Object.keys(dailyDataByProduct[parseInt(productId)]).forEach((month) => {
+      dailyDataByProduct[parseInt(productId)][month].sort((a, b) => {
         const dayA = parseInt(a.day.replace('Día ', ''));
         const dayB = parseInt(b.day.replace('Día ', ''));
         return dayA - dayB;
@@ -186,7 +194,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
       return 'Sin movimientos';
     }
     return `${((m.Pagado / m.Total) * 100).toFixed(2)}% Pagado`;
-  };
+  }
 
   const exportToExcel = (): void => {
     const exportData = Object.values(monthlyData).map((m) => ({
@@ -212,7 +220,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
     });
 
     const header = [
-      [`Reporte Mensual - Proveedores`],
+      [`Reporte Mensual - Productos`],
       [`Período: ${filters.startDate} al ${filters.endDate}`],
       [`Generado: ${new Date().toLocaleString()}`],
       [''],
@@ -222,8 +230,8 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
     XLSX.utils.sheet_add_json(ws, exportData, { origin: `A${header.length + 1}` });
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Pagos Proveedores');
-    XLSX.writeFile(wb, `Reporte_Proveedores_${new Date().getTime()}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'Pagos Mensuales');
+    XLSX.writeFile(wb, `Reporte_Producto_${filters.supplierId}.xlsx`);
   };
 
   // Colores para gráficos
@@ -232,13 +240,12 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
     { name: 'Total Pagado', value: totals.Pagado },
     { name: 'Total Pendiente', value: totals.Pendiente },
   ];
-
   return (
     <div>
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow flex flex-col justify-between items-center">
-          <h3 className="text-sm font-medium text-gray-500">Total Compras</h3>
+          <h3 className="text-sm font-medium text-gray-500">Total Pedido</h3>
           <p className="text-2xl font-bold text-gray-600">{totals.Total}</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow flex flex-col justify-between items-center">
@@ -254,7 +261,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-medium mb-4">Distribución Mensual de Pagos a Proveedores</h2>
+          <h2 className="text-lg font-medium mb-4">Distribución Mensual de Pagos</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyDataArray} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -262,7 +269,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
               <YAxis />
               <Tooltip formatter={(value) => value.toLocaleString()} />
               <Legend />
-              <Bar dataKey="Total" name="Total Compras" fill="#8884d8" />
+              <Bar dataKey="Total" name="Total Pedido" fill="#8884d8" />
               <Bar dataKey="Pagado" name="Total Pagado" fill="#82ca9d" />
               <Bar dataKey="Pendiente" name="Pendiente" fill="#ff8042" />
             </BarChart>
@@ -270,7 +277,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-medium mb-4">Panorama General de Pagos a Proveedores</h2>
+          <h2 className="text-lg font-medium mb-4">Panorama General de Pagos</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -281,8 +288,8 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
                 outerRadius={100}
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
               >
-                {pieChartData.map((data, index) => (
-                  <Cell key={`cell-${data.name}`} fill={COLORS[index % COLORS.length]} />
+                {pieChartData.map((data) => (
+                  <Cell key={`cell-${data.name}`} fill={COLORS[pieChartData.indexOf(data) % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip formatter={(value) => value.toLocaleString()} />
@@ -292,17 +299,17 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
         </div>
       </div>
 
-      {/* Nueva sección: Gráficas por Proveedor */}
+      {/* Nueva sección: Gráficas por Producto */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4">Distribución Mensual de Pagos por Proveedor</h2>
+        <h2 className="text-xl font-semibold mb-4">Distribución Mensual de Pagos por Producto</h2>
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {Object.entries(dataBySupplier).map(([personId, supplierData]) => {
-            const supplierName = suppliersMap.get(parseInt(personId)) || 'Proveedor Desconocido';
+          {Object.entries(dataByProduct).map(([productId, productData]) => {
+            const productName = productsMap.get(parseInt(productId)) || 'Desconocido';
             return (
-              <div key={personId} className="bg-white p-4 rounded-lg shadow">
-                <h3 className="text-lg font-medium mb-4 text-center">{supplierName}</h3>
+              <div key={productId} className="bg-white p-4 rounded-lg shadow">
+                <h3 className="text-lg font-medium mb-4 text-center">{productName}</h3>
                 <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={supplierData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
+                  <BarChart data={productData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="month"
@@ -325,23 +332,23 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
         </div>
       </div>
 
-      {/* Distribución Diaria por Mes para cada Proveedor */}
+      {/* Distribución Diaria por Mes para cada Producto */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4">Distribución Diaria por Mes y Proveedor</h2>
-        {Object.entries(dailyDataBySupplier).map(([personId, monthsData]) => {
-          const supplierName = suppliersMap.get(parseInt(personId)) || 'Proveedor Desconocido';
+        <h2 className="text-xl font-semibold mb-4">Distribución Diaria por Mes y Producto</h2>
+        {Object.entries(dailyDataByProduct).map(([productId, monthsData]) => {
+          const productName = productsMap.get(parseInt(productId)) || 'Desconocido';
           const monthsWithData = Object.entries(monthsData);
 
           if (monthsWithData.length === 0) return null;
 
           return (
-            <div key={`daily-${personId}`} className="mb-8">
+            <div key={`daily-${productId}`} className="mb-8">
               <h3 className="text-lg font-semibold mb-4 text-blue-700 border-l-4 border-blue-500 pl-3">
-                {supplierName}
+                {productName}
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                 {monthsWithData.map(([month, dailyData]) => (
-                  <div key={`${personId}-${month}`} className="bg-white p-4 rounded-lg shadow border">
+                  <div key={`${productId}-${month}`} className="bg-white p-4 rounded-lg shadow border">
                     <h4 className="text-md font-medium mb-3 text-center text-gray-700">{month}</h4>
                     <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={dailyData} margin={{ top: 10, right: 20, left: 10, bottom: 30 }}>
@@ -376,7 +383,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
       {/* Table */}
       <div className="bg-white p-4 rounded-lg shadow overflow-x-auto">
         <div className="flex justify-between mb-4">
-          <h2 className="text-lg font-medium">Detalle Mensual por Proveedor</h2>
+          <h2 className="text-lg font-medium">Detalle Mensual</h2>
           <button
             onClick={exportToExcel}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
@@ -387,7 +394,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mes / Proveedor</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mes</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pagado</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pendiente</th>
@@ -458,4 +465,4 @@ const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, su
   );
 };
 
-export default React.memo(ProductChart);
+export default ProductReport;
