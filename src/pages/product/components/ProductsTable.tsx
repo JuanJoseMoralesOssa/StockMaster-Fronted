@@ -123,7 +123,8 @@ export default function ProductsTable() {
                             </th>
                         ))}
                     </tr>
-                </thead>                <tbody className='bg-white sectionide-y sectionide-gray-200'>
+                </thead>
+                <tbody className='bg-white sectionide-y sectionide-gray-200'>
                     {products.map((p) => (
                         <tr key={p.id} className='text-sm sm:text-base'>
                             <td className='p-2 whitespace-nowrap'>{p.name}</td>
@@ -279,7 +280,8 @@ export default function ProductsTable() {
                         Eliminar
                     </button>
                 </section>
-            </Modal>            {/* Pagination */}            <Pagination
+            </Modal>
+            <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 totalItems={totalItems}

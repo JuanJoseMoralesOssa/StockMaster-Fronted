@@ -1,3 +1,6 @@
+import Person from "../../../types/Person";
+import Product from "../../../types/Product";
+
 interface GeneralDashboardProps {
   supplierProductResults: any[];
   productsResults: any[];
@@ -8,8 +11,8 @@ interface GeneralDashboardProps {
     startDate: string;
     endDate: string;
   };
-  availableSuppliers: { id: number; name: string }[];
-  products: { id: number; name: string }[];
+  suppliers: Person[];
+  products: Partial<Product>[];
 }
 
 function GeneralDashboard(
@@ -18,7 +21,7 @@ function GeneralDashboard(
     productsResults,
     suppliersResults,
     filters,
-    availableSuppliers,
+    suppliers,
     products
   }: Readonly<GeneralDashboardProps>
 ) {
@@ -45,7 +48,7 @@ function GeneralDashboard(
               </div>
             )}
 
-            {suppliersResults.length > 0 && (
+            {suppliers.length > 0 && (
               <div className="bg-purple-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-purple-800">Proveedores por Producto</h3>
                 <p className="text-2xl font-bold text-purple-600">{suppliersResults.length}</p>
@@ -57,7 +60,7 @@ function GeneralDashboard(
           <div className="text-gray-600">
             <p className="mb-2">🔍 <strong>Período:</strong> {filters.startDate} al {filters.endDate}</p>
             {filters.supplierId && (
-              <p className="mb-2">🏢 <strong>Proveedor:</strong> {availableSuppliers.find(s => s.id === Number(filters.supplierId))?.name || 'No encontrado'}</p>
+              <p className="mb-2">🏢 <strong>Proveedor:</strong> {suppliers.find(s => s.id === Number(filters.supplierId))?.name || 'No encontrado'}</p>
             )}
             {filters.productId && (
               <p className="mb-2">📦 <strong>Producto:</strong> {products.find(p => p.id === Number(filters.productId))?.name || 'No encontrado'}</p>

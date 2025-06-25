@@ -1,24 +1,11 @@
 import { useState, useEffect } from 'react'
 import ExpenseDetails from '../types/ExpenseDetails'
 import { ProductSummary } from '../types/ProductSummary'
-import { productService } from '../services/ProductService'
-import Product from '../types/Product'
-
-const fetchProducts = async () => {
-  return await productService.getAll()
-}
+import { useAvailableProducts } from './useAvailableProducts'
 
 export const useExpenseSummary = (expensesDetails: ExpenseDetails[]) => {
   const [productSummary, setProductSummary] = useState<ProductSummary[]>([])
-  const [products, setProducts] = useState<Product[]>([])
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      const fetchedProducts = await fetchProducts()
-      setProducts(fetchedProducts)
-    }
-    loadProducts()
-  }, [])
+  const {products} = useAvailableProducts()
 
   useEffect(() => {
     const summary: Record<string, ProductSummary> = {}

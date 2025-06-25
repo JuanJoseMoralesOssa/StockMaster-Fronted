@@ -7,16 +7,16 @@ interface PurchaseRowProps {
     purchase: PurchaseDetails
     onUpdate: (id: number, field: string, value: any) => void
     onDelete: (id: number) => void
-    availableProducts: Product[]
-    availableSuppliers: Person[]
+    products: Partial<Product>[]
+    suppliers: Person[]
 }
 
 const PurchaseRow: React.FC<PurchaseRowProps> = ({
     purchase,
     onUpdate,
     onDelete,
-    availableProducts,
-    availableSuppliers,
+    products,
+    suppliers,
 }) => {
     const handleProductChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         if (purchase.id) {
@@ -55,7 +55,7 @@ const PurchaseRow: React.FC<PurchaseRowProps> = ({
                     onChange={handleProductChange}
                     required>
                     <option value=''>Selecciona un producto</option>
-                    {availableProducts.map((product) => (
+                    {products.map((product) => (
                         <option key={product.id} value={product.id}>
                             {product.name}
                         </option>
@@ -68,9 +68,9 @@ const PurchaseRow: React.FC<PurchaseRowProps> = ({
                     onChange={handleSupplierChange}
                     required>
                     <option value=''>Selecciona un proveedor</option>
-                    {availableSuppliers.map((proveedor) => (
-                        <option key={proveedor.id} value={proveedor.id}>
-                            {proveedor.name}
+                    {suppliers.map((supplier) => (
+                        <option key={supplier.id} value={supplier.id}>
+                            {supplier.name}
                         </option>
                     ))}
                 </select>

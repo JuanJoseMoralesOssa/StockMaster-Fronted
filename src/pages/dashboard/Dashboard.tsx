@@ -34,15 +34,9 @@ export default function SupplierPaymentReport() {
   });
   const {
     products,
-    // loading: productsLoading,
-    // error: productsError,
-    // refreshProducts,
   } = useAvailableProducts()
   const {
-    suppliers: availableSuppliers,
-    // loading: suppliersLoading,
-    // error: suppliersError,
-    // refreshSuppliers,
+    suppliers,
   } = useAvailableSuppliers()
 
 
@@ -192,17 +186,17 @@ export default function SupplierPaymentReport() {
       <Filters
         filters={filters}
         setFilters={setFilters}
-        products={products.filter(p => typeof p.id === 'number').map(p => ({ id: p.id as number, name: p.name }))}
-        availableSuppliers={availableSuppliers} selectedFilter={selectedFilter}
+        products={products}
+        suppliers={suppliers}
+        selectedFilter={selectedFilter}
         setSelectedFilter={(filter: string) => setSelectedFilter(filter as 'all' | 'withDebt' | 'fullyPaid')}
       />
 
       <RenderingWithMode
         dashboardMode={dashboardMode}
         filters={filters}
-        products={products.filter(p => typeof p.id === 'number').map(p => ({ id: p.id as number, name: p.name }))}
-        availableSuppliers={availableSuppliers.filter(s => typeof s.id === 'number' &&
-          s.id !== undefined).map(s => ({ id: s.id as number, name: s.name }))}
+        products={products}
+        suppliers={suppliers}
         suppliersResults={suppliersResults}
         productsResults={productsResults}
         supplierProductResults={supplierProductResults}

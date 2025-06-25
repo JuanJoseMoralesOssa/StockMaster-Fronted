@@ -21,7 +21,7 @@ interface Filters { startDate: string; endDate: string; supplierId: string; prod
 interface ProductReportProps {
   selectedFilter: 'all' | 'withDebt' | 'fullyPaid';
   results: ProductsResults[];
-  products: Product[];
+  products: Partial<Product>[];
   filters: Filters;
 }
 

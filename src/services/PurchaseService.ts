@@ -13,40 +13,6 @@ export class PurchaseService extends ApiService<Purchase> {
     super('purchases')
   }
 
-  async getAllWithDetails(): Promise<Purchase> {
-    try {
-      const purchase = await axios.get(
-        `${this.getUrl()}?filter=` +
-          encodeURIComponent(
-            JSON.stringify({
-              include: [{ relation: 'purchase_details' }],
-              order: ['date DESC'],
-            })
-          )
-      )
-      if (!purchase.data) {
-        throw new Error('Purchase not found')
-      }
-      return purchase.data
-    } catch (error) {
-      this.handleError(error, 'Error getting purchases')
-    }
-  }
-
-  async getWithDetails(id: number): Promise<Purchase> {
-    try {
-      const purchase = await axios.get(`${this.getUrl()}/${id}?filter={
-        "include": [ {"relation":"purchase_details"} ]
-        }`)
-      if (!purchase.data) {
-        throw new Error('Purchase not found')
-      }
-      return purchase.data
-    } catch (error) {
-      this.handleError(error, 'Error getting purchases')
-    }
-  }
-
   /**
    * Crea una compra y luego sus detalles marcados con toCreate = true
    */

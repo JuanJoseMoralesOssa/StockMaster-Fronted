@@ -37,7 +37,7 @@ export default function PersonsTable() {
 
     // Usar paginación del servidor
     const {
-        data: persons,
+        data: people,
         loading,
         error,
         currentPage,
@@ -97,8 +97,9 @@ export default function PersonsTable() {
                             </th>
                         ))}
                     </tr>
-                </thead>                <tbody className='bg-white divide-y divide-gray-200'>
-                    {persons.map((person) => (
+                </thead>
+                <tbody className='bg-white divide-y divide-gray-200'>
+                    {people.map((person) => (
                         <tr key={person.id} className='text-sm sm:text-base'>
                             <td className='p-2 whitespace-nowrap'>{person.name}</td>
                             <td className='p-2 cursor-pointer text-center'>
@@ -224,9 +225,12 @@ export default function PersonsTable() {
                             selectedPerson.id && handleDelete(selectedPerson.id)
                         }
                         className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
-                        Eliminar                    </button>
+                        Eliminar
+                    </button>
                 </section>
-            </Modal>            <Pagination
+            </Modal>
+
+            <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 totalItems={totalItems}

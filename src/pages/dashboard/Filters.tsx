@@ -2,14 +2,14 @@ import Person from "../../types/Person";
 import Product from "../../types/Product";
 
 interface FiltersProps {
-  availableSuppliers: Person[];
+  suppliers: Person[];
   filters: { startDate: string; endDate: string; supplierId: string; productId: string };
-  products: Product[];
+  products: Partial<Product>[];
   setFilters: (range: { startDate: string; endDate: string; supplierId: string; productId: string }) => void;
   setSelectedFilter: (filter: string) => void;
   selectedFilter: string;
 }
-function Filters({ availableSuppliers, filters, products, setFilters, setSelectedFilter, selectedFilter }: Readonly<FiltersProps>) {
+function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, selectedFilter }: Readonly<FiltersProps>) {
   return (
     <div>
       <div className="bg-white p-4 rounded-lg shadow mb-6">
@@ -50,9 +50,9 @@ function Filters({ availableSuppliers, filters, products, setFilters, setSelecte
                   className="border rounded p-2 w-fit"
                   required>
                   <option value=''>Selecciona un proveedor</option>
-                  {availableSuppliers.map((proveedor) => (
-                    <option key={proveedor.id} value={proveedor.id}>
-                      {proveedor.name}
+                  {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name}
                     </option>
                   ))}
                 </select>

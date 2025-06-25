@@ -255,7 +255,6 @@ export default function PurchasesTable() {
                                 },
                                 0
                             )
-
                             setSelectedPurchase({
                                 ...selectedPurchase,
                                 total_kg: total_kg,

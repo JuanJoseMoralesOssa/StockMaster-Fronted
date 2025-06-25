@@ -150,8 +150,8 @@ export default function PurchasesDetailsTable({
                                 purchase={purchase}
                                 onUpdate={updatePurchase}
                                 onDelete={deletePurchase}
-                                availableProducts={products}
-                                availableSuppliers={suppliers}
+                                products={products}
+                                suppliers={suppliers}
                             />
                         ))}
                     </tbody>

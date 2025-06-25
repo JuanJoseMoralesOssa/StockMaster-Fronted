@@ -4,7 +4,6 @@ export function DashboardLayout({ children }: { readonly children: React.ReactNo
     return (
         <section className='flex justify-between min-h-screen min-w-screen'>
             <Navbar></Navbar>
-            {/* Main content */}
             <main className='flex-1'>{children}</main>
         </section>
     )

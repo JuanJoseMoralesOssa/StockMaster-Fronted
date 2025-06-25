@@ -13,40 +13,6 @@ export class ExpenseService extends ApiService<Expense> {
     super('expenses')
   }
 
-  async getAllWithDetails(): Promise<Expense> {
-    try {
-      const expense = await axios.get(
-        `${this.getUrl()}?filter=` +
-          encodeURIComponent(
-            JSON.stringify({
-              include: [{ relation: 'expense_details' }],
-              order: ['date DESC'],
-            })
-          )
-      )
-      if (!expense.data) {
-        throw new Error('Expense not found')
-      }
-      return expense.data
-    } catch (error) {
-      this.handleError(error, 'Error getting expenses')
-    }
-  }
-
-  async getWithDetails(id: number): Promise<Expense> {
-    try {
-      const expense = await axios.get(`${this.getUrl()}/${id}?filter={
-        "include": [ {"relation":"expense_details"} ]
-        }`)
-      if (!expense.data) {
-        throw new Error('Expense not found')
-      }
-      return expense.data
-    } catch (error) {
-      this.handleError(error, 'Error getting expenses')
-    }
-  }
-
   /**
    * Crea una compra y luego sus detalles marcados con toCreate = true
    */

@@ -1,4 +1,6 @@
 import { DashboardResult, ProductsResults, SuppliersResults } from "../../types/DashboardResults";
+import Person from "../../types/Person";
+import Product from "../../types/Product";
 import DetailedDashboard from "./Detailed/DetailedDashboard"
 import GeneralDashboard from "./General/GeneralDashboard"
 
@@ -10,8 +12,8 @@ interface RenderingWithModeProps {
     supplierId: string;
     productId: string;
   };
-  products: { id: number; name: string }[];
-  availableSuppliers: { id: number; name: string }[];
+  products: Partial<Product>[];
+  suppliers: Person[];
   suppliersResults: SuppliersResults[];
   productsResults: ProductsResults[];
   supplierProductResults: DashboardResult[];
@@ -23,7 +25,7 @@ function RenderingWithMode(
     dashboardMode,
     filters,
     products,
-    availableSuppliers,
+    suppliers,
     suppliersResults,
     productsResults,
     supplierProductResults,
@@ -35,8 +37,8 @@ function RenderingWithMode(
       {dashboardMode === 'detailed' && (
         <DetailedDashboard
           filters={filters}
-          products={products.filter(p => typeof p.id === 'number').map(p => ({ id: p.id as number, name: p.name }))}
-          availableSuppliers={availableSuppliers.filter(s => typeof s.id === 'number' && s.id !== undefined).map(s => ({ id: s.id as number, name: s.name }))}
+          products={products}
+          suppliers={suppliers}
           suppliersResults={suppliersResults}
           productsResults={productsResults}
           supplierProductResults={supplierProductResults}
@@ -50,8 +52,8 @@ function RenderingWithMode(
           productsResults={productsResults}
           suppliersResults={suppliersResults}
           filters={filters}
-          availableSuppliers={availableSuppliers.filter(s => typeof s.id === 'number' && s.id !== undefined).map(s => ({ id: s.id as number, name: s.name }))}
-          products={products.filter(p => typeof p.id === 'number').map(p => ({ id: p.id as number, name: p.name }))}
+          suppliers={suppliers}
+          products={products}
         />
       )}
     </>

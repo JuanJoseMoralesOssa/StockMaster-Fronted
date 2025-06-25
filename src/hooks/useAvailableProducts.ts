@@ -19,7 +19,6 @@ export const useAvailableProducts = () => {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    // Si ya tenemos datos en caché, los usamos inmediatamente
     if (productCache) {
       setProducts(productCache)
       setLoading(false)
