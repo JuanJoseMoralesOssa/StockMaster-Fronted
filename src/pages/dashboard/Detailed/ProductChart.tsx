@@ -57,7 +57,9 @@ const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep
 
 const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
 
-const ProductChart: React.FC<ProductChartProps> = ({ selectedFilter, results, suppliers, filters }) => {
+const ProductChart: React.FC<ProductChartProps> = ({
+  // selectedFilter,
+  results, suppliers, filters }) => {
 
   if (!filters.startDate || !filters.endDate) {
     return <div className="text-center text-gray-500">Por favor selecciona un rango de fechas.</div>;

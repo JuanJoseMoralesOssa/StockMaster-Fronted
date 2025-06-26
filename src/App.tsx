@@ -13,7 +13,11 @@ import NotFound from './pages/components/common/NotFound'
 import SupplierPaymentReport from './pages/dashboard/Dashboard'
 
 function App() {
-    const { isAuthenticated, checkAuth, logout } = useAuthStore()
+    const {
+        // isAuthenticated,
+        checkAuth,
+        // logout
+    } = useAuthStore()
 
     useEffect(() => {
         checkAuth()

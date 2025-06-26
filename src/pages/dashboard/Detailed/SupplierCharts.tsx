@@ -52,7 +52,9 @@ const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep
 const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
 
 
-const ProductReport: React.FC<ProductReportProps> = ({ selectedFilter, results, products, filters }) => {
+const ProductReport: React.FC<ProductReportProps> = ({
+  // selectedFilter,
+  results, products, filters }) => {
 
   if (results.length === 0) {
     console.warn('SupplierCharts - No products found for the selected date range.');
