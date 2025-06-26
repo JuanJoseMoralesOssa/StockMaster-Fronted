@@ -3,8 +3,6 @@ import { Config } from "../config/Config"
 import { DashboardResult, ProductsResults, SuppliersResults } from "../types/DashboardResults"
 const API_BASE_URL = Config.LOGIC_URL
 
-
-
 export class DashboardService {
   /**
    * Fetches the dashboard data from the API.

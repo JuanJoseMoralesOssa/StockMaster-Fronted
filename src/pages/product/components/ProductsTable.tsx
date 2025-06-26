@@ -12,47 +12,12 @@ import { productService } from '../../../services/ProductService'
 import { useServerPagination } from '../../../hooks/useServerPagination'
 import Pagination from '../../components/pagination/Pagination'
 
-// const my_products: Product[] = [
-//     {
-//         id: 1,
-//         name: 'Product 1',
-//         stock: 100,
-//         code: 'P001',
-//     },
-//     {
-//         id: 2,
-//         name: 'Product 2',
-//         stock: 200,
-//         code: 'P002',
-//     },
-//     {
-//         id: 3,
-//         name: 'Product 3',
-//         stock: 330,
-//         code: 'P003',
-//     },
-//     {
-//         id: 4,
-//         name: 'Product 4',
-//         stock: 104,
-//         code: 'P004',
-//     },
-// ]
-
 const headersTable = [
     'Nombre',
     'Existencia en KG',
     'Codigo',
     'Acciones',
 ]
-
-// const fetchProducts = async () => {
-//     // const response = await fetch('https://api.example.com/products')
-//     // const data = await response.json()
-//     // return data
-//     await new Promise((resolve) => setTimeout(resolve, 3000))
-//     return my_products
-// }
 
 export default function ProductsTable() {
     const [isOpen, setIsOpen] = useState(false)
