@@ -17,7 +17,7 @@ export class ExpenseService extends ApiService<Expense> {
    * Crea una compra y luego sus detalles marcados con toCreate = true
    */
   async createWithDetails(expense: Expense): Promise<Expense> {
-    if (!expense.expense_details || expense.expense_details.length === 0) {
+    if (!expense.expense_details) {
       return this.create(expense)
     }
 
@@ -27,13 +27,6 @@ export class ExpenseService extends ApiService<Expense> {
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
 
     const { expense_details, ...toCreateExpense } = expense
-    if (toCreateExpense.date) {
-      const date = new Date(toCreateExpense.date)
-      toCreateExpense.date = date.toISOString()
-    }
-    console.log('Creating expense with details:', toCreateExpense);
-
-
     const created = await this.create(toCreateExpense)
 
     if (!created.id) {
