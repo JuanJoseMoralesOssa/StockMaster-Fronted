@@ -90,7 +90,7 @@ function SupplierProductCharts({
       }
 
       const monthData = monthlyMap.get(monthKey)!;
-      if (result.type === 'Compra') {
+      if (result.type === PURCHASE) {
         monthData.total += result.weight_kg;
       } else {
         monthData.pagado += result.weight_kg;
@@ -185,7 +185,7 @@ function SupplierProductCharts({
         </div>
         <div className="bg-white p-4 rounded-lg shadow flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-gray-500">Total Pendiente</h3>
-          <p className="text-2xl font-bold text-red-600">{pendingAmount > 0 ? pendingAmount.toLocaleString() : '0'}</p>
+          <p className="text-2xl font-bold text-red-600">{pendingAmount.toLocaleString()}</p>
         </div>
         <div className='bg-white py-3 px-4 rounded-lg shadow flex flex-col gap-1'>
           {(selectedFilter === 'all' || selectedFilter === 'withDebt') &&
@@ -245,7 +245,7 @@ function SupplierProductCharts({
               <Pie
                 data={[
                   { name: 'Total Pagado', value: totalExpenses },
-                  { name: 'Total Pendiente', value: pendingAmount > 0 ? pendingAmount : 0 }
+                  { name: 'Total Pendiente', value: pendingAmount }
                 ]}
                 cx="50%"
                 cy="50%"
@@ -328,7 +328,7 @@ function SupplierProductCharts({
                   <td className="px-6 py-4 whitespace-nowrap">{day.day}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{day.compra.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-green-600">{day.gasto.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-red-600">{day.pendiente > 0 ? day.pendiente.toLocaleString() : '0'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-red-600">{day.pendiente.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {day.pendiente === 0 && day.compra > 0 ? (
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -352,7 +352,7 @@ function SupplierProductCharts({
                 <td className="px-6 py-4 whitespace-nowrap">-</td>
                 <td className="px-6 py-4 whitespace-nowrap">{totalPurchases.toLocaleString()}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-green-600">{totalExpenses.toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-red-600">{pendingAmount > 0 ? pendingAmount.toLocaleString() : '0'}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-red-600">{pendingAmount.toLocaleString()}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {paymentStatus === 'Completo' ? (
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">

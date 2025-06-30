@@ -50,9 +50,6 @@ export default function ExpensesDetailsTable({
                 person: { id: 0, name: '' },
             },
         ]
-        // console.log('====================================');
-        // console.log('newExpenses', newExpenses);
-        // console.log('====================================');
         setDetails(newExpenses)
     }
 
@@ -84,8 +81,8 @@ export default function ExpensesDetailsTable({
                 } else if (mode === 'edit') {
                     if (updatedRow.toCreate) {
                         updatedRow.toUpdate = false;
-                    } else if (updatedRow.toUpdate) {
-                        updatedRow.toCreate = false;
+                    } else {
+                        updatedRow.toUpdate = true;
                     }
                 }
                 updatedRow.toDelete = false;

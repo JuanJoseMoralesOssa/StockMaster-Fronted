@@ -37,9 +37,9 @@ const ExpenseCreate = () => {
             expense_details: details?.filter((d) => d.toCreate && !d.toDelete && !d.toUpdate),
         }
 
-        console.log('====================================');
-        console.log('expenseWithDetails', expenseWithDetails);
-        console.log('====================================');
+        // console.log('====================================');
+        // console.log('expenseWithDetails', expenseWithDetails);
+        // console.log('====================================');
 
         try {
             const response = await expenseService.createWithDetails(expenseWithDetails)

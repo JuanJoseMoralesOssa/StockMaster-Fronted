@@ -81,27 +81,27 @@ const ProductReport: React.FC<ProductReportProps> = ({
 
 
 
-  const monthlyData: Record<string, MonthlyData> = results.reduce((acc: Record<string, MonthlyData>, product) => {
-    const date = new Date(product.date);
+  const monthlyData: Record<string, MonthlyData> = results.reduce((acc: Record<string, MonthlyData>, item) => {
+    const date = new Date(item.date);
     const monthName = formatMonthName(date);
-    const key = `${monthName}-${product.productId}`; // Unique key for month and product
-    const productName = productsMap.get(product.productId) || 'Desconocido';
+    const key = `${monthName}-${item.productId}`; // Unique key for month and product
+    const productName = productsMap.get(item.productId) || 'Desconocido';
     if (!acc[key]) {
       acc[key] = {
         name: monthName + ` (${productName})`,
         Total: 0,
         Pagado: 0,
         Pendiente: 0,
-        productId: product.productId,
+        productId: item.productId,
       };
     }
 
-    acc[key].Total += product.weight_kg;
-    if (product.type === EXPENSE) {
-      acc[key].Pagado += product.weight_kg;
-    } else if (product.type === PURCHASE) {
-      acc[key].Pendiente += product.weight_kg;
+    if (item.type === PURCHASE) {
+      acc[key].Total += item.weight_kg;
+    } else if (item.type === EXPENSE) {
+      acc[key].Pagado += item.weight_kg;
     }
+    acc[key].Pendiente = acc[key].Total - acc[key].Pagado;
 
     return acc;
   }, {});
@@ -166,12 +166,13 @@ const ProductReport: React.FC<ProductReportProps> = ({
       dailyDataByProduct[product.productId][monthName].push(existingDay);
     }
 
-    existingDay.Total += product.weight_kg;
-    if (product.type === EXPENSE) {
+    if (product.type === PURCHASE) {
+      existingDay.Total += product.weight_kg;
+    } else if (product.type === EXPENSE) {
       existingDay.Pagado += product.weight_kg;
-    } else if (product.type === PURCHASE) {
-      existingDay.Pendiente += product.weight_kg;
     }
+    existingDay.Pendiente = existingDay.Total - existingDay.Pagado;
+
   });
 
   // Ordenar los días dentro de cada mes para cada producto

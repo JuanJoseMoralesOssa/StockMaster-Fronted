@@ -88,13 +88,12 @@ const ProductChart: React.FC<ProductChartProps> = ({
       };
     }
 
-    acc[key].Total += item.weight_kg;
-    if (item.type === EXPENSE) {
+    if (item.type === PURCHASE) {
+      acc[key].Total += item.weight_kg;
+    } else if (item.type === EXPENSE) {
       acc[key].Pagado += item.weight_kg;
-    } else if (item.type === PURCHASE) {
-      acc[key].Pendiente += item.weight_kg;
     }
-
+    acc[key].Pendiente = acc[key].Total - acc[key].Pagado;
     return acc;
   }, {});
 
@@ -158,12 +157,12 @@ const ProductChart: React.FC<ProductChartProps> = ({
       dailyDataBySupplier[item.personId][monthName].push(existingDay);
     }
 
-    existingDay.Total += item.weight_kg;
-    if (item.type === EXPENSE) {
+    if (item.type === PURCHASE) {
+      existingDay.Total += item.weight_kg;
+    } else if (item.type === EXPENSE) {
       existingDay.Pagado += item.weight_kg;
-    } else if (item.type === PURCHASE) {
-      existingDay.Pendiente += item.weight_kg;
     }
+    existingDay.Pendiente = existingDay.Total - existingDay.Pagado;
   });
 
   // Ordenar los días dentro de cada mes para cada proveedor

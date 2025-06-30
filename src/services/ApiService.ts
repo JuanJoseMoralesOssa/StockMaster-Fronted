@@ -120,6 +120,17 @@ export class ApiService<T> {
     }
   }
 
+
+  async updatePartial(id: number, data: Partial<T>): Promise<T> {
+    try {
+      return await this.handleResponse<T>(
+        axios.patch(this.getUrl(id.toString()), data, defaultConfig)
+      )
+    } catch (error) {
+      this.handleError(error, `Error partially updating ${this.endpoint} with id ${id}`)
+    }
+  }
+
   async delete(id: number): Promise<void> {
     try {
       await this.handleResponse<void>(
