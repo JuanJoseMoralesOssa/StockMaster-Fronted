@@ -33,11 +33,20 @@ function Login() {
     }
 
     try {
-      await login({ email, password })
-      // El redirect se manejará automáticamente por el Navigate en el componente
+      // Aquí harías la llamada a tu API de autenticación
+      // Por ahora usaré credenciales de ejemplo
+      if (email === 'admin@ejemplo.com' && password === 'admin123') {
+        // Simular token JWT
+        const token = 'mock-jwt-token-' + Date.now()
+        const user = { id: 1, email, name: 'Administrador' }
+
+        login(user)
+      } else {
+        setError('Credenciales incorrectas')
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión'
-      setError(errorMessage)
+      setError('Error al iniciar sesión. Intenta nuevamente.')
+      console.error('Error de login:', error)
     } finally {
       setIsSubmitting(false)
     }

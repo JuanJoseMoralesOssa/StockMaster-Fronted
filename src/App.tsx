@@ -11,38 +11,33 @@ import useAuthStore from './stores/useAuthStore'
 import { useEffect } from 'react'
 import NotFound from './pages/components/common/NotFound'
 import SupplierPaymentReport from './pages/dashboard/Dashboard'
+import Login from './pages/components/auth/Login'
+import PrivateRoute from './pages/components/auth/PrivateRoute'
+import { LoadingScreen } from './pages/components/common/LoadingSpinner'
+import AccessDenied from './pages/components/common/AccessDenied'
 
 function App() {
-    const {
-        // isAuthenticated,
-        checkAuth,
-        // logout
-    } = useAuthStore()
+    const { checkAuth, isLoading } = useAuthStore()
 
     useEffect(() => {
         checkAuth()
     }, [])
 
-    // const handleLogin = () => {
-    //     setIsAuthenticated(true)
-    // }
-
-    // const handleLogout = () => {
-    //     localStorage.removeItem('token')
-    //     setIsAuthenticated(false)
-    // }
+    // Mostrar loading mientras se verifica la autenticación inicial
+    if (isLoading) {
+        return <LoadingScreen />
+    }
 
     return (
         <BrowserRouter>
-            {/* <Navigation isAuthenticated={isAuthenticated} onLogout={logout} />
             <Routes>
-                <Route path='/' element={<HomePage />} />
-                <Route path="/register" element={<Register onLogin={handleLogin} />} />
-                <Route path="/login" element={<Login onLogin={handleLogin} />} />
-            </Routes>
-            <Footer /> */}
-            <Routes>
-                <Route path='/' element={<Home />}>
+                {/* Ruta pública de login */}
+                <Route path="/login" element={<Login />} />
+
+                {/* Rutas protegidas */}
+                <Route path='/' element={
+                    <PrivateRoute element={<Home />} />
+                }>
                     <Route index element={<SupplierPaymentReport />} />
                     <Route path='productos' element={<Product />} />
                     <Route path='kardex' element={<Kardex />} />
@@ -50,46 +45,12 @@ function App() {
                     <Route path='compras' element={<Purchase />} />
                     <Route path='personas' element={<Person />} />
                     <Route path='usuarios' element={<User />} />
-
-                    <Route path='*' element={<NotFound />} />
                 </Route>
+
+                {/* Ruta 404 */}
+                <Route path='*' element={<NotFound />} />
+                <Route path="/access-denied" element={<AccessDenied />} />
             </Routes>
-
-            {/* <Route element={<AuthLayout />}>
-                <Route path='login' element={<Login />} />
-                <Route path='register' element={<Register />} />
-            </Route>
-
-            <Route path='concerts'>
-                <Route index element={<ConcertsHome />} />
-                <Route path=':city' element={<City />} />
-                <Route path='trending' element={<Trending />} />
-            </Route> */}
-
-            {
-                /* Nested Routes Routes can be nested inside parent routes.
-            <Routes>
-                <Route path='dashboard' element={<Dashboard />}>
-                    <Route index element={<Home />} />
-                    <Route path='settings' element={<Settings />} />
-                </Route>
-            </Routes>
-            Copy code to clipboard The path of the parent is automatically included
-            in the child, so this config creates both "/dashboard" and
-            "/dashboard/settings" URLs. */
-                // import { Outlet } from "react-router";
-                // export default function Dashboard() {
-                //   return (
-                //     <section>
-                //       <h1>Dashboard</h1>
-                //       {/* will either be <Home/> or <Settings/> */}
-                //       <Outlet />
-                //     </section>
-                //   );
-                // }
-            }
-
-            {/* {<Route path='teams/:teamId' element={<Team />} />} */}
         </BrowserRouter>
     )
 }

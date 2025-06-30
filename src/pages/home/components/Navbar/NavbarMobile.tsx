@@ -1,6 +1,7 @@
 import { Menu, X, LogOut } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router'
 import navItems from '../../../../constants/NavItems'
+import useAuthStore from '../../../../stores/useAuthStore'
 
 interface NavbarMobileProps {
     open: boolean
@@ -8,6 +9,7 @@ interface NavbarMobileProps {
 }
 
 const NavbarMobile: React.FC<NavbarMobileProps> = ({ open, setOpen }) => {
+    const { logout } = useAuthStore()
     let location = useLocation().pathname
     return (
         <section className='bg-'>
@@ -52,7 +54,10 @@ const NavbarMobile: React.FC<NavbarMobileProps> = ({ open, setOpen }) => {
                         </nav>
                         <section className='p-4 border-t'>
                             <button
-                                onClick={() => setOpen(false)}
+                                onClick={() => {
+                                    setOpen(false)
+                                    logout()
+                                }}
                                 className='w-full flex items-center gap-2 p-2 border rounded-lg'>
                                 <LogOut className='h-5 w-5' />
                                 Cerrar Sesión

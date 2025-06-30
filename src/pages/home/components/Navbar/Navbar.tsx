@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import NavbarDesktop from './NavbarDesktop'
 import { LogOut, Menu, X } from 'lucide-react'
 import NavbarMobile from './NavbarMobile'
+import useAuthStore from '../../../../stores/useAuthStore'
 
 function Navbar() {
+    const { logout } = useAuthStore()
     const [open, setOpen] = useState(false)
 
     const [windowDimensions, setWindowDimensions] = useState({
@@ -50,7 +52,7 @@ function Navbar() {
             {
                 /* Sidebar for desktop */
                 windowDimensions.width >= 768 ? (
-                    <aside className='hidden md:flex w-44 flex-col relative w-full'>
+                    <aside className='hidden md:flex w-44 flex-col relative'>
                         <section className='flex flex-col flex-grow border-r bg-gray-50 h-screen'>
                             <section className='flex items-center h-16 pl-4 pr-2 border-b bg-white'>
                                 <p className='text-xl font-semibold'>
@@ -59,7 +61,10 @@ function Navbar() {
                             </section>
                             <NavbarDesktop></NavbarDesktop>
                             <section className='p-2 border-t hover:bg-gray-300  cursor-pointer'>
-                                <button className='w-full justify-start gap-2 flex p-1 items-center border rounded-lg border-gray-50 hover:bg-gray-600 hover:border-gray-800'>
+                                <button
+                                    onClick={logout}
+                                    className='w-full justify-start gap-2 flex p-1 items-center border rounded-lg border-gray-50 hover:bg-gray-600 hover:border-gray-800'
+                                >
                                     <LogOut className='h-5 w-5' />
                                     Cerrar Sesión
                                 </button>
