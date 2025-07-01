@@ -11,8 +11,16 @@ import User from '../../../types/User'
 import { userService } from '../../../services/User'
 import { useServerPagination } from '../../../hooks/useServerPagination'
 import Pagination from '../../components/pagination/Pagination'
+import bcrypt from 'bcryptjs'
+import { Roles } from '../../../enums/Roles'
 
-const headersTable = ['Usuario', 'Rol', 'Acciones']
+const headersTable = ['Usuario', 'Email', 'Rol', 'Acciones']
+
+const getRoleDisplayName = (role: string): string => {
+    if (role === Roles.ADMIN) return 'Admin'
+    if (role === Roles.OFFICE) return 'Oficina'
+    return 'Operador'
+}
 
 export default function UsersTable() {
     const [isOpen, setIsOpen] = useState(false)
@@ -22,6 +30,8 @@ export default function UsersTable() {
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [passwordError, setPasswordError] = useState('')
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     // Server-side pagination
     const {
@@ -73,15 +83,21 @@ export default function UsersTable() {
         try {
             const updatedUser = {
                 ...selectedUser,
-                password: newPassword || selectedUser.password,
+            }
+            if (newPassword) {
+                updatedUser.password = bcrypt.hashSync(newPassword, 12)
+            } else {
+                updatedUser.password = selectedUser.password
             }
             if (updatedUser.id !== undefined) {
-                await userService.update(updatedUser.id, updatedUser)
-                refresh() // Refresh data after edit
+                await userService.updatePartial(updatedUser.id, updatedUser)
+                refresh()
                 setIsEditModalOpen(false)
                 setNewPassword('')
                 setConfirmPassword('')
                 setPasswordError('')
+                setShowNewPassword(false)
+                setShowConfirmPassword(false)
             } else {
                 console.error('User ID is undefined. Cannot update user.')
                 alert('Error al actualizar el usuario')
@@ -128,7 +144,8 @@ export default function UsersTable() {
                     {users.map((user) => (
                         <tr key={user.id} className='text-sm sm:text-base'>
                             <td className='p-2 whitespace-nowrap'>{user.name}</td>
-                            <td className='p-2 whitespace-nowrap'>{user.role}</td>
+                            <td className='p-2 whitespace-nowrap'>{user.email}</td>
+                            <td className='p-2 whitespace-nowrap'>{getRoleDisplayName(user.role)}</td>
                             <td className='p-2 cursor-pointer text-center'>
                                 <DropdownMenu>
                                     {isOpen && selectedUser.id === user.id && (
@@ -183,6 +200,8 @@ export default function UsersTable() {
                     setNewPassword('')
                     setConfirmPassword('')
                     setPasswordError('')
+                    setShowNewPassword(false)
+                    setShowConfirmPassword(false)
                 }}>
                 <h2 className='text-xl font-semibold mb-4'>Editar Usuario</h2>
                 <form onSubmit={handleEdit} className='space-y-4'>
@@ -207,6 +226,25 @@ export default function UsersTable() {
                     </div>
                     <div>
                         <label
+                            htmlFor='userEmail'
+                            className='block text-sm font-medium text-gray-700'>
+                            Email
+                        </label>
+                        <input
+                            id='userEmail'
+                            type='email'
+                            value={selectedUser.email || ''}
+                            onChange={(e) =>
+                                setSelectedUser({
+                                    ...selectedUser,
+                                    email: e.target.value,
+                                })
+                            }
+                            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                        />
+                    </div>
+                    <div>
+                        <label
                             htmlFor='userRole'
                             className='block text-sm font-medium text-gray-700'>
                             Rol
@@ -221,9 +259,9 @@ export default function UsersTable() {
                                 })
                             }
                             className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'>
-                            <option value='admin'>Admin</option>
-                            <option value='oficina'>Oficina</option>
-                            <option value='operador'>Operador</option>
+                            <option value={Roles.ADMIN}>Admin</option>
+                            <option value={Roles.OFFICE}>Oficina</option>
+                            <option value={Roles.OPERATOR}>Operador</option>
                         </select>
                     </div>
                     <div>
@@ -232,16 +270,34 @@ export default function UsersTable() {
                             className='block text-sm font-medium text-gray-700'>
                             Nueva contraseña (opcional)
                         </label>
-                        <input
-                            id='newPassword'
-                            type='password'
-                            value={newPassword}
-                            onChange={(e) => {
-                                setNewPassword(e.target.value)
-                                setPasswordError('')
-                            }}
-                            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-                        />
+                        <div className="relative">
+                            <input
+                                id='newPassword'
+                                type={showNewPassword ? "text" : "password"}
+                                value={newPassword}
+                                onChange={(e) => {
+                                    setNewPassword(e.target.value)
+                                    setPasswordError('')
+                                }}
+                                className='mt-1 block w-full pr-10 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                            />
+                            <button
+                                type="button"
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                            >
+                                {showNewPassword ? (
+                                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                    </svg>
+                                ) : (
+                                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label
@@ -249,16 +305,34 @@ export default function UsersTable() {
                             className='block text-sm font-medium text-gray-700'>
                             Confirmar contraseña
                         </label>
-                        <input
-                            id='confirmPassword'
-                            type='password'
-                            value={confirmPassword}
-                            onChange={(e) => {
-                                setConfirmPassword(e.target.value)
-                                setPasswordError('')
-                            }}
-                            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-                        />
+                        <div className="relative">
+                            <input
+                                id='confirmPassword'
+                                type={showConfirmPassword ? "text" : "password"}
+                                value={confirmPassword}
+                                onChange={(e) => {
+                                    setConfirmPassword(e.target.value)
+                                    setPasswordError('')
+                                }}
+                                className='mt-1 block w-full pr-10 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                            />
+                            <button
+                                type="button"
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                                {showConfirmPassword ? (
+                                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                    </svg>
+                                ) : (
+                                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
                     </div>
                     {passwordError && (
                         <p className='text-red-600 text-sm'>{passwordError}</p>
@@ -271,6 +345,8 @@ export default function UsersTable() {
                                 setNewPassword('')
                                 setConfirmPassword('')
                                 setPasswordError('')
+                                setShowNewPassword(false)
+                                setShowConfirmPassword(false)
                             }}
                             className='px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                             Cancelar

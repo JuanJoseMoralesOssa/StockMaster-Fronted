@@ -46,10 +46,10 @@ function App() {
                     <Route path='personas' element={<Person />} />
                     <Route path='usuarios' element={<User />} />
                 </Route>
+                <Route path="/access-denied" element={<AccessDenied />} />
 
                 {/* Ruta 404 */}
                 <Route path='*' element={<NotFound />} />
-                <Route path="/access-denied" element={<AccessDenied />} />
             </Routes>
         </BrowserRouter>
     )

@@ -32,7 +32,7 @@ function DetailedDashboard(
   }: Readonly<DetailedDashboardProps>
 ) {
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-4 ">
       {filters.supplierId &&
         filters.productId &&
         supplierProductResults.length > 0 &&

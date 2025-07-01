@@ -16,8 +16,8 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
         <div className="flex flex-wrap gap-4 justify-between items-center">
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center w-full md:w-fit">
             <div className='flex gap-4'>
-              <div>
-                <label htmlFor='startDate' className="block text-sm font-medium text-gray-700 mb-1">Fecha inicio</label>
+              <div className='flex flex-col'>
+                <label htmlFor='startDate' className="text-sm font-medium text-gray-700 mb-1">Fecha inicio</label>
                 <input
                   id='startDate'
                   name='startDate'
@@ -27,8 +27,8 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
                   className="border rounded p-2"
                 />
               </div>
-              <div>
-                <label htmlFor='endDate' className="block text-sm font-medium text-gray-700 mb-1">Fecha fin</label>
+              <div className='flex flex-col'>
+                <label htmlFor='endDate' className="text-sm font-medium text-gray-700 mb-1">Fecha fin</label>
                 <input
                   id='endDate'
                   name='endDate'
@@ -40,8 +40,8 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
               </div>
             </div>
             <div className='flex gap-4'>
-              <div>
-                <label htmlFor='supplierId' className="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+              <div className='flex flex-col'>
+                <label htmlFor='supplierId' className="text-sm font-medium text-gray-700 mb-1">Proveedor</label>
                 <select
                   id='supplierId'
                   name='supplierId'
@@ -57,8 +57,8 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
                   ))}
                 </select>
               </div>
-              <div>
-                <label htmlFor='productId' className="block text-sm font-medium text-gray-700 mb-1">Producto</label>
+              <div className='flex flex-col'>
+                <label htmlFor='productId' className="text-sm font-medium text-gray-700 mb-1">Producto</label>
                 <select
                   id='productId'
                   name='productId'
@@ -79,7 +79,7 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
 
 
           <div className='flex flex-col justify-between items-center w-full md:w-fit'>
-            <label htmlFor='filter' className="block text-sm font-medium text-gray-700 mb-1">Filtrar por</label>
+            <label htmlFor='filter' className="text-sm font-medium text-gray-700 mb-1">Filtrar por</label>
             <select
               id='filter'
               name='filter'
