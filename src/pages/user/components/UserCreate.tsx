@@ -3,9 +3,15 @@ import User from '../../../types/User'
 import { userService } from '../../../services/User'
 import bcrypt from 'bcryptjs'
 import { Roles } from '../../../enums/Roles'
+import { useCrudToast } from '../../../hooks/useToast'
 
-const UserCreate = () => {
+interface UserCreateProps {
+    onSuccess?: () => void
+}
+
+const UserCreate = ({ onSuccess }: UserCreateProps) => {
     const [loading, setLoading] = useState(false)
+    const { handleCreate } = useCrudToast()
     const [user, setUser] = useState<User>({
         name: '',
         password: '',
@@ -48,19 +54,36 @@ const UserCreate = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setLoading(true)
+
         if (!validatePassword()) {
+            setLoading(false)
             return
         }
-        user.password = bcrypt.hashSync(user.password!, 12);
-        await userService.create(user).then((response) => {
-            console.log('User created', response)
-            alert('Usuario creado')
-            window.location.reload()
-        }).catch((error) => {
-            console.error('Error al crear Usuario creado', error)
-            alert('Error al crear Usuario creado')
-        })
+
+        setLoading(true)
+
+        const result = await handleCreate(async () => {
+            const hashedUser = { ...user, password: bcrypt.hashSync(user.password!, 12) }
+            return await userService.create(hashedUser)
+        }, 'Usuario')
+
+        if (result) {
+            // Limpiar formulario después de creación exitosa
+            setUser({
+                name: '',
+                password: '',
+                email: '',
+                role: '',
+            })
+            setConfirmPassword('')
+            setPasswordError('')
+
+            // Llamar callback si existe (para cerrar modal)
+            if (onSuccess) {
+                onSuccess()
+            }
+        }
+
         setLoading(false)
     }
 

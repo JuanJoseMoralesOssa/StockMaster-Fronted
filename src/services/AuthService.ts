@@ -7,7 +7,7 @@ export interface LoginCredentials {
 }
 
 export interface AuthResponse {
-    accessToken: string
+    token: string
     user: {
         id: number
         email: string
@@ -24,11 +24,11 @@ export interface User {
 }
 
 class AuthService {
-    private readonly baseUrl = `${Config.LOGIC_URL}auth`
+    private readonly baseUrl = `${Config.LOGIC_URL}`
 
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
         try {
-            const response = await axios.post<AuthResponse>(`${this.baseUrl}/login`, credentials)
+            const response = await axios.post<AuthResponse>(`${this.baseUrl}/sign-in`, credentials)
             return response.data
         } catch (error) {
             console.error('Error en login:', error)
@@ -37,7 +37,7 @@ class AuthService {
     }
 
     async logout(): Promise<void> {
-      try {
+        try {
             await axios.post(`${this.baseUrl}/logout`, {})
         } catch (error) {
             console.error('Error en logout:', error)
@@ -103,6 +103,7 @@ class AuthService {
             return true
         }
     }
+
 }
 
 export const authService = new AuthService()

@@ -150,7 +150,7 @@ function Login() {
                 <div className="text-sm">
                   <p className="font-semibold mb-1">Credenciales de prueba:</p>
                   <p className="text-blue-700">
-                    <span className="font-medium">Email:</span> admin@ejemplo.com<br />
+                    <span className="font-medium">Email:</span> admin@test.com<br />
                     <span className="font-medium">Contraseña:</span> admin123
                   </p>
                 </div>

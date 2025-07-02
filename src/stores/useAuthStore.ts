@@ -54,28 +54,20 @@ const useAuthStore = create<AuthStore>((set) => ({
     login: async (credentials: LoginCredentials) => {
         set({ isLoading: true })
         try {
-            // Para propósitos de demo, simular login exitoso
-            if (credentials.email === 'admin@ejemplo.com' && credentials.password === 'admin123') {
-                const mockUser: User = {
-                    id: 1,
-                    email: credentials.email,
-                    name: 'Administrador',
-                    role: 'admin'
-                }
-                const mockToken = 'mock-jwt-token-' + Date.now()
+            // Opción 1: Sin hashing (RECOMENDADO con HTTPS)
+            // const response = await authService.login(credentials)
 
-                // Guardar datos en localStorage
-                authService.saveToken(mockToken)
-                authService.saveUser(mockUser)
+            // Opción 2: Hash determinístico si es necesario
+            const response = await authService.login(credentials)
 
-                set({
-                    isAuthenticated: true,
-                    isLoading: false,
-                    user: mockUser
-                })
-            } else {
-                throw new Error('Credenciales incorrectas')
-            }
+            // Guardar datos en localStorage
+            authService.saveToken(response.token)
+            authService.saveUser(response.user)
+            set({
+                isAuthenticated: true,
+                isLoading: false,
+                user: response.user
+            })
         } catch (error) {
             set({ isLoading: false })
             throw error

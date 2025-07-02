@@ -13,6 +13,7 @@ import { useServerPagination } from '../../../hooks/useServerPagination'
 import Pagination from '../../components/pagination/Pagination'
 import bcrypt from 'bcryptjs'
 import { Roles } from '../../../enums/Roles'
+import { useCrudToast } from '../../../hooks/useToast'
 
 const headersTable = ['Usuario', 'Email', 'Rol', 'Acciones']
 
@@ -26,12 +27,13 @@ export default function UsersTable() {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User>({} as User)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [passwordError, setPasswordError] = useState('')
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+    const { handleDelete: handleDeleteToast, handleUpdate } = useCrudToast()
 
     // Server-side pagination
     const {
@@ -64,13 +66,12 @@ export default function UsersTable() {
     }
 
     const handleDelete = async (id: number) => {
-        try {
-            await userService.delete(id)
+        const result = await handleDeleteToast(async () => {
+            return await userService.delete(id)
+        }, 'Usuario')
+
+        if (result) {
             refresh() // Refresh data after delete
-            setIsDeleteConfirmOpen(false)
-        } catch (error) {
-            console.error('Error al eliminar el usuario', error)
-            alert('Error al eliminar el usuario')
         }
     }
 
@@ -80,7 +81,7 @@ export default function UsersTable() {
             return
         }
 
-        try {
+        const result = await handleUpdate(async () => {
             const updatedUser = {
                 ...selectedUser,
             }
@@ -90,21 +91,20 @@ export default function UsersTable() {
                 updatedUser.password = selectedUser.password
             }
             if (updatedUser.id !== undefined) {
-                await userService.updatePartial(updatedUser.id, updatedUser)
-                refresh()
-                setIsEditModalOpen(false)
-                setNewPassword('')
-                setConfirmPassword('')
-                setPasswordError('')
-                setShowNewPassword(false)
-                setShowConfirmPassword(false)
+                return await userService.updatePartial(Number(updatedUser.id), updatedUser)
             } else {
-                console.error('User ID is undefined. Cannot update user.')
-                alert('Error al actualizar el usuario')
+                throw new Error('ID de usuario no definido')
             }
-        } catch (error) {
-            console.error('Error al actualizar el usuario', error)
-            alert('Error al actualizar el usuario')
+        }, 'Usuario')
+
+        if (result) {
+            refresh()
+            setIsEditModalOpen(false)
+            setNewPassword('')
+            setConfirmPassword('')
+            setPasswordError('')
+            setShowNewPassword(false)
+            setShowConfirmPassword(false)
         }
     }
 
@@ -178,7 +178,7 @@ export default function UsersTable() {
                                         <DropdownMenuItem
                                             className='text-red-600'
                                             onClick={() => {
-                                                setIsDeleteConfirmOpen(true)
+                                                handleDelete(Number(selectedUser.id!))
                                                 setIsOpen(false)
                                             }}>
                                             <Trash2 className='mr-2 h-4 w-4' />
@@ -358,33 +358,6 @@ export default function UsersTable() {
                         </button>
                     </div>
                 </form>
-            </Modal>
-
-            {/* Delete Confirmation Modal */}
-            <Modal
-                isOpen={isDeleteConfirmOpen}
-                onClose={() => setIsDeleteConfirmOpen(false)}>
-                <h2 className='text-xl font-semibold mb-4'>Confirmar Eliminación</h2>
-                <p className='mb-4'>
-                    ¿Estás seguro de que deseas eliminar el usuario{' '}
-                    <strong className='text-red-600'>{selectedUser.name}</strong>?
-                </p>
-                <div className='flex justify-end space-x-2'>
-                    <button
-                        type='button'
-                        onClick={() => setIsDeleteConfirmOpen(false)}
-                        className='px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                        Cancelar
-                    </button>
-                    <button
-                        type='button'
-                        onClick={() =>
-                            selectedUser.id && handleDelete(selectedUser.id)
-                        }
-                        className='px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
-                        Eliminar
-                    </button>
-                </div>
             </Modal>
 
             {/* Pagination */}

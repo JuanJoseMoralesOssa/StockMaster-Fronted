@@ -33,7 +33,7 @@ function UsersHeader() {
                             requeridos.
                         </DialogDescription>
                     </DialogHeader>
-                    <UserCreate />
+                    <UserCreate onSuccess={() => setOpen(false)} />
                 </DialogContent>
             </Dialog>
         </section>
