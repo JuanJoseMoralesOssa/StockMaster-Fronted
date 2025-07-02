@@ -27,7 +27,8 @@ export class PurchaseService extends ApiService<Purchase> {
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
 
     // Crear compra principal
-    const { purchase_details, ...toCreatePurchase } = purchase
+    const toCreatePurchase = { ...purchase }
+    delete toCreatePurchase.purchase_details
     const created = await this.create(toCreatePurchase)
 
     if (!created.id) {
@@ -113,7 +114,8 @@ export class PurchaseService extends ApiService<Purchase> {
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
 
     // Actualizar compra principal
-    const { purchase_details, ...toUpdatePurchase } = purchase
+    const toUpdatePurchase = { ...purchase }
+    delete toUpdatePurchase.purchase_details
     const updateRes = await axios.put(
       `${this.getUrl()}/${purchase.id}`,
       toUpdatePurchase

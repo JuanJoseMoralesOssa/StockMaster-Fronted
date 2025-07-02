@@ -1,6 +1,11 @@
 import Swal from 'sweetalert2'
 
 /**
+ * Posiciones disponibles para los toasts
+ */
+export type ToastPosition = 'top' | 'top-start' | 'top-end' | 'center' | 'center-start' | 'center-end' | 'bottom' | 'bottom-start' | 'bottom-end'
+
+/**
  * Configuración base para los toasts
  */
 const TOAST_CONFIG = {
@@ -34,7 +39,7 @@ export interface ToastOptions {
   type?: ToastType
   duration?: number
   showProgressBar?: boolean
-  position?: 'top' | 'top-start' | 'top-end' | 'center' | 'center-start' | 'center-end' | 'bottom' | 'bottom-start' | 'bottom-end'
+  position?: ToastPosition
 }
 
 /**
@@ -250,6 +255,18 @@ export class NotificationFactory {
     createError: (error?: string) => ToastService.error(error || 'Error al crear el registro del kardex'),
     updateError: (error?: string) => ToastService.error(error || 'Error al actualizar el kardex'),
     deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar el registro del kardex'),
+  }
+
+  /**
+   * Notificaciones para operaciones de gastos
+   */
+  static readonly expense = {
+    created: () => ToastService.success('Gasto creado exitosamente'),
+    updated: () => ToastService.success('Gasto actualizado exitosamente'),
+    deleted: () => ToastService.success('Gasto eliminado exitosamente'),
+    createError: (error?: string) => ToastService.error(error || 'Error al crear el gasto'),
+    updateError: (error?: string) => ToastService.error(error || 'Error al actualizar el gasto'),
+    deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar el gasto'),
   }
 
   /**

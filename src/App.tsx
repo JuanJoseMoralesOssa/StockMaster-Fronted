@@ -21,7 +21,7 @@ function App() {
 
     useEffect(() => {
         checkAuth()
-    }, [])
+    }, [checkAuth])
 
     // Mostrar loading mientras se verifica la autenticación inicial
     if (isLoading) {
@@ -47,7 +47,6 @@ function App() {
                     <Route path='usuarios' element={<User />} />
                 </Route>
                 <Route path="/access-denied" element={<AccessDenied />} />
-
                 {/* Ruta 404 */}
                 <Route path='*' element={<NotFound />} />
             </Routes>

@@ -17,7 +17,7 @@ export class AnalyticsService {
     return `${API_BASE_URL}${this.endpoint}${path ? '/' + path : ''}`;
   }
 
-  private handleError(error: any, errorMessage: string): never {
+  private handleError(error: unknown, errorMessage: string): never {
     if (axios.isAxiosError(error)) {
       const axiosError = error;
 

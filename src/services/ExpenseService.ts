@@ -26,7 +26,7 @@ export class ExpenseService extends ApiService<Expense> {
       .filter((d) => d.toCreate && !d.toDelete)
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
 
-    const { expense_details, ...toCreateExpense } = expense
+    const toCreateExpense: Omit<Expense, 'expense_details'> = { ...expense }
     const created = await this.create(toCreateExpense)
 
     if (!created.id) {
@@ -110,8 +110,7 @@ export class ExpenseService extends ApiService<Expense> {
       .filter((d) => !d.toDelete)
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
 
-    // Actualizar compra principal
-    const { expense_details, ...toUpdateExpense } = expense
+    const toUpdateExpense: Omit<Expense, 'expense_details'> = { ...expense }
     const updateRes = await axios.put(
       `${this.getUrl()}/${expense.id}`,
       toUpdateExpense

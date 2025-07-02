@@ -1,173 +1,195 @@
-// // Ejemplo de refactorización de PurchasesTable usando el nuevo sistema de toasts
-// import { useState } from 'react'
-// import { useCrudToast, useToast } from '../../../hooks/useToast'
-// import { NotificationFactory } from '../../../services/ToastService'
-// import { purchaseService } from '../../../services/PurchaseService'
-// import Purchase from '../../../types/Purchase'
+// Ejemplo de refactorización de PurchasesTable usando el nuevo sistema de toasts
+import { useState } from 'react'
+import { useToast } from '../hooks/useToast'
+import { usePurchaseOperations } from '../hooks/usePurchaseOperations'
+import { NotificationFactory } from '../services/ToastService'
+import { purchaseService } from '../services/PurchaseService'
+import Purchase from '../types/Purchase'
 
-// // Esta es una versión refactorizada simplificada para mostrar el patrón
-// export const RefactoredPurchasesTable = () => {
-//     const [selectedPurchase, setSelectedPurchase] = useState<Purchase>({} as Purchase)
-//     const [isLoading, setIsLoading] = useState(false)
+/**
+ * Componente refactorizado que demuestra el uso correcto del sistema de toasts
+ * Implementa las mejores prácticas y principios SOLID
+ */
+export const RefactoredPurchasesTable = () => {
+  const [selectedPurchase, setSelectedPurchase] = useState<Purchase>({} as Purchase)
+  const [isLoading, setIsLoading] = useState(false)
 
-//     const { handleDelete, handleUpdate } = useCrudToast()
-//     const { showError, showLoading, close } = useToast()
+  // Hooks especializados para manejo de toasts
+  const { showError, showLoading, close } = useToast()
 
-//     // Método refactorizado para eliminar compras
-//     const handleDeletePurchase = async (id: number) => {
-//         const result = await handleDelete(async () => {
-//             await purchaseService.delete(id)
-//             await purchaseService.deleteWithDetails(id)
-//             return true
-//         }, 'Compra')
+  // Hook personalizado para operaciones de compras
+  const {
+    deletePurchaseWithConfirmation,
+    updatePurchaseWithValidation,
+    processComplexPurchaseOperation
+  } = usePurchaseOperations()
 
-//         if (result) {
-//             // refresh() // Refrescar datos después de eliminar
-//         }
-//     }
+  const handleDeletePurchase = async (id: number) => {
+    const result = await deletePurchaseWithConfirmation(id, 'Compra #' + id)
 
-//     // Método refactorizado para editar compras con validaciones específicas
-//     const handleEditPurchase = async () => {
-//         setIsLoading(true)
+    if (result) {
+      console.log('Compra eliminada exitosamente')
+    }
+  }
 
-//         try {
-//             // Validaciones específicas usando el NotificationFactory
-//             if (!selectedPurchase.id) {
-//                 NotificationFactory.purchase.missingId()
-//                 setIsLoading(false)
-//                 return
-//             }
+  const handleEditPurchase = async () => {
+    if (!selectedPurchase.id) {
+      NotificationFactory.purchase.missingId()
+      return
+    }
 
-//             if (!selectedPurchase.date) {
-//                 NotificationFactory.purchase.missingDate()
-//                 setIsLoading(false)
-//                 return
-//             }
+    setIsLoading(true)
 
-//             // Validar detalles de compra
-//             for (const detail of selectedPurchase.purchase_details ?? []) {
-//                 if (detail.toDelete) continue
-//                 if (!detail.productId || !detail.personId) {
-//                     NotificationFactory.purchase.invalidDetails()
-//                     setIsLoading(false)
-//                     return
-//                 }
-//             }
+    try {
+      const result = await updatePurchaseWithValidation(selectedPurchase)
 
-//             const result = await handleUpdate(async () => {
-//                 return await purchaseService.updateWithDetails(selectedPurchase)
-//             }, 'Compra')
+      if (result?.total_kg) {
+        setSelectedPurchase(prev => ({
+          ...prev,
+          total_kg: result.total_kg ?? 0
+        }))
+      }
 
-//             if (result?.total_kg) {
-//                 selectedPurchase.total_kg = result.total_kg ?? 0
-//                 // Actualizar estado según sea necesario
-//             }
+    } catch (error) {
+      console.error('Error específico en la compra:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-//         } catch (error) {
-//             // El hook ya maneja el error, pero podemos agregar lógica específica si es necesario
-//             console.error('Error específico en la compra:', error)
-//         } finally {
-//             setIsLoading(false)
-//         }
-//     }
+  const handleComplexOperation = async () => {
+    if (!selectedPurchase.id) {
+      showError('Seleccione una compra primero')
+      return
+    }
 
-//     // Ejemplo de operación compleja con loading personalizado
-//     const handleComplexOperation = async () => {
-//         showLoading('Procesando compra compleja...')
+    const result = await processComplexPurchaseOperation(selectedPurchase.id)
 
-//         try {
-//             // Simulación de operación compleja
-//             await new Promise(resolve => setTimeout(resolve, 2000))
+    if (result) {
+      setSelectedPurchase(result)
+      console.log('Operación compleja completada')
+    }
+  }
 
-//             // Múltiples operaciones
-//             await purchaseService.someComplexOperation()
+  const handleManualOperation = async () => {
+    showLoading('Procesando operación manual...')
 
-//             close() // Cerrar loading
-//             NotificationFactory.purchase.updated()
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      const purchases = await purchaseService.getAllPaginatedWithDetails(1, 10)
+      console.log('Compras obtenidas:', purchases.data.length)
 
-//         } catch (error) {
-//             close() // Cerrar loading
-//             const errorMessage = error instanceof Error ? error.message : 'Error en operación compleja'
-//             showError(errorMessage)
-//         }
-//     }
+      close()
+      NotificationFactory.purchase.updated()
 
-//     return (
-//         <div>
-//             {/* Tu JSX aquí */}
-//             <button onClick={() => handleDeletePurchase(1)}>
-//                 Eliminar Compra
-//             </button>
-//             <button onClick={handleEditPurchase} disabled={isLoading}>
-//                 {isLoading ? 'Editando...' : 'Editar Compra'}
-//             </button>
-//             <button onClick={handleComplexOperation}>
-//                 Operación Compleja
-//             </button>
-//         </div>
-//     )
-// }
+    } catch (error) {
+      close()
+      const errorMessage = error instanceof Error ? error.message : 'Error en operación manual'
+      showError(errorMessage)
+    }
+  }
 
-// // Ejemplo de uso en un hook personalizado para compras
-// export const usePurchaseOperations = () => {
-//     const { handleCreate, handleUpdate, handleDelete } = useCrudToast()
-//     const { showLoading, close, showError } = useToast()
+  const simulatePurchaseData = () => {
+    setSelectedPurchase({
+      id: 1,
+      date: new Date().toISOString().split('T')[0],
+      total_kg: 100,
+      purchase_details: [
+        {
+          id: 1,
+          weight_kg: 50,
+          productId: 1,
+          personId: 1,
+          toCreate: false,
+          toUpdate: false,
+          toDelete: false
+        }
+      ]
+    } as Purchase)
+  }
 
-//     const createPurchaseWithDetails = async (purchaseData: Purchase) => {
-//         return await handleCreate(async () => {
-//             // Validaciones específicas
-//             if (!purchaseData.date) {
-//                 throw new Error('La fecha de compra es requerida')
-//             }
+  return (
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <header className="text-center">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Gestión de Compras - Ejemplo Refactorizado
+        </h1>
+        <p className="text-gray-600">
+          Demostración del sistema de toasts con SweetAlert2
+        </p>
+      </header>
 
-//             if (!purchaseData.purchase_details?.length) {
-//                 throw new Error('Debe agregar al menos un detalle de compra')
-//             }
+      <div className="flex gap-4 flex-wrap justify-center">
+        <button
+          onClick={() => handleDeletePurchase(selectedPurchase.id || 1)}
+          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors shadow-md"
+        >
+          Eliminar Compra
+        </button>
 
-//             return await purchaseService.createWithDetails(purchaseData)
-//         }, 'Compra')
-//     }
+        <button
+          onClick={handleEditPurchase}
+          disabled={isLoading || !selectedPurchase.id}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 transition-colors shadow-md"
+        >
+          {isLoading ? 'Editando...' : 'Editar Compra'}
+        </button>
 
-//     const updatePurchaseWithValidation = async (purchaseData: Purchase) => {
-//         // Loading personalizado para operaciones complejas
-//         showLoading('Validando y actualizando compra...')
+        <button
+          onClick={handleComplexOperation}
+          disabled={!selectedPurchase.id}
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 transition-colors shadow-md"
+        >
+          Operación Compleja
+        </button>
 
-//         try {
-//             // Validaciones complejas
-//             const validationResult = await purchaseService.validatePurchase(purchaseData)
+        <button
+          onClick={handleManualOperation}
+          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors shadow-md"
+        >
+          Operación Manual
+        </button>
+      </div>
 
-//             if (!validationResult.isValid) {
-//                 close()
-//                 showError(`Validación fallida: ${validationResult.errors.join(', ')}`)
-//                 return null
-//             }
+      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">
+          Información de la Compra
+        </h3>
 
-//             close() // Cerrar loading de validación
+        {selectedPurchase.id ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <p><span className="font-medium">ID:</span> {selectedPurchase.id}</p>
+              <p><span className="font-medium">Fecha:</span> {selectedPurchase.date}</p>
+            </div>
+            <div className="space-y-2">
+              <p><span className="font-medium">Total KG:</span> {selectedPurchase.total_kg}</p>
+              <p><span className="font-medium">Detalles:</span> {selectedPurchase.purchase_details?.length || 0}</p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-500 italic">No hay compra seleccionada</p>
+        )}
 
-//             // Usar el sistema de toast para la actualización
-//             return await handleUpdate(async () => {
-//                 return await purchaseService.updateWithDetails(purchaseData)
-//             }, 'Compra')
+        <button
+          onClick={simulatePurchaseData}
+          className="mt-4 px-4 py-2 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition-colors"
+        >
+          Simular Datos de Compra
+        </button>
+      </div>
 
-//         } catch (error) {
-//             close()
-//             const message = error instanceof Error ? error.message : 'Error en validación'
-//             showError(message)
-//             return null
-//         }
-//     }
-
-//     const deletePurchaseWithConfirmation = async (id: number, purchaseName?: string) => {
-//         return await handleDelete(async () => {
-//             await purchaseService.delete(id)
-//             await purchaseService.deleteWithDetails(id)
-//             return true
-//         }, 'Compra', purchaseName ? `¿Eliminar la compra "${purchaseName}"?` : undefined)
-//     }
-
-//     return {
-//         createPurchaseWithDetails,
-//         updatePurchaseWithValidation,
-//         deletePurchaseWithConfirmation,
-//     }
-// }
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="font-semibold text-blue-800 mb-2">Características del Sistema</h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>✅ Toasts con SweetAlert2</li>
+          <li>✅ Principio Single Responsibility</li>
+          <li>✅ Principio Open/Closed</li>
+          <li>✅ Hooks especializados</li>
+          <li>✅ NotificationFactory para mensajes específicos</li>
+          <li>✅ Manejo de errores centralizado</li>
+        </ul>
+      </div>
+    </div>
+  )
+}

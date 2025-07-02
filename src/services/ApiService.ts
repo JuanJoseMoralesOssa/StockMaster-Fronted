@@ -22,7 +22,7 @@ export class ApiService<T> {
   }
 
   // Método genérico para manejar errores con mensajes contextualizados
-  protected handleError(error: any, errorMessage: string): never {
+  protected handleError(error: unknown, errorMessage: string): never {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError
 
@@ -32,7 +32,7 @@ export class ApiService<T> {
 
         // Intentar extraer mensaje de error del cuerpo de la respuesta
         if (axiosError.response.data) {
-          const errorData = axiosError.response.data as any
+          const errorData = axiosError.response.data as { message?: string }
           if (errorData.message) {
             console.error(`${errorMessage}: ${errorData.message}`)
             throw new Error(`${errorMessage}: ${errorData.message}`)
