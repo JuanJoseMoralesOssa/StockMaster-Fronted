@@ -1,31 +1,23 @@
-import { useCrudToast, useToast } from './useToast'
+import { useCrudOperations, createCrudConfig } from './useCrudOperations'
 import { purchaseService } from '../services/PurchaseService'
 import Purchase from '../types/Purchase'
 
 /**
- * Hook personalizado para operaciones específicas de compras
- * Implementa validaciones de negocio y manejo de toasts específicos
+ * Hook personalizado para operaciones específicas de compras.
+ * Utiliza el hook genérico useCrudOperations para el manejo de la lógica CRUD
+ * y se centra únicamente en las validaciones de negocio de las compras.
  */
 export const usePurchaseOperations = () => {
-  const { handleCreate, handleUpdate, handleDelete } = useCrudToast()
-  const { showLoading, close, showError } = useToast()
-
-  /**
-   * Crea una compra con validaciones específicas del dominio
-   */
-  const createPurchaseWithDetails = async (purchaseData: Purchase) => {
-    return await handleCreate(async () => {
-      // Validaciones específicas del negocio
-      if (!purchaseData.date) {
+  // 1. Definir las validaciones de negocio específicas para Compras
+  const purchaseValidations = {
+    create: (data: Purchase) => {
+      if (!data.date) {
         throw new Error('La fecha de compra es requerida')
       }
-
-      if (!purchaseData.purchase_details?.length) {
+      if (!data.purchase_details?.length) {
         throw new Error('Debe agregar al menos un detalle de compra')
       }
-
-      // Validar que todos los detalles tengan producto y persona
-      for (const detail of purchaseData.purchase_details) {
+      for (const detail of data.purchase_details) {
         if (detail.toCreate && !detail.toDelete) {
           if (!detail.product?.id || !detail.person?.id) {
             throw new Error('Todos los detalles deben tener producto y proveedor definidos')
@@ -35,107 +27,67 @@ export const usePurchaseOperations = () => {
           }
         }
       }
-
-      return await purchaseService.createWithDetails(purchaseData)
-    }, 'Compra')
-  }
-
-  /**
-   * Actualiza una compra con validación avanzada
-   */
-  const updatePurchaseWithValidation = async (purchaseData: Purchase) => {
-    // Loading personalizado para operaciones complejas
-    showLoading('Validando y actualizando compra...')
-
-    try {
-      // Validaciones de negocio específicas
-      if (!purchaseData.id) {
+    },
+    update: (data: Purchase) => {
+      if (!data.id) {
         throw new Error('ID de compra requerido para actualización')
       }
-
-      if (!purchaseData.date) {
+      if (!data.date) {
         throw new Error('La fecha de compra es requerida')
       }
-
-      // Validar detalles
-      for (const detail of purchaseData.purchase_details ?? []) {
-        if (detail.toDelete) continue // Saltar validación para elementos a eliminar
-
+      for (const detail of data.purchase_details ?? []) {
+        if (detail.toDelete) continue
         if (!detail.productId || !detail.personId) {
           throw new Error('Producto o proveedor indefinido en detalle')
         }
-
         if (!detail.weight_kg || detail.weight_kg <= 0) {
           throw new Error('El peso debe ser mayor a cero')
         }
       }
-
-      close() // Cerrar loading de validación
-
-      // Usar el sistema de toast para la actualización
-      return await handleUpdate(async () => {
-        return await purchaseService.updateWithDetails(purchaseData)
-      }, 'Compra')
-
-    } catch (error) {
-      close()
-      const message = error instanceof Error ? error.message : 'Error en validación'
-      showError(message)
-      return null
+    },
+    delete: async (id: number) => {
+      // Lógica de negocio: eliminar detalles antes que la compra principal.
+      // El servicio se encarga de esto, pero la validación podría estar aquí.
+      await purchaseService.deleteWithDetails(id)
     }
   }
 
-  /**
-   * Elimina una compra con confirmación personalizada
-   */
-  const deletePurchaseWithConfirmation = async (id: number, purchaseName?: string) => {
-    const confirmMessage = purchaseName
-      ? `¿Eliminar la compra "${purchaseName}"? Esta acción no se puede deshacer.`
-      : '¿Estás seguro de que quieres eliminar esta compra? Esta acción eliminará también todos sus detalles.'
+  // 2. Crear una configuración para el hook genérico
+  const crudConfig = createCrudConfig<Purchase>('Compra', {
+    create: purchaseService.createWithDetails,
+    update: purchaseService.updateWithDetails,
+    delete: purchaseService.delete,
+  }, purchaseValidations)
 
-    return await handleDelete(async () => {
-      // Primero eliminar detalles, luego la compra principal
-      await purchaseService.deleteWithDetails(id)
-      await purchaseService.delete(id)
-      return true
-    }, 'Compra', confirmMessage)
-  }
+  // 3. Usar el hook genérico con la configuración de Compra
+  const { create, update, delete: deleteEntity, executeOperation, toast } = useCrudOperations<Purchase>(crudConfig)
 
   /**
-   * Operación compleja que combina múltiples acciones
+   * Operación compleja que combina múltiples acciones.
+   * Demuestra cómo usar `executeOperation` para tareas personalizadas.
    */
   const processComplexPurchaseOperation = async (purchaseId: number) => {
-    showLoading('Procesando operación compleja...')
-
-    try {
-      // Obtener datos actualizados
-      const purchase = await purchaseService.getById(purchaseId)
-
-      if (!purchase) {
-        throw new Error('Compra no encontrada')
-      }
-
-      // Simular operaciones complejas
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // Recalcular totales u otras operaciones
-      const updatedPurchase = await purchaseService.updateWithDetails(purchase)
-
-      close()
-      return updatedPurchase
-
-    } catch (error) {
-      close()
-      const message = error instanceof Error ? error.message : 'Error en operación compleja'
-      showError(message)
-      return null
-    }
+    return executeOperation(
+      async () => {
+        const purchase = await purchaseService.getById(purchaseId)
+        if (!purchase) {
+          throw new Error('Compra no encontrada')
+        }
+        // Simular operaciones complejas
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        return await purchaseService.updateWithDetails(purchase)
+      },
+      'Procesando operación compleja...',
+      'Operación completada exitosamente',
+      'Error en la operación compleja'
+    )
   }
 
   return {
-    createPurchaseWithDetails,
-    updatePurchaseWithValidation,
-    deletePurchaseWithConfirmation,
+    createPurchase: create,
+    updatePurchase: update,
+    deletePurchase: deleteEntity,
     processComplexPurchaseOperation,
+    toast
   }
 }

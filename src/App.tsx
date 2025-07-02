@@ -21,7 +21,7 @@ function App() {
 
     useEffect(() => {
         checkAuth()
-    }, [checkAuth])
+    }, [])
 
     // Mostrar loading mientras se verifica la autenticación inicial
     if (isLoading) {

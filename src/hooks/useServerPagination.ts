@@ -5,7 +5,7 @@ interface UseServerPaginationProps<T> {
     fetchFunction: (page: number, limit: number) => Promise<PaginatedResponse<T>>
     initialPage?: number
     initialLimit?: number
-    dependencies?: any[]
+    dependencies?: unknown[]
 }
 
 interface UseServerPaginationReturn<T> {

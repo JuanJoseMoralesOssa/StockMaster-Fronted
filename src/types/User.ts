@@ -1,5 +1,5 @@
 export default interface User {
-    id?: number | string  // Allow string for temporary IDs during optimistic updates
+    id?: number
     name: string
     email: string
     role: string
