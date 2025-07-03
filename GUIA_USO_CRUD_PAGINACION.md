@@ -7,11 +7,13 @@ El hook `useCrudWithPagination` implementa una arquitectura SOLID que combina op
 ## 🎯 Características Principales
 
 ### ✅ **Separación de Responsabilidades (SRP)**
+
 - `useCrudOperations`: Solo maneja operaciones CRUD
 - `useServerPagination`: Solo maneja paginación
 - `useCrudWithPagination`: Orquesta ambos de manera inteligente
 
 ### ✅ **Funcionalidades Avanzadas**
+
 - **Actualizaciones Optimistas**: Actualiza la UI inmediatamente
 - **Manejo Inteligente de Filtros**: Con debouncing y validación automática
 - **Navegación de Páginas**: Maneja páginas vacías automáticamente
@@ -37,10 +39,10 @@ src/examples/
 ### 1. Importaciones Necesarias
 
 ```typescript
-import { 
-  useCrudWithPagination, 
-  createCrudPaginationConfig, 
-  useDebouncedFilters 
+import {
+  useCrudWithPagination,
+  createCrudPaginationConfig,
+  useDebouncedFilters,
 } from '../hooks/useCrudWithPagination'
 import { yourService } from '../services/YourService'
 import { YourType } from '../types/YourType'
@@ -53,19 +55,25 @@ export const useYourEntitiesWithPagination = () => {
   // Configuración específica para tu entidad
   const config = createCrudPaginationConfig(
     'TuEntidad', // Nombre para mensajes
-    
+
     // Función de fetch que maneja filtros y ordenamiento
     async (page: number, limit: number, filters?, sortBy?, sortOrder?) => {
       return yourService.getPaginated(page, limit, filters, sortBy, sortOrder)
     },
-    
+
     yourService, // Servicio CRUD
-    
+
     {
       // Configuración adicional opcional
-      validations: { /* validaciones personalizadas */ },
-      customMessages: { /* mensajes personalizados */ },
-      options: { /* opciones de comportamiento */ }
+      validations: {
+        /* validaciones personalizadas */
+      },
+      customMessages: {
+        /* mensajes personalizados */
+      },
+      options: {
+        /* opciones de comportamiento */
+      },
     }
   )
 
@@ -78,30 +86,25 @@ export const useYourEntitiesWithPagination = () => {
 ### **Validaciones Personalizadas**
 
 ```typescript
-const config = createCrudPaginationConfig(
-  'Usuario',
-  fetchFunction,
-  userService,
-  {
-    validations: {
-      create: (user) => {
-        if (!user.name?.trim()) throw new Error('Nombre requerido')
-        if (!user.email?.includes('@')) throw new Error('Email inválido')
-      },
-      update: (user) => {
-        if (!user.id) throw new Error('ID requerido')
-        // Validaciones específicas para actualización
-      },
-      delete: async (id) => {
-        // Verificar dependencias antes de eliminar
-        const hasDependencies = await checkDependencies(id)
-        if (hasDependencies) {
-          throw new Error('No se puede eliminar: tiene datos asociados')
-        }
+const config = createCrudPaginationConfig('Usuario', fetchFunction, userService, {
+  validations: {
+    create: (user) => {
+      if (!user.name?.trim()) throw new Error('Nombre requerido')
+      if (!user.email?.includes('@')) throw new Error('Email inválido')
+    },
+    update: (user) => {
+      if (!user.id) throw new Error('ID requerido')
+      // Validaciones específicas para actualización
+    },
+    delete: async (id) => {
+      // Verificar dependencias antes de eliminar
+      const hasDependencies = await checkDependencies(id)
+      if (hasDependencies) {
+        throw new Error('No se puede eliminar: tiene datos asociados')
       }
-    }
-  }
-)
+    },
+  },
+})
 ```
 
 ### **Mensajes Personalizados**
@@ -146,28 +149,28 @@ const MyComponent = () => {
     data: users,
     loading,
     error,
-    
+
     // Información de paginación
     currentPage,
     totalPages,
     totalItems,
-    
+
     // Operaciones CRUD
     createItem,
     updateItem,
     deleteItem,
-    
+
     // Control de paginación
     goToPage,
     setItemsPerPage,
-    
+
     // Filtros y ordenamiento
     filters,
     applyFilters,
     handleSort,
-    
+
     // Utilidades
-    refresh
+    refresh,
   } = useUsersWithPagination()
 
   // Resto del componente...
@@ -179,18 +182,17 @@ const MyComponent = () => {
 ```typescript
 const MyComponent = () => {
   const usersPagination = useUsersWithPagination()
-  
+
   // Filtros con debounce automático
-  const {
-    filters,
-    updateFilter,
-    clearFilter,
-    clearAllFilters
-  } = useDebouncedFilters({
-    name: '',
-    email: '',
-    role: ''
-  }, 300) // 300ms de debounce
+  const { filters, updateFilter, clearFilter, clearAllFilters } =
+    useDebouncedFilters(
+      {
+        name: '',
+        email: '',
+        role: '',
+      },
+      300
+    ) // 300ms de debounce
 
   // Aplicar filtros cuando cambien (con debounce)
   useEffect(() => {
@@ -200,7 +202,7 @@ const MyComponent = () => {
   return (
     <div>
       <input
-        placeholder="Buscar por nombre..."
+        placeholder='Buscar por nombre...'
         value={filters.name}
         onChange={(e) => updateFilter('name', e.target.value)}
       />
@@ -216,15 +218,18 @@ const MyComponent = () => {
 
 ```typescript
 const handleCreate = async (formData) => {
-  const newUser = await createItem({
-    name: formData.name,
-    email: formData.email,
-    role: formData.role
-  }, {
-    goToFirstPage: true,  // Ir a página 1 después de crear
-    showSuccess: true,    // Mostrar notificación de éxito
-    revalidate: true      // Refrescar datos
-  })
+  const newUser = await createItem(
+    {
+      name: formData.name,
+      email: formData.email,
+      role: formData.role,
+    },
+    {
+      goToFirstPage: true, // Ir a página 1 después de crear
+      showSuccess: true, // Mostrar notificación de éxito
+      revalidate: true, // Refrescar datos
+    }
+  )
 
   if (newUser) {
     console.log('Usuario creado:', newUser)
@@ -237,13 +242,16 @@ const handleCreate = async (formData) => {
 
 ```typescript
 const handleUpdate = async (user) => {
-  const updatedUser = await updateItem({
-    ...user,
-    name: 'Nuevo nombre'
-  }, {
-    optimistic: true,   // Actualización optimista
-    revalidate: true    // Revalidar para ver cambios de orden
-  })
+  const updatedUser = await updateItem(
+    {
+      ...user,
+      name: 'Nuevo nombre',
+    },
+    {
+      optimistic: true, // Actualización optimista
+      revalidate: true, // Revalidar para ver cambios de orden
+    }
+  )
 
   if (updatedUser) {
     console.log('Usuario actualizado:', updatedUser)
@@ -256,8 +264,8 @@ const handleUpdate = async (user) => {
 ```typescript
 const handleDelete = async (userId) => {
   const deleted = await deleteItem(userId, undefined, {
-    confirmDelete: true,  // Mostrar confirmación
-    customConfirmMessage: '¿Seguro que quieres eliminar este usuario?'
+    confirmDelete: true, // Mostrar confirmación
+    customConfirmMessage: '¿Seguro que quieres eliminar este usuario?',
   })
 
   if (deleted) {
@@ -289,7 +297,7 @@ const MyTable = () => {
         </tr>
       </thead>
       <tbody>
-        {users.map(user => (
+        {users.map((user) => (
           <tr key={user.id}>
             <td>{user.name}</td>
             <td>{user.email}</td>
@@ -315,37 +323,32 @@ const MyPagination = () => {
     goToPage,
     setItemsPerPage,
     startItem,
-    endItem
+    endItem,
   } = useUsersWithPagination()
 
   return (
-    <div className="pagination">
-      <div className="info">
+    <div className='pagination'>
+      <div className='info'>
         Mostrando {startItem} - {endItem} de {totalItems} elementos
       </div>
-      
-      <div className="controls">
-        <button 
-          onClick={() => goToPage(currentPage - 1)}
-          disabled={!hasPrevious}
-        >
+
+      <div className='controls'>
+        <button onClick={() => goToPage(currentPage - 1)} disabled={!hasPrevious}>
           Anterior
         </button>
-        
-        <span>Página {currentPage} de {totalPages}</span>
-        
-        <button 
-          onClick={() => goToPage(currentPage + 1)}
-          disabled={!hasNext}
-        >
+
+        <span>
+          Página {currentPage} de {totalPages}
+        </span>
+
+        <button onClick={() => goToPage(currentPage + 1)} disabled={!hasNext}>
           Siguiente
         </button>
       </div>
 
-      <select 
-        value={itemsPerPage} 
-        onChange={(e) => setItemsPerPage(Number(e.target.value))}
-      >
+      <select
+        value={itemsPerPage}
+        onChange={(e) => setItemsPerPage(Number(e.target.value))}>
         <option value={10}>10 por página</option>
         <option value={25}>25 por página</option>
         <option value={50}>50 por página</option>
@@ -390,7 +393,7 @@ export const useUsersWithPagination = () => {
     ...usersCrud,
     // Operaciones adicionales
     resetPassword,
-    exportUsers
+    exportUsers,
   }
 }
 ```
@@ -401,7 +404,7 @@ export const useUsersWithPagination = () => {
 // Hook específico para admin
 export const useAdminUsersWithPagination = () => {
   const usersPagination = useUsersWithPagination()
-  
+
   // Filtrar solo usuarios admin por defecto
   useEffect(() => {
     usersPagination.applyFilters({ role: 'admin' })
@@ -413,7 +416,7 @@ export const useAdminUsersWithPagination = () => {
 // Hook con configuración específica
 export const useUsersTableWithPagination = (pageSize = 25) => {
   const usersPagination = useUsersWithPagination()
-  
+
   useEffect(() => {
     usersPagination.setItemsPerPage(pageSize)
   }, [pageSize])
@@ -429,15 +432,15 @@ export const useUsersTableWithPagination = (pageSize = 25) => {
 ```typescript
 const {
   // Estados de datos
-  loading,           // Cargando datos de paginación
-  operationLoading,  // Cargando operación CRUD
-  error,            // Error de paginación
-  operationError,   // Error de operación CRUD
-  
+  loading, // Cargando datos de paginación
+  operationLoading, // Cargando operación CRUD
+  error, // Error de paginación
+  operationError, // Error de operación CRUD
+
   // Estados de utilidad
-  isEmpty,          // No hay datos
-  isFirstPage,      // Estamos en la primera página
-  isLastPage        // Estamos en la última página
+  isEmpty, // No hay datos
+  isFirstPage, // Estamos en la primera página
+  isLastPage, // Estamos en la última página
 } = useUsersWithPagination()
 
 // Ejemplo de uso
@@ -449,22 +452,17 @@ if (isEmpty) return <EmptyState />
 ### **Logging Personalizado**
 
 ```typescript
-const config = createCrudPaginationConfig(
-  'Usuario',
-  fetchFunction,
-  userService,
-  {
-    validations: {
-      create: (user) => {
-        console.log('Validando creación:', user)
-        // Validaciones...
-      }
+const config = createCrudPaginationConfig('Usuario', fetchFunction, userService, {
+  validations: {
+    create: (user) => {
+      console.log('Validando creación:', user)
+      // Validaciones...
     },
-    options: {
-      // Habilitar logs internos si es necesario
-    }
-  }
-)
+  },
+  options: {
+    // Habilitar logs internos si es necesario
+  },
+})
 ```
 
 ## 🚨 Manejo de Errores

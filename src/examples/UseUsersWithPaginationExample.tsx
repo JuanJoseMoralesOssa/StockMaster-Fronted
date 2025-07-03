@@ -31,7 +31,16 @@ export const useUsersWithPagination = () => {
 
       return userService.getPaginated(page, limit)
     },
-    userService,
+    {
+      ...userService,
+      update: (data: User) => userService.update(data.id!, data),
+      create: function (data: User): Promise<User> {
+        throw new Error('Function not implemented.')
+      },
+      delete: function (id: number): Promise<void> {
+        throw new Error('Function not implemented.')
+      }
+    },
     {
       // Validaciones específicas para usuarios
       validations: {
@@ -266,86 +275,86 @@ export const UsersPage = () => {
       <h1>Usuarios ({totalItems})</h1>
 
       {/* Filtros */}
-      <div>
-        <input
-          placeholder="Buscar por nombre..."
-          value={filters.name}
-          onChange={(e) => updateFilter('name', e.target.value)}
-        />
-        <input
-          placeholder="Buscar por email..."
-          value={filters.email}
-          onChange={(e) => updateFilter('email', e.target.value)}
-        />
-      </div>
+<div>
+  <input
+    placeholder="Buscar por nombre..."
+    value={filters.name}
+    onChange={(e) => updateFilter('name', e.target.value)}
+  />
+  <input
+    placeholder="Buscar por email..."
+    value={filters.email}
+    onChange={(e) => updateFilter('email', e.target.value)}
+  />
+</div>
 
-      {/* Tabla */}
-      <table>
-        <thead>
-          <tr>
-            <th onClick={() => handleSort('name')}>
-              Nombre {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
-            </th>
-            <th onClick={() => handleSort('email')}>
-              Email {sortBy === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
-            </th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map(user => (
-            <tr key={user.id}>
-              <td>{user.name}</td>
-              <td>{user.email}</td>
-              <td>
-                <button
-                  onClick={() => handleUpdateUser(user)}
-                  disabled={operationLoading}
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleDeleteUser(user.id!)}
-                  disabled={operationLoading}
-                >
-                  Eliminar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+{/* Tabla */ }
+<table>
+  <thead>
+    <tr>
+      <th onClick={() => handleSort('name')}>
+        Nombre {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+      </th>
+      <th onClick={() => handleSort('email')}>
+        Email {sortBy === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
+      </th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {users.map(user => (
+      <tr key={user.id}>
+        <td>{user.name}</td>
+        <td>{user.email}</td>
+        <td>
+          <button
+            onClick={() => handleUpdateUser(user)}
+            disabled={operationLoading}
+          >
+            Editar
+          </button>
+          <button
+            onClick={() => handleDeleteUser(user.id!)}
+            disabled={operationLoading}
+          >
+            Eliminar
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
 
-      {/* Paginación */}
-      <div>
-        <button
-          onClick={() => goToPage(currentPage - 1)}
-          disabled={!hasPrevious || loading}
-        >
-          Anterior
-        </button>
+{/* Paginación */ }
+<div>
+  <button
+    onClick={() => goToPage(currentPage - 1)}
+    disabled={!hasPrevious || loading}
+  >
+    Anterior
+  </button>
 
-        <span>
-          Página {currentPage} de {totalPages}
-        </span>
+  <span>
+    Página {currentPage} de {totalPages}
+  </span>
 
-        <button
-          onClick={() => goToPage(currentPage + 1)}
-          disabled={!hasNext || loading}
-        >
-          Siguiente
-        </button>
+  <button
+    onClick={() => goToPage(currentPage + 1)}
+    disabled={!hasNext || loading}
+  >
+    Siguiente
+  </button>
 
-        <select
-          value={itemsPerPage}
-          onChange={(e) => setItemsPerPage(Number(e.target.value))}
-        >
-          <option value={10}>10 por página</option>
-          <option value={25}>25 por página</option>
-          <option value={50}>50 por página</option>
-        </select>
-      </div>
-    </div>
+  <select
+    value={itemsPerPage}
+    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+  >
+    <option value={10}>10 por página</option>
+    <option value={25}>25 por página</option>
+    <option value={50}>50 por página</option>
+  </select>
+</div>
+    </div >
   )
 }
 */
