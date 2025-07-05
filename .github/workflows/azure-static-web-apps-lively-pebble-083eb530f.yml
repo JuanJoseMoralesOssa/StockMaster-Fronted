@@ -44,6 +44,8 @@ jobs:
           cat dist/index.html
           echo "=== All JS files in dist ==="
           find dist/ -name "*.js" -type f
+          echo "=== All CSS files in dist ==="
+          find dist/ -name "*.css" -type f
           echo "=== Checking if staticwebapp.config.json exists in dist ==="
           ls -la dist/staticwebapp.config.json || echo "Config not found in dist"
 
