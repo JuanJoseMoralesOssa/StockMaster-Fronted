@@ -18,7 +18,7 @@
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/api/*", "*.{css,scss,js,ts,png,gif,ico,jpg,jpeg,svg,woff,woff2,ttf,eot,map}"]
+    "exclude": ["/assets/*", "/api/*", "*.{css,scss,js,mjs,ts,png,gif,ico,jpg,jpeg,svg,woff,woff2,ttf,eot,map}"]
   },
   "mimeTypes": {
     ".json": "application/json",
@@ -35,7 +35,8 @@
     ".woff": "font/woff",
     ".woff2": "font/woff2",
     ".ttf": "font/ttf",
-    ".eot": "application/vnd.ms-fontobject"
+    ".eot": "application/vnd.ms-fontobject",
+    ".map": "application/json"
   },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
