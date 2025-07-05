@@ -46,7 +46,7 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 md:py-4 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen min-w-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 md:py-4 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-4">
           <div className='w-full flex items-center justify-center gap-2 mb-1'>
