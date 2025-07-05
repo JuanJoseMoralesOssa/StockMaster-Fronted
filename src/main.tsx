@@ -1,15 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import './index.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
-    <section>
-        {
-            import.meta.env.DEV &&
-            <StrictMode>
-                <App />
-            </StrictMode>
-        }
-        {!import.meta.env.DEV && <App />}
-    </section>
+    <StrictMode>
+        <App />
+    </StrictMode>
 )
