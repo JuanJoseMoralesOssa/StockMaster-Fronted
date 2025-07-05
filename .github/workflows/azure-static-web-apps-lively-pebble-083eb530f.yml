@@ -36,8 +36,22 @@ jobs:
 
       - name: Verify build output
         run: |
+          echo "=== Build directory contents ==="
           ls -la dist/
+          echo "=== Assets directory contents ==="
           ls -la dist/assets/ || echo "No assets directory found"
+          echo "=== Index.html content ==="
+          cat dist/index.html
+          echo "=== All JS files in dist ==="
+          find dist/ -name "*.js" -type f
+          echo "=== Checking if staticwebapp.config.json exists in dist ==="
+          ls -la dist/staticwebapp.config.json || echo "Config not found in dist"
+
+      - name: Copy config to dist
+        run: |
+          cp staticwebapp.config.json dist/
+          echo "=== Copied staticwebapp.config.json to dist ==="
+          ls -la dist/staticwebapp.config.json
 
       - name: Build And Deploy
         id: builddeploy

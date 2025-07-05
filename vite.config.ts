@@ -13,7 +13,16 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks: undefined,
+                entryFileNames: 'assets/[name]-[hash].js',
+                chunkFileNames: 'assets/[name]-[hash].js',
+                assetFileNames: 'assets/[name]-[hash].[ext]'
             }
-        }
+        },
+        target: 'esnext',
+        minify: 'esbuild'
+    },
+    server: {
+        host: true,
+        port: 3000
     }
 })
