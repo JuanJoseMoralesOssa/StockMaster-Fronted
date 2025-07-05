@@ -3,7 +3,13 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-    <App />
-    </StrictMode>
+    <section>
+        {
+            import.meta.env.DEV &&
+            <StrictMode>
+                <App />
+            </StrictMode>
+        }
+        {!import.meta.env.DEV && <App />}
+    </section>
 )

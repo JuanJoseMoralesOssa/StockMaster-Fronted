@@ -1,0 +1,23 @@
+{
+  "trailingSlash": "auto",
+  "routes": [
+    {
+      "route": "/api/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/*",
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/api/*", "*.{css,scss,js,ts,png,gif,ico,jpg,jpeg,svg,woff,woff2,ttf,eot}"]
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".js": "text/javascript",
+    ".css": "text/css"
+  }
+}
