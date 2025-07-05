@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useCrudWithPagination, createCrudPaginationConfig, useDebouncedFilters } from '../hooks/useCrudWithPagination'
 import { userService } from '../services/User'
 import User from '../types/User'
@@ -31,16 +31,7 @@ export const useUsersWithPagination = () => {
 
       return userService.getPaginated(page, limit)
     },
-    {
-      ...userService,
-      update: (data: User) => userService.update(data.id!, data),
-      create: function (data: User): Promise<User> {
-        throw new Error('Function not implemented.')
-      },
-      delete: function (id: number): Promise<void> {
-        throw new Error('Function not implemented.')
-      }
-    },
+    userService,
     {
       // Validaciones específicas para usuarios
       validations: {
@@ -113,7 +104,7 @@ export const useUsersWithPagination = () => {
   }, 300)
 
   // Aplicar filtros debounced cuando cambien
-  React.useEffect(() => {
+  useEffect(() => {
     usersCrud.applyFilters(debouncedFilters)
   }, [debouncedFilters, usersCrud.applyFilters])
 
@@ -131,7 +122,7 @@ export const useUsersWithPagination = () => {
     })
   }
 
-  const deleteUser = async (id: number) => {
+  const deleteUser = async (id: number | string) => {
     return usersCrud.deleteItem(id, undefined, {
       customConfirmMessage: '¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.'
     })
@@ -216,145 +207,3 @@ export const useUsersWithPagination = () => {
     itemMatchesFilters: usersCrud.itemMatchesFilters
   }
 }
-
-// Ejemplo de uso en un componente
-/*
-export const UsersPage = () => {
-  const {
-    users,
-    loading,
-    error,
-    currentPage,
-    totalPages,
-    totalItems,
-    itemsPerPage,
-    createUser,
-    updateUser,
-    deleteUser,
-    goToPage,
-    setItemsPerPage,
-    filters,
-    updateFilter,
-    handleSort,
-    sortBy,
-    sortOrder,
-    operationLoading
-  } = useUsersWithPagination()
-
-  const handleCreateUser = async (formData: any) => {
-    const newUser = await createUser({
-      name: formData.name,
-      email: formData.email,
-      role: formData.role
-    })
-    if (newUser) {
-      // Usuario creado exitosamente
-      // El hook maneja automáticamente la actualización de la lista
-    }
-  }
-
-  const handleUpdateUser = async (user: User) => {
-    const updatedUser = await updateUser(user)
-    if (updatedUser) {
-      // Usuario actualizado exitosamente
-    }
-  }
-
-  const handleDeleteUser = async (id: number) => {
-    const deleted = await deleteUser(id)
-    if (deleted) {
-      // Usuario eliminado exitosamente
-    }
-  }
-
-  if (loading) return <div>Cargando usuarios...</div>
-  if (error) return <div>Error: {error}</div>
-
-  return (
-    <div>
-      <h1>Usuarios ({totalItems})</h1>
-
-      {/* Filtros */}
-<div>
-  <input
-    placeholder="Buscar por nombre..."
-    value={filters.name}
-    onChange={(e) => updateFilter('name', e.target.value)}
-  />
-  <input
-    placeholder="Buscar por email..."
-    value={filters.email}
-    onChange={(e) => updateFilter('email', e.target.value)}
-  />
-</div>
-
-{/* Tabla */ }
-<table>
-  <thead>
-    <tr>
-      <th onClick={() => handleSort('name')}>
-        Nombre {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
-      </th>
-      <th onClick={() => handleSort('email')}>
-        Email {sortBy === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
-      </th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    {users.map(user => (
-      <tr key={user.id}>
-        <td>{user.name}</td>
-        <td>{user.email}</td>
-        <td>
-          <button
-            onClick={() => handleUpdateUser(user)}
-            disabled={operationLoading}
-          >
-            Editar
-          </button>
-          <button
-            onClick={() => handleDeleteUser(user.id!)}
-            disabled={operationLoading}
-          >
-            Eliminar
-          </button>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-
-{/* Paginación */ }
-<div>
-  <button
-    onClick={() => goToPage(currentPage - 1)}
-    disabled={!hasPrevious || loading}
-  >
-    Anterior
-  </button>
-
-  <span>
-    Página {currentPage} de {totalPages}
-  </span>
-
-  <button
-    onClick={() => goToPage(currentPage + 1)}
-    disabled={!hasNext || loading}
-  >
-    Siguiente
-  </button>
-
-  <select
-    value={itemsPerPage}
-    onChange={(e) => setItemsPerPage(Number(e.target.value))}
-  >
-    <option value={10}>10 por página</option>
-    <option value={25}>25 por página</option>
-    <option value={50}>50 por página</option>
-  </select>
-</div>
-    </div >
-  )
-}
-*/
