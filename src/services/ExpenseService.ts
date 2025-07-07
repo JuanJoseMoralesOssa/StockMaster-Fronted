@@ -85,7 +85,7 @@ export class ExpenseService extends ApiService<Expense> {
       if (!det.id) {
         throw new Error('ID de detalle indefinido')
       }
-      if (det.toUpdate && det.toDelete && !det.toCreate) {
+      if (det.toDelete && !det.toUpdate && !det.toCreate) {
         // Eliminar detalle existente
         await expenseDetailsService.delete(det.id)
         continue
