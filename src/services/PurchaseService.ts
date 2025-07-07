@@ -88,7 +88,7 @@ export class PurchaseService extends ApiService<Purchase> {
       if (!det.id) {
         throw new Error('ID de detalle indefinido')
       }
-      if (det.toDelete && !det.toUpdate && !det.toCreate) {
+      if (det.toDelete && !det.toCreate && det.id > 0) {
         // Eliminar detalle existente
         await purchaseDetailsService.delete(det.id)
         continue

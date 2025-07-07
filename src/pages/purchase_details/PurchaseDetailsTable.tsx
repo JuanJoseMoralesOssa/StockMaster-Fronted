@@ -40,7 +40,7 @@ export default function PurchasesDetailsTable({
         const newPurchases = [
             ...details,
             {
-                id: Date.now(),
+                id: -Date.now(),
                 toCreate: true,
                 toUpdate: false,
                 toDelete: false,
