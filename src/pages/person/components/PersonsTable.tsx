@@ -12,21 +12,6 @@ import { personService } from '../../../services/PersonService'
 import { useServerPagination } from '../../../hooks/useServerPagination'
 import Pagination from '../../components/pagination/Pagination'
 
-// const sample_persons: Person[] = [
-//     {
-//         id: 1,
-//         name: 'John Doe',
-//     },
-//     {
-//         id: 2,
-//         name: 'Jane Smith',
-//     },
-// ]
-// const fetchPersons = async () => {
-//     // Simulated API call
-//     await new Promise((resolve) => setTimeout(resolve, 1000))
-//     return sample_persons
-// }
 const headersTable = ['Nombre', 'Acciones']
 
 export default function PersonsTable() {
@@ -74,20 +59,28 @@ export default function PersonsTable() {
         }
     }
 
+    // Loading state
+    if (loading) {
+        return <div className='p-4 text-center'>Cargando personas...</div>
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className='p-4 bg-red-50 border border-red-200 rounded-md text-red-600'>
+                <p className='font-medium'>Error al cargar personas:</p>
+                <p>{error}</p>
+                <button
+                    className='mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 rounded-md text-sm'
+                    onClick={() => refresh()}>
+                    Reintentar
+                </button>
+            </div>
+        )
+    }
+
     return (
         <section className='px-2 py-4 overflow-x-auto sm:overflow-visible'>
-            {loading && (
-                <div className="flex justify-center items-center py-8">
-                    <div className="text-gray-500">Cargando personas...</div>
-                </div>
-            )}
-
-            {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    Error: {error}
-                </div>
-            )}
-
             <table className='w-full border border-gray-50 rounded-xl table-auto text-sm sm:text-base'>
                 <thead>
                     <tr className='bg-gray-50 text-left text-gray-600 uppercase text-xs sm:text-sm'>
