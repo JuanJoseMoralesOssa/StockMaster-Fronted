@@ -88,14 +88,17 @@ export class PurchaseService extends ApiService<Purchase> {
       if (!det.id) {
         throw new Error('ID de detalle indefinido')
       }
-      if (det.toDelete && !det.toCreate && det.id > 0) {
+
+      const isNotDeletedNewDetail = det.id > 0
+      const isDeletedDetail = isNotDeletedNewDetail && det.toDelete && !det.toCreate
+      if (isDeletedDetail) {
         // Eliminar detalle existente
         await purchaseDetailsService.delete(det.id)
         continue
       }
 
       // Crear nuevos detalles
-      if (det.toCreate && !det.toDelete && !det.toUpdate) {
+      if (isNotDeletedNewDetail && det.toCreate && !det.toDelete && !det.toUpdate) {
         if (!det.productId || !det.personId) {
           throw new Error('Producto o persona indefinida en detalle a crear')
         }
