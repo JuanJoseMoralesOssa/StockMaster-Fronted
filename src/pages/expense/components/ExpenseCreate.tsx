@@ -41,6 +41,8 @@ const ExpenseCreate = () => {
         // console.log('expenseWithDetails', expenseWithDetails);
         // console.log('====================================');
 
+        
+
         try {
             const response = await expenseService.createWithDetails(expenseWithDetails)
             console.log('Expense created', response)

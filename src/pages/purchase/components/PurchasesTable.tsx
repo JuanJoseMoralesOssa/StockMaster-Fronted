@@ -13,8 +13,10 @@ import { useServerPagination } from '../../../hooks/useServerPagination'
 import Pagination from '../../components/pagination/Pagination'
 import PurchasesDetailsTable from '../../purchase_details/PurchaseDetailsTable'
 import PurchaseDetails from '../../../types/PurchaseDetails'
+import { useAvailableProducts } from '../../../hooks/useAvailableProducts'
+import { useAvailableSuppliers } from '../../../hooks/useAvailableSuppliers'
 
-const headersTable = ['Fecha', 'Total kg', 'Acciones']
+const headersTable = ['Ver', 'Fecha', 'Total kg', 'Productos', 'Proveedores', 'Detalles', 'Acciones']
 
 export default function PurchasesTable() {
     const [isLoading, setIsLoading] = useState(false)
@@ -22,6 +24,7 @@ export default function PurchasesTable() {
     const [selectedPurchase, setSelectedPurchase] = useState<Purchase>({} as Purchase)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+    const [expandedPurchases, setExpandedPurchases] = useState<number[]>([])
 
     // Server-side pagination
     const {
@@ -40,6 +43,22 @@ export default function PurchasesTable() {
         initialPage: 1,
         initialLimit: 10,
     })
+
+    const {
+        products,
+    } = useAvailableProducts()
+    const {
+        suppliers,
+    } = useAvailableSuppliers()
+
+    const togglePurchaseExpansion = (purchaseId: number | undefined) => {
+        if (!purchaseId) return
+        setExpandedPurchases(prev =>
+            prev.includes(purchaseId)
+                ? prev.filter(id => id !== purchaseId)
+                : [...prev, purchaseId]
+        )
+    }
     const handleDelete = async (id: number) => {
         try {
             await purchaseService.delete(id)
@@ -127,83 +146,196 @@ export default function PurchasesTable() {
                 </thead>
                 <tbody className='bg-white divide-y divide-gray-200'>
                     {purchases.map((purchase) => (
-                        <tr key={purchase.id} className='text-sm sm:text-base'>
-                            <td className='p-2 whitespace-nowrap'>
-                                {new Date(purchase.date).toLocaleString('es-ES', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                })}
-                            </td>
-                            <td className='p-2 whitespace-nowrap'>
-                                {purchase.total_kg}
-                            </td>
-                            {/* <td className='p-2 whitespace-nowrap'>
-                                {getPersonName(purchase.personId)}
-                            </td> */}
-                            <td className='p-2 cursor-pointer text-center'>
-                                <DropdownMenu>
-                                    {isOpen &&
-                                        selectedPurchase.id === purchase.id && (
-                                            <button
-                                                className='fixed inset-0 z-0 w-full h-full bg-transparent cursor-default'
-                                                onClick={() => setIsOpen(false)}>
-                                                <span className='sr-only'>
-                                                    Cerrar menú
-                                                </span>
-                                            </button>
-                                        )}
-                                    <DropdownMenuTrigger
-                                        onClick={() => {
-                                            setIsOpen(!isOpen)
-                                            setSelectedPurchase(purchase)
-                                        }}
-                                        className='focus:outline-none hover:bg-gray-100 rounded-2xl px-4 py-1 text-center'>
-                                        <MoreHorizontal className='h-4 w-4' />
-                                        <span className='sr-only'>Abrir menú</span>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        isOpen={
-                                            isOpen &&
-                                            selectedPurchase.id === purchase.id
-                                        }>
-                                        <DropdownMenuItem
-                                            className='text-blue-600 hover:text-blue-800'
-                                            onClick={() => {
-                                                setIsLoading(true)
-                                                setIsEditModalOpen(true)
-                                                setIsOpen(false)
-                                                setIsLoading(false)
-                                            }}
-                                            disabled={isLoading}
-                                        >
-                                            {!isLoading ? (
-                                                <>
-                                                    <Pencil className='mr-2 h-4 w-4' />
-                                                    <span>Editar</span>
-                                                </>
-                                            ) : <span>Cargando...</span>}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            className='text-red-600'
-                                            onClick={() => {
-                                                setIsLoading(true)
-                                                setIsDeleteConfirmOpen(true)
-                                                setIsOpen(false)
-                                                setIsLoading(false)
-                                            }}>
-                                            {!isLoading ? (
-                                                <>
-                                                    <Trash2 className='mr-2 h-4 w-4' />
-                                                    <span>Eliminar</span>
-                                                </>
-                                            ) : <span>Cargando...</span>}
+                        <>
+                            {/* Fila principal de la compra */}
+                            <tr key={purchase.id} className='text-sm sm:text-base hover:bg-gray-50'>
+                                {/* Columna de expansión */}
+                                <td className='p-2 whitespace-nowrap w-12'>
+                                    <button
+                                        onClick={() => togglePurchaseExpansion(purchase.id)}
+                                        className="text-gray-400 hover:text-gray-600 transition-colors w-5 h-5 flex items-center justify-center"
+                                        title="Ver detalles"
+                                    >
+                                        {purchase.id && expandedPurchases.includes(purchase.id) ? '▼' : '▶'}
+                                    </button>
+                                </td>
 
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </td>
-                        </tr>
+                                {/* Fecha */}
+                                <td className='p-2 whitespace-nowrap'>
+                                    {new Date(purchase.date).toLocaleString('es-ES', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                    })}
+                                </td>
+
+                                {/* Total KG */}
+                                <td className='p-2 whitespace-nowrap'>
+                                    {purchase.total_kg} kg
+                                </td>
+
+                                {/* Productos (resumen) */}
+                                <td className='p-2 whitespace-nowrap'>
+                                    {purchase.purchase_details && purchase.purchase_details.length > 0 ? (
+                                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                            {(() => {
+                                                const uniqueProducts = purchase.purchase_details.reduce((acc: number[], detail) => {
+                                                    const productId = detail.productId
+                                                    if (productId && !acc.includes(productId)) {
+                                                        acc.push(productId)
+                                                    }
+                                                    return acc
+                                                }, [])
+                                                const count = uniqueProducts.length
+                                                return `${count} producto${count !== 1 ? 's' : ''}`
+                                            })()}
+                                        </span>
+                                    ) : (
+                                        <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs">
+                                            Sin productos
+                                        </span>
+                                    )}
+                                </td>
+
+                                {/* Proveedores (resumen) */}
+                                <td className='p-2 whitespace-nowrap'>
+                                    {purchase.purchase_details && purchase.purchase_details.length > 0 ? (
+                                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
+                                            {(() => {
+                                                const uniqueSuppliers = purchase.purchase_details.reduce((acc: number[], detail) => {
+                                                    const personId = detail.personId
+                                                    if (personId && !acc.includes(personId)) {
+                                                        acc.push(personId)
+                                                    }
+                                                    return acc
+                                                }, [])
+                                                const count = uniqueSuppliers.length
+                                                return `${count} proveedor${count !== 1 ? 'es' : ''}`
+                                            })()}
+                                        </span>
+                                    ) : (
+                                        <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs">
+                                            Sin proveedores
+                                        </span>
+                                    )}
+                                </td>
+
+                                {/* Detalles (resumen) */}
+                                <td className='p-2 whitespace-nowrap'>
+                                    {purchase.purchase_details && purchase.purchase_details.length > 0 ? (
+                                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                                            {purchase.purchase_details.length} detalle{purchase.purchase_details.length !== 1 ? 's' : ''}
+                                        </span>
+                                    ) : (
+                                        <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs">
+                                            Sin detalles
+                                        </span>
+                                    )}
+                                </td>
+
+                                {/* Acciones */}
+                                <td className='p-2 cursor-pointer text-center'>
+                                    <DropdownMenu>
+                                        {isOpen &&
+                                            selectedPurchase.id === purchase.id && (
+                                                <button
+                                                    className='fixed inset-0 z-0 w-full h-full bg-transparent cursor-default'
+                                                    onClick={() => setIsOpen(false)}>
+                                                    <span className='sr-only'>
+                                                        Cerrar menú
+                                                    </span>
+                                                </button>
+                                            )}
+                                        <DropdownMenuTrigger
+                                            onClick={() => {
+                                                setIsOpen(!isOpen)
+                                                setSelectedPurchase(purchase)
+                                            }}
+                                            className='focus:outline-none hover:bg-gray-100 rounded-2xl px-4 py-1 text-center'>
+                                            <MoreHorizontal className='h-4 w-4' />
+                                            <span className='sr-only'>Abrir menú</span>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            isOpen={
+                                                isOpen &&
+                                                selectedPurchase.id === purchase.id
+                                            }>
+                                            <DropdownMenuItem
+                                                className='text-blue-600 hover:text-blue-800'
+                                                onClick={() => {
+                                                    setIsLoading(true)
+                                                    setIsEditModalOpen(true)
+                                                    setIsOpen(false)
+                                                    setIsLoading(false)
+                                                }}
+                                                disabled={isLoading}
+                                            >
+                                                {!isLoading ? (
+                                                    <>
+                                                        <Pencil className='mr-2 h-4 w-4' />
+                                                        <span>Editar</span>
+                                                    </>
+                                                ) : <span>Cargando...</span>}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                className='text-red-600'
+                                                onClick={() => {
+                                                    setIsLoading(true)
+                                                    setIsDeleteConfirmOpen(true)
+                                                    setIsOpen(false)
+                                                    setIsLoading(false)
+                                                }}>
+                                                {!isLoading ? (
+                                                    <>
+                                                        <Trash2 className='mr-2 h-4 w-4' />
+                                                        <span>Eliminar</span>
+                                                    </>
+                                                ) : <span>Cargando...</span>}
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </td>
+                            </tr>
+
+                            {/* Fila expandible con detalles */}
+                            {purchase.id && expandedPurchases.includes(purchase.id) && purchase.purchase_details && purchase.purchase_details.length > 0 && (
+                                <tr>
+                                    <td colSpan={headersTable.length} className="px-0 py-0">
+                                        <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
+                                            <h4 className="text-sm font-medium text-gray-700 mb-3">
+                                                Detalles de la Compra del {new Date(purchase.date).toLocaleDateString('es-ES')}
+                                            </h4>
+                                            <div className="bg-white rounded border border-gray-200 overflow-hidden">
+                                                <table className="w-full text-sm">
+                                                    <thead className="bg-gray-100">
+                                                        <tr>
+                                                            <th className="px-4 py-2 text-left font-medium text-gray-700">Producto</th>
+                                                            <th className="px-4 py-2 text-left font-medium text-gray-700">Proveedor</th>
+                                                            <th className="px-4 py-2 text-left font-medium text-gray-700">Peso (KG)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-100">
+                                                        {purchase.purchase_details.map((detail) => (
+                                                            <tr key={detail.id} className="hover:bg-gray-50">
+                                                                <td className="px-4 py-2 text-gray-900">
+                                                                    {products.find(p => p.id === detail.productId)?.name || detail.productId}
+                                                                </td>
+                                                                <td className="px-4 py-2 text-gray-900">
+                                                                    {suppliers.find(s => s.id === detail.personId)?.name || detail.personId}
+                                                                </td>
+                                                                <td className="px-4 py-2 text-gray-900">
+                                                                    {detail.weight_kg} kg
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </>
                     ))}
                 </tbody>
             </table>

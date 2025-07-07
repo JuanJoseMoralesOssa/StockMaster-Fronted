@@ -66,7 +66,7 @@ export default function ExpensesDetailsTable({
         setDetails(newExpenses)
     }
 
-    const updateExpense = (id: number, field: string, value: any) => {
+    const updateExpense = (id: number, field: string, value: { id: number; name: string }) => {
 
         const newExpenses = details.map((row) => {
             if (row.id === id) {

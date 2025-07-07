@@ -26,11 +26,11 @@ export class ExpenseService extends ApiService<Expense> {
       .filter((d) => d.toCreate && !d.toDelete)
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
 
-    const toCreateExpense: Omit<Expense, 'expense_details'> = { ...expense }
+    const toCreateExpense = { ...expense }
+    delete toCreateExpense.expense_details
     const created = await this.create(toCreateExpense)
-
     if (!created.id) {
-      throw new Error('Error al crear la compra principal')
+      throw new Error('Error al crear el gasto principal')
     }
 
     // Crear detalles nuevos
@@ -110,7 +110,8 @@ export class ExpenseService extends ApiService<Expense> {
       .filter((d) => !d.toDelete)
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
 
-    const toUpdateExpense: Omit<Expense, 'expense_details'> = { ...expense }
+    const toUpdateExpense = { ...expense }
+    delete toUpdateExpense.expense_details
     const updateRes = await axios.put(
       `${this.getUrl()}/${expense.id}`,
       toUpdateExpense

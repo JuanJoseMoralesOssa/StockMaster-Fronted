@@ -28,7 +28,7 @@ class AuthService {
 
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
         try {
-            const response = await axios.post<AuthResponse>(`${this.baseUrl}/sign-in`, credentials)
+            const response = await axios.post<AuthResponse>(`${this.baseUrl}sign-in`, credentials)
             return response.data
         } catch (error) {
             console.error('Error en login:', error)

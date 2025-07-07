@@ -69,7 +69,7 @@ export default function PurchasesDetailsTable({
         setDetails(newPurchases)
     }
 
-    const updatePurchase = (id: number, field: string, value: any) => {
+    const updatePurchase = (id: number, field: string, value: { id: number; name: string }) => {
 
         const newPurchases = details.map((row) => {
             if (row.id === id) {
