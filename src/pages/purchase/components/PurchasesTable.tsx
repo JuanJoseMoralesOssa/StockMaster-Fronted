@@ -5,7 +5,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../../components/dropdown/DropdownMenu'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Purchase from '../../../types/Purchase'
 import { purchaseService } from '../../../services/PurchaseService'
@@ -146,9 +146,9 @@ export default function PurchasesTable() {
                 </thead>
                 <tbody className='bg-white divide-y divide-gray-200'>
                     {purchases.map((purchase) => (
-                        <>
+                        <Fragment key={purchase.id}>
                             {/* Fila principal de la compra */}
-                            <tr key={purchase.id} className='text-sm sm:text-base hover:bg-gray-50'>
+                            <tr className='text-sm sm:text-base hover:bg-gray-50'>
                                 {/* Columna de expansión */}
                                 <td className='p-2 whitespace-nowrap w-12'>
                                     <button
@@ -335,7 +335,7 @@ export default function PurchasesTable() {
                                     </td>
                                 </tr>
                             )}
-                        </>
+                        </Fragment>
                     ))}
                 </tbody>
             </table>
@@ -421,7 +421,7 @@ export default function PurchasesTable() {
                 <h2 className='text-xl font-semibold mb-4'>
                     Confirmar Eliminación de Compra
                 </h2>
-                <p className='mb-4'>
+                <article className='mb-4'>
                     ¿Estás seguro de que deseas eliminar la compra{' '}
                     {selectedPurchase.date ? 'del ' : ''}
                     <p className='font-semibold text-red-600 inline-block'>
@@ -435,9 +435,9 @@ export default function PurchasesTable() {
                         {selectedPurchase.total_kg
                             ? ' de ' + selectedPurchase.total_kg + ' kg'
                             : ''}
-                    </p>
+                    </p>{' '}
                     ?
-                </p>
+                </article>
                 <section className='flex justify-end'>
                     <button
                         type='button'

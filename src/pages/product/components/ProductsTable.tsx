@@ -230,13 +230,13 @@ export default function ProductsTable() {
                 <h2 className='text-xl font-semibold mb-4'>
                     Confirmar Eliminación de Producto
                 </h2>
-                <p className='mb-4'>
+                <article className='mb-4'>
                     ¿Estás seguro de que deseas eliminar el producto{' '}
                     <p className='font-semibold text-red-600 inline-block'>
                         {selectedProduct.name}
-                    </p>
+                    </p>{' '}
                     ?
-                </p>
+                </article>
                 <section className='flex justify-end'>
                     <button
                         type='button'

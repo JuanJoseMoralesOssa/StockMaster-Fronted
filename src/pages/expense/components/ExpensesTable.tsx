@@ -5,7 +5,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../../components/dropdown/DropdownMenu'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Expense from '../../../types/Expense'
 import { expenseService } from '../../../services/ExpenseService'
@@ -144,9 +144,9 @@ export default function ExpensesTable() {
                 </thead>
                 <tbody className='bg-white divide-y divide-gray-200'>
                     {expenses.map((expense) => (
-                        <>
+                        <Fragment key={expense.id}>
                             {/* Fila principal del gasto */}
-                            <tr key={expense.id} className='text-sm sm:text-base hover:bg-gray-50'>
+                            <tr className='text-sm sm:text-base hover:bg-gray-50'>
                                 {/* Columna de expansión */}
                                 <td className='p-2 whitespace-nowrap w-12'>
                                     <button
@@ -333,7 +333,7 @@ export default function ExpensesTable() {
                                     </td>
                                 </tr>
                             )}
-                        </>
+                        </Fragment>
                     ))}
                 </tbody>
             </table>
@@ -420,7 +420,7 @@ export default function ExpensesTable() {
                 <h2 className='text-xl font-semibold mb-4'>
                     Confirmar Eliminación del gasto
                 </h2>
-                <p className='mb-4'>
+                <article className='mb-4'>
                     ¿Estás seguro de que deseas eliminar el gasto{' '}
                     {selectedExpense.date ? 'del ' : ''}
                     <p className='font-semibold text-red-600 inline-block'>
@@ -434,9 +434,9 @@ export default function ExpensesTable() {
                         {selectedExpense.total_kg
                             ? ' de ' + selectedExpense.total_kg + ' kg'
                             : ''}
-                    </p>
+                    </p>{' '}
                     ?
-                </p>
+                </article>
                 <section className='flex justify-end'>
                     <button
                         type='button'
