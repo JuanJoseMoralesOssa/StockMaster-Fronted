@@ -50,9 +50,6 @@ export default function PurchasesDetailsTable({
                 person: { id: 0, name: '' },
             },
         ]
-        // console.log('====================================');
-        // console.log('newPurchases', newPurchases);
-        // console.log('====================================');
         setDetails(newPurchases)
     }
 

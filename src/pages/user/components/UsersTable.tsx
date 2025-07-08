@@ -97,14 +97,10 @@ export default function UsersTable({
         if (newPassword && !validatePassword()) {
             return
         }
-        console.log('Updating user:', selectedUser, 'with new password:', newPassword);
-
         try {
             const updatedUser = {
                 ...selectedUser,
             }
-            console.log('Selected user before update:', updatedUser);
-
             if (newPassword) {
                 updatedUser.password = bcrypt.hashSync(newPassword, 12)
             } else {

@@ -79,7 +79,7 @@ export function useServerPagination<T>({
 
     // CRUD operations for local state updates
     const addItem = (newItem: T) => {
-        setData(prev => [...prev, newItem])
+        setData(prev => [newItem, ...prev])
         setTotalItems(prev => prev + 1)
         // Recalculate total pages if needed
         const newTotalPages = Math.ceil((totalItems + 1) / itemsPerPage)
@@ -87,12 +87,9 @@ export function useServerPagination<T>({
     }
 
     const updateItem = (updatedItem: T, idField: keyof T = 'id' as keyof T) => {
-        console.log('Updating item:', updatedItem, 'using field:', idField);
-        console.log('Current data before update:', data);
         setData(prev => prev.map(item =>
             item[idField] === updatedItem[idField] ? updatedItem : item
         ))
-        console.log('Data after update:', data);
     }
 
     const removeItem = (itemId: string | number, idField: keyof T = 'id' as keyof T) => {
