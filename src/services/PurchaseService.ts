@@ -23,7 +23,6 @@ export class PurchaseService extends ApiService<Purchase> {
 
     // Calcular total_kg solo de los detalles a crear
     purchase.total_kg = purchase.purchase_details
-      .filter((d) => d.toCreate && !d.toDelete)
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
 
     // Crear compra principal
@@ -49,8 +48,9 @@ export class PurchaseService extends ApiService<Purchase> {
         await axios.post(`${this.getUrl()}/${created.id}/purchase-details`, payload)
       }
     }
-
-    return created
+    const purchaseDetails = await axios.get(`${this.getUrl()}/${created.id}/purchase-details`)
+      .then(res => res.data)
+    return { ...created, purchase_details: purchaseDetails }
   }
 
   /**

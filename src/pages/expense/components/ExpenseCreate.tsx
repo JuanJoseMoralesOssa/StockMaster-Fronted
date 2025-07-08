@@ -36,7 +36,6 @@ const ExpenseCreate = ({ onExpenseCreated, onSuccess }: Readonly<ExpenseCreatePr
         if (loading) return
         e.preventDefault()
         setLoading(true)
-
         const total_kg = details?.reduce((acc, detail) => {
             if (detail.toCreate && !detail.toDelete && !detail.toUpdate) {
                 return acc + (detail.weight_kg ?? 0)
@@ -44,11 +43,19 @@ const ExpenseCreate = ({ onExpenseCreated, onSuccess }: Readonly<ExpenseCreatePr
             return acc
         }, 0)
 
+        const expenseDetails = details?.filter((d) => d.toCreate && !d.toDelete && !d.toUpdate)
         const expenseWithDetails = {
             ...expense,
             total_kg: total_kg ?? 0,
-            expense_details: details?.filter((d) => d.toCreate && !d.toDelete && !d.toUpdate),
         }
+        if (expenseDetails && expenseDetails.length > 0) {
+            expenseWithDetails.expense_details = expenseDetails
+        }
+        // else {
+        //     showError('Debe agregar al menos un detalle al gasto', 'Error')
+        //     setLoading(false)
+        //     return
+        // }
 
         try {
             const response = await expenseService.createWithDetails(expenseWithDetails)

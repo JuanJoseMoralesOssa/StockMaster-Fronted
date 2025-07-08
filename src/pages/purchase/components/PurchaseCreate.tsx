@@ -36,7 +36,6 @@ const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreat
         if (loading) return
         e.preventDefault()
         setLoading(true)
-
         const total_kg = details?.reduce((acc, detail) => {
             if (detail.toCreate && !detail.toDelete && !detail.toUpdate) {
                 return acc + (detail.weight_kg ?? 0)
@@ -44,10 +43,13 @@ const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreat
             return acc
         }, 0)
 
+        const purchaseDetails = details?.filter((d) => d.toCreate && !d.toDelete && !d.toUpdate)
         const purchaseWithDetails = {
             ...purchase,
             total_kg: total_kg ?? 0,
-            purchase_details: details?.filter((d) => d.toCreate && !d.toDelete && !d.toUpdate),
+        }
+        if (purchaseDetails && purchaseDetails.length > 0) {
+            purchaseWithDetails.purchase_details = purchaseDetails
         }
 
         try {

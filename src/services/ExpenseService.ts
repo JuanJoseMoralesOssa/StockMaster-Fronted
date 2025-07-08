@@ -23,7 +23,6 @@ export class ExpenseService extends ApiService<Expense> {
 
     // Calcular total_kg solo de los detalles a crear
     expense.total_kg = expense.expense_details
-      .filter((d) => d.toCreate && !d.toDelete)
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
 
     const toCreateExpense = { ...expense }
@@ -47,8 +46,9 @@ export class ExpenseService extends ApiService<Expense> {
         await axios.post(`${this.getUrl()}/${created.id}/expense-details`, payload)
       }
     }
-
-    return created
+    const expenseDetails = await axios.get(`${this.getUrl()}/${created.id}/expense-details`)
+      .then(res => res.data)
+    return { ...created, expense_details: expenseDetails }
   }
 
   /**
