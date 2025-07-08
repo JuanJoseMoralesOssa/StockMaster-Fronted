@@ -95,7 +95,7 @@ export class ExpenseService extends ApiService<Expense> {
       }
 
       // Crear nuevos detalles
-      if (isNotDeletedNewDetail && det.toCreate && !det.toDelete && !det.toUpdate) {
+      if (det.toCreate && !det.toDelete && !det.toUpdate) {
         if (!det.productId || !det.personId) {
           throw new Error('Producto o persona indefinida en detalle a crear')
         }
@@ -115,6 +115,7 @@ export class ExpenseService extends ApiService<Expense> {
 
     const toUpdateExpense = { ...expense }
     delete toUpdateExpense.expense_details
+    delete toUpdateExpense.id
     const updateRes = await axios.put(
       `${this.getUrl()}/${expense.id}`,
       toUpdateExpense

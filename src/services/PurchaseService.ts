@@ -98,7 +98,7 @@ export class PurchaseService extends ApiService<Purchase> {
       }
 
       // Crear nuevos detalles
-      if (isNotDeletedNewDetail && det.toCreate && !det.toDelete && !det.toUpdate) {
+      if (det.toCreate && !det.toDelete && !det.toUpdate) {
         if (!det.productId || !det.personId) {
           throw new Error('Producto o persona indefinida en detalle a crear')
         }
@@ -119,6 +119,7 @@ export class PurchaseService extends ApiService<Purchase> {
     // Actualizar compra principal
     const toUpdatePurchase = { ...purchase }
     delete toUpdatePurchase.purchase_details
+    delete toUpdatePurchase.id
     const updateRes = await axios.put(
       `${this.getUrl()}/${purchase.id}`,
       toUpdatePurchase

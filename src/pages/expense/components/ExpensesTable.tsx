@@ -75,7 +75,7 @@ export default function ExpensesTable({
 
     const handleDelete = async (id: number) => {
         const confirmed = await confirmDelete(
-            '¿Estás seguro de que deseas eliminar este gasto?',
+            `¿Estás seguro de que deseas eliminar el gasto del <span class="font-semibold text-red-600">${new Date(selectedExpense.date ?? '').toLocaleDateString('es-ES')}</span>?`,
             'Eliminar Gasto'
         )
 

@@ -75,7 +75,8 @@ export default function PurchasesTable({
 
     const handleDelete = async (id: number) => {
         const confirmed = await confirmDelete(
-            '¿Estás seguro de que deseas eliminar esta compra?',
+
+            `¿Estás seguro de que deseas eliminar la compra del <span class="font-semibold text-red-600">${new Date(selectedPurchase.date ?? '').toLocaleDateString('es-ES')}</span>?`,
             'Eliminar Compra'
         )
 
