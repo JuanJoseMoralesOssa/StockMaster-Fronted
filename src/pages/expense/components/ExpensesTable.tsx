@@ -8,41 +8,54 @@ import {
 import { Fragment, useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Expense from '../../../types/Expense'
-import { expenseService } from '../../../services/ExpenseService'
-import { useServerPagination } from '../../../hooks/useServerPagination'
+import { ExpenseService } from '../../../services/ExpenseService'
 import Pagination from '../../components/pagination/Pagination'
 import ExpensesDetailsTable from '../../expense_details/ExpenseDetailsTable'
 import ExpenseDetails from '../../../types/ExpenseDetails'
 import { useAvailableProducts } from '../../../hooks/useAvailableProducts'
 import { useAvailableSuppliers } from '../../../hooks/useAvailableSuppliers'
+import { useToast } from '../../../hooks/useToast'
+
+const expenseService = new ExpenseService()
 
 const headersTable = ['Ver', 'Fecha', 'Total kg', 'Productos', 'Proveedores', 'Detalles', 'Acciones']
 
-export default function ExpensesTable() {
+interface ExpensesTableProps {
+    expenses: Expense[]
+    loading: boolean
+    error: string | null
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    itemsPerPage: number
+    goToPage: (page: number) => void
+    setItemsPerPage: (limit: number) => void
+    refresh: () => void
+    updateItem: (updatedItem: Expense, idField?: keyof Expense) => void
+    removeItem: (itemId: string | number, idField?: keyof Expense) => void
+}
+
+export default function ExpensesTable({
+    expenses,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+    refresh,
+    updateItem,
+    removeItem
+}: Readonly<ExpensesTableProps>) {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedExpense, setSelectedExpense] = useState<Expense>({} as Expense)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [expandedExpenses, setExpandedExpenses] = useState<number[]>([])
 
-    // Server-side pagination
-    const {
-        data: expenses,
-        loading,
-        error,
-        currentPage,
-        totalPages,
-        totalItems,
-        itemsPerPage,
-        goToPage,
-        setItemsPerPage,
-        refresh
-    } = useServerPagination({
-        fetchFunction: expenseService.getAllPaginatedWithDetails.bind(expenseService),
-        initialPage: 1,
-        initialLimit: 10,
-    })
+    const { showSuccess, showError, confirmDelete } = useToast()
 
     const {
         products,
@@ -59,27 +72,35 @@ export default function ExpensesTable() {
                 : [...prev, expenseId]
         )
     }
+
     const handleDelete = async (id: number) => {
+        const confirmed = await confirmDelete(
+            '¿Estás seguro de que deseas eliminar este gasto?',
+            'Eliminar Gasto'
+        )
+
+        if (!confirmed) return
+
         try {
             await expenseService.delete(id)
             await expenseService.deleteWithDetails(id)
-            refresh() // Refresca los datos de la página actual
-            setIsDeleteConfirmOpen(false)
+            removeItem(id)
+            showSuccess('Gasto eliminado exitosamente', 'Eliminación exitosa')
         } catch (error) {
-            console.error('Error al eliminar el gasto', error)
-            alert('Error al eliminar el gasto')
+            showError('Error al eliminar el gasto', 'Error')
+            console.error('Error deleting expense:', error)
         }
     }
 
     const handleEdit = async () => {
         setIsLoading(true)
         if (!selectedExpense.id) {
-            alert('Error al editar el gasto: ID no definido')
+            showError('Error al editar el gasto: ID no definido', 'Error')
             setIsLoading(false)
             return
         }
         if (!selectedExpense.date) {
-            alert('Error al editar el gasto: Fecha no definida')
+            showError('Error al editar el gasto: Fecha no definida', 'Error')
             setIsLoading(false)
             return
         }
@@ -87,7 +108,7 @@ export default function ExpensesTable() {
         for (const detail of selectedExpense.expense_details ?? []) {
             if (detail.toDelete) continue
             if (!detail.productId || !detail.personId) {
-                alert(':( Error al editar el gasto: Producto o persona indefinida en detalle a crear')
+                showError('Error al editar el gasto: Producto o persona indefinida en detalle a crear', 'Error')
                 setIsLoading(false)
                 bad = true
                 break
@@ -95,27 +116,26 @@ export default function ExpensesTable() {
         }
         if (bad) return
 
-        const updatedExpense = await expenseService.updateWithDetails(selectedExpense)
-            .catch((error: unknown) => {
-                console.error('Error al editar el gasto', error)
-                if (error instanceof Error) {
-                    alert(`Error al editar el gasto: ${error.message}`);
-                } else {
-                    alert('Error al editar el gasto');
-                }
-                return null
-            })
-        if (updatedExpense?.total_kg) {
-            selectedExpense.total_kg = updatedExpense.total_kg ?? 0;
+        try {
+            const updatedExpense = await expenseService.updateWithDetails(selectedExpense)
+            if (updatedExpense) {
+                updateItem(updatedExpense)
+                showSuccess('Gasto actualizado exitosamente', 'Actualización exitosa')
+                setIsEditModalOpen(false)
+            }
+        } catch (error) {
+            showError('Error al actualizar el gasto', 'Error')
+            console.error('Error updating expense:', error)
         }
-
-        refresh() // Refresh data after edit
-        setIsEditModalOpen(false)
         setIsLoading(false)
-    }    // Loading state
+    }
+
+    // Loading state
     if (loading) {
         return <div className='p-4 text-center'>Cargando gastos...</div>
-    }    // Error state
+    }
+
+    // Error state
     if (error) {
         return (
             <div className='p-4 bg-red-50 border border-red-200 rounded-md text-red-600'>
@@ -279,7 +299,7 @@ export default function ExpensesTable() {
                                                 className='text-red-600'
                                                 onClick={() => {
                                                     setIsLoading(true)
-                                                    setIsDeleteConfirmOpen(true)
+                                                    handleDelete(expense.id!)
                                                     setIsOpen(false)
                                                     setIsLoading(false)
                                                 }}>
@@ -411,49 +431,6 @@ export default function ExpensesTable() {
                         </button>
                     </section>
                 </form>
-            </Modal>
-
-            {/* Delete Confirmation Modal */}
-            <Modal
-                isOpen={isDeleteConfirmOpen}
-                onClose={() => setIsDeleteConfirmOpen(false)}>
-                <h2 className='text-xl font-semibold mb-4'>
-                    Confirmar Eliminación del gasto
-                </h2>
-                <article className='mb-4'>
-                    ¿Estás seguro de que deseas eliminar el gasto{' '}
-                    {selectedExpense.date ? 'del ' : ''}
-                    <p className='font-semibold text-red-600 inline-block'>
-                        <strong>
-                            {selectedExpense.date
-                                ?.split('T')[0]
-                                .split('-')
-                                .reverse()
-                                .join('/')}{' '}
-                        </strong>
-                        {selectedExpense.total_kg
-                            ? ' de ' + selectedExpense.total_kg + ' kg'
-                            : ''}
-                    </p>{' '}
-                    ?
-                </article>
-                <section className='flex justify-end'>
-                    <button
-                        type='button'
-                        onClick={() => setIsDeleteConfirmOpen(false)}
-                        className='mr-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'>
-                        Cancelar
-                    </button>
-                    <button
-                        type='button'
-                        disabled={isLoading}
-                        onClick={() =>
-                            selectedExpense.id && handleDelete(selectedExpense.id)
-                        }
-                        className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
-                        Eliminar
-                    </button>
-                </section>
             </Modal>
 
             {/* Pagination */}

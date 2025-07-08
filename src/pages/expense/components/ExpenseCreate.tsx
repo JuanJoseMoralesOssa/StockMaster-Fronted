@@ -1,16 +1,27 @@
 import { useState } from 'react'
 import Expense from '../../../types/Expense'
-import { expenseService } from '../../../services/ExpenseService'
+import { ExpenseService } from '../../../services/ExpenseService'
 import ExpensesDetailsTable from '../../expense_details/ExpenseDetailsTable'
 import ExpenseDetails from '../../../types/ExpenseDetails'
+import { useToast } from '../../../hooks/useToast'
 
-const ExpenseCreate = () => {
+const expenseService = new ExpenseService()
+
+interface ExpenseCreateProps {
+    onExpenseCreated: (newExpense: Expense) => void
+    onSuccess: () => void
+}
+
+const ExpenseCreate = ({ onExpenseCreated, onSuccess }: Readonly<ExpenseCreateProps>) => {
     const [loading, setLoading] = useState(false)
     const [expense, setExpense] = useState<Expense>({
         date: new Date().toISOString(),
         total_kg: 0,
     })
     const [details, setDetails] = useState<ExpenseDetails[]>([])
+
+    const { showSuccess, showError } = useToast()
+
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
@@ -25,32 +36,28 @@ const ExpenseCreate = () => {
         if (loading) return
         e.preventDefault()
         setLoading(true)
+
         const total_kg = details?.reduce((acc, detail) => {
             if (detail.toCreate && !detail.toDelete && !detail.toUpdate) {
                 return acc + (detail.weight_kg ?? 0)
             }
             return acc
         }, 0)
+
         const expenseWithDetails = {
             ...expense,
             total_kg: total_kg ?? 0,
             expense_details: details?.filter((d) => d.toCreate && !d.toDelete && !d.toUpdate),
         }
 
-        // console.log('====================================');
-        // console.log('expenseWithDetails', expenseWithDetails);
-        // console.log('====================================');
-
-        
-
         try {
             const response = await expenseService.createWithDetails(expenseWithDetails)
-            console.log('Expense created', response)
-            alert('Compra creada')
-            window.location.reload()
+            onExpenseCreated(response)
+            showSuccess('Gasto creado exitosamente', 'Creación exitosa')
+            onSuccess()
         } catch (error) {
-            console.error('Error al crear la Compra', error)
-            alert('Error al crear la Compra')
+            showError('Error al crear el gasto', 'Error')
+            console.error('Error creating expense:', error)
         }
         setLoading(false)
     }

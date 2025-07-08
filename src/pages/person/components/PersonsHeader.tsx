@@ -7,8 +7,13 @@ import { DialogHeader } from '../../components/dialog/DialogHeader.'
 import { DialogTitle } from '../../components/dialog/DialogTitle'
 import { DialogDescription } from '../../components/dialog/DialogDescription'
 import PersonCreate from './PersonCreate'
+import Person from '../../../types/Person'
 
-function PersonsHeader() {
+interface PersonsHeaderProps {
+    onPersonCreated: (newPerson: Person) => void
+}
+
+function PersonsHeader({ onPersonCreated }: Readonly<PersonsHeaderProps>) {
     const [open, setOpen] = useState(false)
     return (
         <section className='flex items-center justify-between gap-4 p-2 mr-10 md:mr-5 max-w-fit'>
@@ -33,7 +38,10 @@ function PersonsHeader() {
                             requeridos.
                         </DialogDescription>
                     </DialogHeader>
-                    <PersonCreate />
+                    <PersonCreate
+                        onSuccess={() => setOpen(false)}
+                        onPersonCreated={onPersonCreated}
+                    />
                 </DialogContent>
             </Dialog>
         </section>

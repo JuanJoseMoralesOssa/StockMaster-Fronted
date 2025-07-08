@@ -1,16 +1,27 @@
 import { useState } from 'react'
 import Purchase from '../../../types/Purchase'
-import { purchaseService } from '../../../services/PurchaseService'
+import { PurchaseService } from '../../../services/PurchaseService'
 import PurchasesDetailsTable from '../../purchase_details/PurchaseDetailsTable'
 import PurchaseDetails from '../../../types/PurchaseDetails'
+import { useToast } from '../../../hooks/useToast'
 
-const PurchaseCreate = () => {
+const purchaseService = new PurchaseService()
+
+interface PurchaseCreateProps {
+    onPurchaseCreated: (newPurchase: Purchase) => void
+    onSuccess: () => void
+}
+
+const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreateProps>) => {
     const [loading, setLoading] = useState(false)
     const [purchase, setPurchase] = useState<Purchase>({
         date: new Date().toISOString(),
         total_kg: 0,
     })
     const [details, setDetails] = useState<PurchaseDetails[]>([])
+
+    const { showSuccess, showError } = useToast()
+
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
@@ -25,30 +36,28 @@ const PurchaseCreate = () => {
         if (loading) return
         e.preventDefault()
         setLoading(true)
+
         const total_kg = details?.reduce((acc, detail) => {
             if (detail.toCreate && !detail.toDelete && !detail.toUpdate) {
                 return acc + (detail.weight_kg ?? 0)
             }
             return acc
         }, 0)
+
         const purchaseWithDetails = {
             ...purchase,
             total_kg: total_kg ?? 0,
             purchase_details: details?.filter((d) => d.toCreate && !d.toDelete && !d.toUpdate),
         }
 
-        console.log('====================================');
-        console.log('purchaseWithDetails', purchaseWithDetails);
-        console.log('====================================');
-
         try {
             const response = await purchaseService.createWithDetails(purchaseWithDetails)
-            console.log('Purchase created', response)
-            alert('Compra creada')
-            window.location.reload()
+            onPurchaseCreated(response)
+            showSuccess('Compra creada exitosamente', 'Creación exitosa')
+            onSuccess()
         } catch (error) {
-            console.error('Error al crear la Compra', error)
-            alert('Error al crear la Compra')
+            showError('Error al crear la compra', 'Error')
+            console.error('Error creating purchase:', error)
         }
         setLoading(false)
     }

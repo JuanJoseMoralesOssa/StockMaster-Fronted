@@ -21,8 +21,57 @@ interface UseServerPaginationReturn<T> {
     goToPage: (page: number) => void
     setItemsPerPage: (limit: number) => void
     refresh: () => void
+    addItem: (newItem: T) => void
+    updateItem: (updatedItem: T, idField?: keyof T) => void
+    removeItem: (itemId: string | number, idField?: keyof T) => void
 }
 
+/**
+ * Custom hook for server-side pagination with local CRUD operations
+ *
+ * This hook is intentionally generic and does NOT handle toasts/notifications.
+ * Use useToast() in your components for specific success/error messages.
+ *
+ * @example
+ * // Basic usage with proper toast handling
+ * const { data, loading, addItem, updateItem, removeItem } = useServerPagination({
+ *   fetchFunction: (page, limit) => fetchProducts(page, limit)
+ * })
+ * const { showSuccess, showError } = useToast()
+ *
+ * // Create: Add new item to local state after successful server creation
+ * const handleCreate = async (newProduct) => {
+ *   try {
+ *     const createdProduct = await createProduct(newProduct)
+ *     addItem(createdProduct)
+ *     showSuccess("Producto creado exitosamente")
+ *   } catch (error) {
+ *     showError("Error al crear el producto")
+ *   }
+ * }
+ *
+ * // Update: Modify existing item in local state after successful server update
+ * const handleUpdate = async (productId, updates) => {
+ *   try {
+ *     const updatedProduct = await updateProduct(productId, updates)
+ *     updateItem(updatedProduct) // Uses 'id' field by default
+ *     showSuccess("Producto actualizado exitosamente")
+ *   } catch (error) {
+ *     showError("Error al actualizar el producto")
+ *   }
+ * }
+ *
+ * // Delete: Remove item from local state after successful server deletion
+ * const handleDelete = async (productId) => {
+ *   try {
+ *     await deleteProduct(productId)
+ *     removeItem(productId) // Uses 'id' field by default
+ *     showSuccess("Producto eliminado exitosamente")
+ *   } catch (error) {
+ *     showError("Error al eliminar el producto")
+ *   }
+ * }
+ */
 export function useServerPagination<T>({
     fetchFunction,
     initialPage = 1,
@@ -74,6 +123,37 @@ export function useServerPagination<T>({
         fetchData(currentPage, itemsPerPage)
     }
 
+    // CRUD operations for local state updates
+    const addItem = (newItem: T) => {
+        setData(prev => [...prev, newItem])
+        setTotalItems(prev => prev + 1)
+        // Recalculate total pages if needed
+        const newTotalPages = Math.ceil((totalItems + 1) / itemsPerPage)
+        setTotalPages(newTotalPages)
+    }
+
+    const updateItem = (updatedItem: T, idField: keyof T = 'id' as keyof T) => {
+        console.log('Updating item:', updatedItem, 'using field:', idField);
+        console.log('Current data before update:', data);
+        setData(prev => prev.map(item =>
+            item[idField] === updatedItem[idField] ? updatedItem : item
+        ))
+        console.log('Data after update:', data);
+    }
+
+    const removeItem = (itemId: string | number, idField: keyof T = 'id' as keyof T) => {
+        setData(prev => prev.filter(item => item[idField] !== itemId))
+        setTotalItems(prev => prev - 1)
+        // Recalculate total pages if needed
+        const newTotalPages = Math.ceil((totalItems - 1) / itemsPerPage)
+        setTotalPages(Math.max(1, newTotalPages))
+
+        // If current page becomes empty and it's not the first page, go to previous page
+        if (data.length === 1 && currentPage > 1) {
+            setCurrentPage(currentPage - 1)
+        }
+    }
+
     // Fetch data when page, limit, or dependencies change
     useEffect(() => {
         fetchData(currentPage, itemsPerPage)
@@ -91,6 +171,9 @@ export function useServerPagination<T>({
         hasPrevious,
         goToPage,
         setItemsPerPage,
-        refresh
+        refresh,
+        addItem,
+        updateItem,
+        removeItem
     }
 }

@@ -7,9 +7,15 @@ import { DialogHeader } from '../../components/dialog/DialogHeader.'
 import { DialogTitle } from '../../components/dialog/DialogTitle'
 import { DialogDescription } from '../../components/dialog/DialogDescription'
 import ExpensesCreate from './ExpenseCreate'
+import Expense from '../../../types/Expense'
 
-function ExpensesHeader() {
+interface ExpensesHeaderProps {
+    onExpenseCreated: (newExpense: Expense) => void
+}
+
+function ExpensesHeader({ onExpenseCreated }: Readonly<ExpensesHeaderProps>) {
     const [open, setOpen] = useState(false)
+
     return (
         <section className='flex items-center justify-between gap-4 p-2 mr-10 md:mr-5 max-w-fit'>
             <section>
@@ -33,7 +39,10 @@ function ExpensesHeader() {
                             requeridos.
                         </DialogDescription>
                     </DialogHeader>
-                    <ExpensesCreate />
+                    <ExpensesCreate
+                        onExpenseCreated={onExpenseCreated}
+                        onSuccess={() => setOpen(false)}
+                    />
                 </DialogContent>
             </Dialog>
         </section>

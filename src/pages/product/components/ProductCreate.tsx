@@ -1,25 +1,18 @@
 import { useState } from 'react'
 import Product from '../../../types/Product'
-import { productService } from '../../../services/ProductService'
+import { ProductService } from '../../../services/ProductService'
+import { useToast } from '../../../hooks/useToast'
 
-// const createProduct = async (product: Product) => {
-//     // Create product in the database
-//     // const response = await fetch('https://api.example.com/products', {
-//     //     method: 'POST',
-//     //     headers: {
-//     //         'Content-Type': 'application/json',
-//     //     },
-//     //     body: JSON.stringify(product),
-//     // })
-//     // const data = await response.json()
-//     // return data
-//     await new Promise((resolve) => setTimeout(resolve, 3000))
-//     console.log('Product created', product)
-//     return product
-// }
+const productService = new ProductService()
 
-const ProductCreate = () => {
+interface ProductCreateProps {
+    onSuccess?: () => void
+    onProductCreated?: (newProduct: Product) => void
+}
+
+const ProductCreate = ({ onSuccess, onProductCreated }: ProductCreateProps) => {
     const [loading, setLoading] = useState(false)
+    const { showSuccess, showError } = useToast()
     const [product, setProduct] = useState<Product>({
         name: '',
         stock: 0,
@@ -34,15 +27,34 @@ const ProductCreate = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        await productService.create(product).then((response) => {
-            console.log('Product created', response)
-            alert('Producto creado')
-            window.location.reload()
-        }).catch((error) => {
-            console.error('Error al crear el Producto', error)
-            alert('Error al crear el Productos')
-        })
-        setLoading(false)
+
+        try {
+            const newProduct = await productService.create(product)
+
+            // Update local state if callback provided
+            if (onProductCreated) {
+                onProductCreated(newProduct)
+            }
+
+            showSuccess('Producto creado exitosamente', 'Creación exitosa')
+
+            // Limpiar formulario después de creación exitosa
+            setProduct({
+                name: '',
+                stock: 0,
+                code: '',
+            } as Product)
+
+            // Llamar callback si existe (para cerrar modal)
+            if (onSuccess) {
+                onSuccess()
+            }
+        } catch (error) {
+            showError('Error al crear el producto', 'Error')
+            console.error('Error creating product:', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (

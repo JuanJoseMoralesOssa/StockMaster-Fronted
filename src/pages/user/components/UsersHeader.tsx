@@ -7,8 +7,13 @@ import { DialogHeader } from '../../components/dialog/DialogHeader.'
 import { DialogTitle } from '../../components/dialog/DialogTitle'
 import { DialogDescription } from '../../components/dialog/DialogDescription'
 import UserCreate from './UserCreate'
+import User from '../../../types/User'
 
-function UsersHeader() {
+interface UsersHeaderProps {
+    onUserCreated: (newUser: User) => void
+}
+
+function UsersHeader({ onUserCreated }: Readonly<UsersHeaderProps>) {
     const [open, setOpen] = useState(false)
     return (
         <section className='flex items-center justify-between gap-4 p-2 mr-10 md:mr-5 max-w-fit'>
@@ -33,7 +38,10 @@ function UsersHeader() {
                             requeridos.
                         </DialogDescription>
                     </DialogHeader>
-                    <UserCreate onSuccess={() => setOpen(false)} />
+                    <UserCreate
+                        onSuccess={() => setOpen(false)}
+                        onUserCreated={onUserCreated}
+                    />
                 </DialogContent>
             </Dialog>
         </section>

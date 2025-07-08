@@ -8,41 +8,54 @@ import {
 import { Fragment, useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Purchase from '../../../types/Purchase'
-import { purchaseService } from '../../../services/PurchaseService'
-import { useServerPagination } from '../../../hooks/useServerPagination'
+import { PurchaseService } from '../../../services/PurchaseService'
 import Pagination from '../../components/pagination/Pagination'
 import PurchasesDetailsTable from '../../purchase_details/PurchaseDetailsTable'
 import PurchaseDetails from '../../../types/PurchaseDetails'
 import { useAvailableProducts } from '../../../hooks/useAvailableProducts'
 import { useAvailableSuppliers } from '../../../hooks/useAvailableSuppliers'
+import { useToast } from '../../../hooks/useToast'
+
+const purchaseService = new PurchaseService()
 
 const headersTable = ['Ver', 'Fecha', 'Total kg', 'Productos', 'Proveedores', 'Detalles', 'Acciones']
 
-export default function PurchasesTable() {
+interface PurchasesTableProps {
+    purchases: Purchase[]
+    loading: boolean
+    error: string | null
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    itemsPerPage: number
+    goToPage: (page: number) => void
+    setItemsPerPage: (limit: number) => void
+    refresh: () => void
+    updateItem: (updatedItem: Purchase, idField?: keyof Purchase) => void
+    removeItem: (itemId: string | number, idField?: keyof Purchase) => void
+}
+
+export default function PurchasesTable({
+    purchases,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+    refresh,
+    updateItem,
+    removeItem
+}: Readonly<PurchasesTableProps>) {
     const [isLoading, setIsLoading] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
     const [selectedPurchase, setSelectedPurchase] = useState<Purchase>({} as Purchase)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
     const [expandedPurchases, setExpandedPurchases] = useState<number[]>([])
 
-    // Server-side pagination
-    const {
-        data: purchases,
-        loading,
-        error,
-        currentPage,
-        totalPages,
-        totalItems,
-        itemsPerPage,
-        goToPage,
-        setItemsPerPage,
-        refresh
-    } = useServerPagination({
-        fetchFunction: purchaseService.getAllPaginatedWithDetails.bind(purchaseService),
-        initialPage: 1,
-        initialLimit: 10,
-    })
+    const { showSuccess, showError, confirmDelete } = useToast()
 
     const {
         products,
@@ -59,27 +72,35 @@ export default function PurchasesTable() {
                 : [...prev, purchaseId]
         )
     }
+
     const handleDelete = async (id: number) => {
+        const confirmed = await confirmDelete(
+            '¿Estás seguro de que deseas eliminar esta compra?',
+            'Eliminar Compra'
+        )
+
+        if (!confirmed) return
+
         try {
             await purchaseService.delete(id)
             await purchaseService.deleteWithDetails(id)
-            refresh() // Refresh data after delete
-            setIsDeleteConfirmOpen(false)
+            removeItem(id)
+            showSuccess('Compra eliminada exitosamente', 'Eliminación exitosa')
         } catch (error) {
-            console.error('Error al eliminar la compra', error)
-            alert('Error al eliminar la compra')
+            showError('Error al eliminar la compra', 'Error')
+            console.error('Error deleting purchase:', error)
         }
     }
 
     const handleEdit = async () => {
         setIsLoading(true)
         if (!selectedPurchase.id) {
-            alert('Error al editar la compra: ID no definido')
+            showError('Error al editar la compra: ID no definido', 'Error')
             setIsLoading(false)
             return
         }
         if (!selectedPurchase.date) {
-            alert('Error al editar la compra: Fecha no definida')
+            showError('Error al editar la compra: Fecha no definida', 'Error')
             setIsLoading(false)
             return
         }
@@ -87,7 +108,7 @@ export default function PurchasesTable() {
         for (const detail of selectedPurchase.purchase_details ?? []) {
             if (detail.toDelete) continue
             if (!detail.productId || !detail.personId) {
-                alert(':( Error al editar la compra: Producto o persona indefinida en detalle a crear')
+                showError('Error al editar la compra: Producto o persona indefinida en detalle a crear', 'Error')
                 setIsLoading(false)
                 bad = true
                 break
@@ -95,24 +116,21 @@ export default function PurchasesTable() {
         }
         if (bad) return
 
-        const updatedPurchase = await purchaseService.updateWithDetails(selectedPurchase)
-            .catch((error: unknown) => {
-                console.error('Error al editar la compra', error)
-                if (error instanceof Error) {
-                    alert(`Error al editar la compra: ${error.message}`);
-                } else {
-                    alert('Error al editar la compra');
-                }
-                return null
-            })
-        if (updatedPurchase?.total_kg) {
-            selectedPurchase.total_kg = updatedPurchase.total_kg ?? 0;
+        try {
+            const updatedPurchase = await purchaseService.updateWithDetails(selectedPurchase)
+            if (updatedPurchase) {
+                updateItem(updatedPurchase)
+                showSuccess('Compra actualizada exitosamente', 'Actualización exitosa')
+                setIsEditModalOpen(false)
+            }
+        } catch (error) {
+            showError('Error al actualizar la compra', 'Error')
+            console.error('Error updating purchase:', error)
         }
-
-        refresh() // Refresh data after edit
-        setIsEditModalOpen(false)
         setIsLoading(false)
-    }    // Loading state
+    }
+
+    // Loading state
     if (loading) {
         return <div className='p-4 text-center'>Cargando compras...</div>
     }
@@ -281,7 +299,7 @@ export default function PurchasesTable() {
                                                 className='text-red-600'
                                                 onClick={() => {
                                                     setIsLoading(true)
-                                                    setIsDeleteConfirmOpen(true)
+                                                    handleDelete(purchase.id!)
                                                     setIsOpen(false)
                                                     setIsLoading(false)
                                                 }}>
@@ -412,48 +430,6 @@ export default function PurchasesTable() {
                         </button>
                     </section>
                 </form>
-            </Modal>
-
-            {/* Delete Confirmation Modal */}
-            <Modal
-                isOpen={isDeleteConfirmOpen}
-                onClose={() => setIsDeleteConfirmOpen(false)}>
-                <h2 className='text-xl font-semibold mb-4'>
-                    Confirmar Eliminación de Compra
-                </h2>
-                <article className='mb-4'>
-                    ¿Estás seguro de que deseas eliminar la compra{' '}
-                    {selectedPurchase.date ? 'del ' : ''}
-                    <p className='font-semibold text-red-600 inline-block'>
-                        <strong>
-                            {selectedPurchase.date
-                                ?.split('T')[0]
-                                .split('-')
-                                .reverse()
-                                .join('/')}{' '}
-                        </strong>
-                        {selectedPurchase.total_kg
-                            ? ' de ' + selectedPurchase.total_kg + ' kg'
-                            : ''}
-                    </p>{' '}
-                    ?
-                </article>
-                <section className='flex justify-end'>
-                    <button
-                        type='button'
-                        onClick={() => setIsDeleteConfirmOpen(false)}
-                        className='mr-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'>
-                        Cancelar
-                    </button>
-                    <button
-                        type='button'
-                        disabled={isLoading}
-                        onClick={() =>
-                            selectedPurchase.id && handleDelete(selectedPurchase.id)
-                        }
-                        className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
-                        Eliminar
-                    </button>                </section>
             </Modal>
 
             {/* Pagination */}

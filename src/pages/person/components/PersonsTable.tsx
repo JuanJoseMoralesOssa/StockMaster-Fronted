@@ -8,67 +8,102 @@ import {
 import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Person from '../../../types/Person'
-import { personService } from '../../../services/PersonService'
-import { useServerPagination } from '../../../hooks/useServerPagination'
+import { PersonService } from '../../../services/PersonService'
 import Pagination from '../../components/pagination/Pagination'
+import { useToast } from '../../../hooks/useToast'
+
+const personService = new PersonService()
+
+interface PersonsTableProps {
+    people: Person[]
+    loading: boolean
+    error: string | null
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    itemsPerPage: number
+    goToPage: (page: number) => void
+    setItemsPerPage: (limit: number) => void
+    refresh: () => void
+    updateItem: (updatedItem: Person, idField?: keyof Person) => void
+    removeItem: (itemId: string | number, idField?: keyof Person) => void
+}
 
 const headersTable = ['Nombre', 'Acciones']
 
-export default function PersonsTable() {
+export default function PersonsTable({
+    people,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+    refresh,
+    updateItem,
+    removeItem
+}: Readonly<PersonsTableProps>) {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedPerson, setSelectedPerson] = useState<Person>({} as Person)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
 
-    // Usar paginación del servidor
-    const {
-        data: people,
-        loading,
-        error,
-        currentPage,
-        totalPages,
-        totalItems,
-        itemsPerPage,
-        goToPage,
-        setItemsPerPage,
-        refresh
-    } = useServerPagination({
-        fetchFunction: personService.getAllPaginated.bind(personService),
-        initialPage: 1, initialLimit: 10,
-    })
+    const { showSuccess, showError, confirmDelete } = useToast()
 
     const handleDelete = async (id: number) => {
+        const confirmed = await confirmDelete(
+            `¿Estás seguro de que deseas eliminar el proveedor <span class="font-semibold text-red-600">${selectedPerson.name}</span>?`,
+            'Eliminar Proveedor'
+        )
+
+        if (!confirmed) return
+
         try {
             await personService.delete(id)
-            refresh() // Refresca los datos de la página actual
-            setIsDeleteConfirmOpen(false)
+            removeItem(id) // Update local state immediately
+            showSuccess('Proveedor eliminado exitosamente', 'Eliminación exitosa')
         } catch (error) {
-            console.error('Error al eliminar la persona', error)
-            alert('Error al eliminar la persona')
+            showError('Error al eliminar el proveedor', 'Error')
+            console.error('Error deleting person:', error)
         }
     }
 
-    const handleEdit = async (id: number) => {
+    const handleEdit = async (e: React.FormEvent) => {
+        e.preventDefault()
+
         try {
-            await personService.update(id, selectedPerson)
-            refresh() // Refresca los datos de la página actual
-            setIsEditModalOpen(false)
+            if (selectedPerson.id !== undefined) {
+                const result = await personService.update(Number(selectedPerson.id), selectedPerson)
+                updateItem(result) // Update local state immediately
+                showSuccess('Proveedor actualizado exitosamente', 'Actualización exitosa')
+
+                // Reset form state
+                setIsEditModalOpen(false)
+            } else {
+                throw new Error('ID de proveedor no definido')
+            }
         } catch (error) {
-            console.error('Error al actualizar la persona', error)
-            alert('Error al actualizar la persona')
+            showError('Error al actualizar el proveedor', 'Error')
+            console.error('Error updating person:', error)
         }
+    }
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target
+        setSelectedPerson({ ...selectedPerson, [name]: value })
     }
 
     // Loading state
     if (loading) {
-        return <div className='p-4 text-center'>Cargando personas...</div>
+        return <div className='p-4 text-center'>Cargando proveedores...</div>
     }
 
     // Error state
     if (error) {
         return (
             <div className='p-4 bg-red-50 border border-red-200 rounded-md text-red-600'>
-                <p className='font-medium'>Error al cargar personas:</p>
+                <p className='font-medium'>Error al cargar proveedores:</p>
                 <p>{error}</p>
                 <button
                     className='mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 rounded-md text-sm'
@@ -101,9 +136,7 @@ export default function PersonsTable() {
                                         <button
                                             className='fixed inset-0 z-0 w-full h-full bg-transparent cursor-default'
                                             onClick={() => setIsOpen(false)}>
-                                            <span className='sr-only'>
-                                                Cerrar menú
-                                            </span>
+                                            <span className='sr-only'>Cerrar menú</span>
                                         </button>
                                     )}
                                     <DropdownMenuTrigger
@@ -116,28 +149,24 @@ export default function PersonsTable() {
                                         <span className='sr-only'>Abrir menú</span>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent
-                                        isOpen={
-                                            isOpen && selectedPerson.id === person.id
-                                        }>
+                                        isOpen={isOpen && selectedPerson.id === person.id}>
                                         <DropdownMenuItem
                                             className='text-blue-600 hover:text-blue-800'
                                             onClick={() => {
-                                                setSelectedPerson(person)
                                                 setIsEditModalOpen(true)
                                                 setIsOpen(false)
                                             }}>
                                             <Pencil className='mr-2 h-4 w-4' />
-                                            <p>Editar</p>
+                                            <span>Editar</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             className='text-red-600'
                                             onClick={() => {
-                                                setSelectedPerson(person)
-                                                setIsDeleteConfirmOpen(true)
+                                                handleDelete(Number(selectedPerson.id!))
                                                 setIsOpen(false)
                                             }}>
                                             <Trash2 className='mr-2 h-4 w-4' />
-                                            Eliminar
+                                            <span>Eliminar</span>
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -152,85 +181,49 @@ export default function PersonsTable() {
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}>
                 <h2 className='text-xl font-semibold mb-4'>Editar Proveedor</h2>
-                <form>
-                    <section className='mb-4'>
+                <form onSubmit={handleEdit} className='space-y-4'>
+                    <div>
                         <label
-                            htmlFor='name'
+                            htmlFor='personName'
                             className='block text-sm font-medium text-gray-700'>
-                            Nombre
+                            Nombre del proveedor
                         </label>
                         <input
+                            id='personName'
                             name='name'
-                            id='name'
                             type='text'
-                            value={selectedPerson.name}
-                            onChange={(e) =>
-                                setSelectedPerson({
-                                    ...selectedPerson,
-                                    name: e.target.value,
-                                })
-                            }
-                            className='mt-1 p-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                            value={selectedPerson.name || ''}
+                            onChange={handleChange}
+                            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         />
-                    </section>
-                    <section className='flex justify-end'>
+                    </div>
+                    <div className='flex justify-end space-x-2'>
                         <button
                             type='button'
                             onClick={() => setIsEditModalOpen(false)}
-                            className='mr-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'>
+                            className='px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                             Cancelar
                         </button>
                         <button
-                            onClick={() => selectedPerson.id && handleEdit(selectedPerson.id)}
-                            disabled={loading}
                             type='submit'
-                            className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                            className='px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                             Guardar
                         </button>
-                    </section>
+                    </div>
                 </form>
             </Modal>
 
-            {/* Delete Confirmation Modal */}
-            <Modal
-                isOpen={isDeleteConfirmOpen}
-                onClose={() => setIsDeleteConfirmOpen(false)}>
-                <h2 className='text-xl font-semibold mb-4'>
-                    Confirmar Eliminación de proveedor
-                </h2>
-                <article className='mb-4'>
-                    ¿Estás seguro de que deseas eliminar al proveedor{' '}
-                    <p className='font-semibold text-red-600 inline-block'>
-                        {selectedPerson.name}
-                    </p>{' '}
-                    ?
-                </article>
-                <section className='flex justify-end'>
-                    <button
-                        type='button'
-                        onClick={() => setIsDeleteConfirmOpen(false)}
-                        className='mr-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'>
-                        Cancelar
-                    </button>
-                    <button
-                        type='button'
-                        onClick={() =>
-                            selectedPerson.id && handleDelete(selectedPerson.id)
-                        }
-                        className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
-                        Eliminar
-                    </button>
-                </section>
-            </Modal>
-
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                itemsPerPage={itemsPerPage}
-                onPageChange={goToPage}
-                onItemsPerPageChange={setItemsPerPage}
-            />
+            {/* Pagination */}
+            <div className="mt-4">
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={goToPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
+            </div>
         </section>
     )
 }

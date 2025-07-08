@@ -7,8 +7,13 @@ import { DialogHeader } from '../../components/dialog/DialogHeader.'
 import { DialogTitle } from '../../components/dialog/DialogTitle'
 import { DialogDescription } from '../../components/dialog/DialogDescription'
 import ProductCreate from './ProductCreate'
+import Product from '../../../types/Product'
 
-function ProductsHeader() {
+interface ProductsHeaderProps {
+    onProductCreated: (newProduct: Product) => void
+}
+
+function ProductsHeader({ onProductCreated }: Readonly<ProductsHeaderProps>) {
     const [open, setOpen] = useState(false)
     return (
         <section className='flex items-center justify-between gap-4 p-2 mr-10 md:mr-5 max-w-fit'>
@@ -33,7 +38,10 @@ function ProductsHeader() {
                             requeridos.
                         </DialogDescription>
                     </DialogHeader>
-                    <ProductCreate />
+                    <ProductCreate
+                        onSuccess={() => setOpen(false)}
+                        onProductCreated={onProductCreated}
+                    />
                 </DialogContent>
             </Dialog>
         </section>

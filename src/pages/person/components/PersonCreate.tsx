@@ -1,25 +1,18 @@
 import { useState } from 'react'
 import Person from '../../../types/Person'
-import { personService } from '../../../services/PersonService'
+import { PersonService } from '../../../services/PersonService'
+import { useToast } from '../../../hooks/useToast'
 
-// const createPerson = async (person: Person) => {
-//     // Create person in the database
-//     // const response = await fetch('https://api.example.com/persons', {
-//     //     method: 'POST',
-//     //     headers: {
-//     //         'Content-Type': 'application/json',
-//     //     },
-//     //     body: JSON.stringify(person),
-//     // })
-//     // const data = await response.json()
-//     // return data
-//     await new Promise((resolve) => setTimeout(resolve, 1000))
-//     console.log('Person created', person)
-//     return person
-// }
+const personService = new PersonService()
 
-const PersonCreate = () => {
+interface PersonCreateProps {
+    onSuccess?: () => void
+    onPersonCreated?: (newPerson: Person) => void
+}
+
+const PersonCreate = ({ onSuccess, onPersonCreated }: PersonCreateProps) => {
     const [loading, setLoading] = useState(false)
+    const { showSuccess, showError } = useToast()
     const [person, setPerson] = useState<Person>({
         name: '',
     })
@@ -32,15 +25,32 @@ const PersonCreate = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        await personService.create(person).then((response) => {
-            console.log('Person created', response)
-            alert('Persona creada')
-            window.location.reload()
-        }).catch((error) => {
-            console.error('Error al crear la persona', error)
-            alert('Error al crear la persona')
-        })
-        setLoading(false)
+
+        try {
+            const newPerson = await personService.create(person)
+
+            // Update local state if callback provided
+            if (onPersonCreated) {
+                onPersonCreated(newPerson)
+            }
+
+            showSuccess('Proveedor creado exitosamente', 'Creación exitosa')
+
+            // Limpiar formulario después de creación exitosa
+            setPerson({
+                name: '',
+            })
+
+            // Llamar callback si existe (para cerrar modal)
+            if (onSuccess) {
+                onSuccess()
+            }
+        } catch (error) {
+            showError('Error al crear el proveedor', 'Error')
+            console.error('Error creating person:', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (

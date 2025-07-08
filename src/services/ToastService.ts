@@ -129,7 +129,7 @@ export class ToastService {
   ): Promise<boolean> {
     const result = await Swal.fire({
       title,
-      text: message,
+      html: message,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',

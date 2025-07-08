@@ -7,9 +7,15 @@ import { DialogHeader } from '../../components/dialog/DialogHeader.'
 import { DialogTitle } from '../../components/dialog/DialogTitle'
 import { DialogDescription } from '../../components/dialog/DialogDescription'
 import PurchasesCreate from './PurchaseCreate'
+import Purchase from '../../../types/Purchase'
 
-function PurchasesHeader() {
+interface PurchasesHeaderProps {
+    onPurchaseCreated: (newPurchase: Purchase) => void
+}
+
+function PurchasesHeader({ onPurchaseCreated }: Readonly<PurchasesHeaderProps>) {
     const [open, setOpen] = useState(false)
+
     return (
         <section className='flex items-center justify-between gap-4 p-2 mr-10 md:mr-5 max-w-fit'>
             <section>
@@ -33,7 +39,10 @@ function PurchasesHeader() {
                             requeridos.
                         </DialogDescription>
                     </DialogHeader>
-                    <PurchasesCreate />
+                    <PurchasesCreate
+                        onPurchaseCreated={onPurchaseCreated}
+                        onSuccess={() => setOpen(false)}
+                    />
                 </DialogContent>
             </Dialog>
         </section>

@@ -3,15 +3,16 @@ import User from '../../../types/User'
 import { userService } from '../../../services/User'
 import bcrypt from 'bcryptjs'
 import { Roles } from '../../../enums/Roles'
-import { useCrudToast } from '../../../hooks/useToast'
+import { useToast } from '../../../hooks/useToast'
 
 interface UserCreateProps {
     onSuccess?: () => void
+    onUserCreated?: (newUser: User) => void
 }
 
-const UserCreate = ({ onSuccess }: UserCreateProps) => {
+const UserCreate = ({ onSuccess, onUserCreated }: UserCreateProps) => {
     const [loading, setLoading] = useState(false)
-    const { handleCreate } = useCrudToast()
+    const { showSuccess, showError } = useToast()
     const [user, setUser] = useState<User>({
         name: '',
         password: '',
@@ -62,12 +63,17 @@ const UserCreate = ({ onSuccess }: UserCreateProps) => {
 
         setLoading(true)
 
-        const result = await handleCreate(async () => {
+        try {
             const hashedUser = { ...user, password: bcrypt.hashSync(user.password!, 12) }
-            return await userService.create(hashedUser)
-        }, 'Usuario')
+            const newUser = await userService.create(hashedUser)
 
-        if (result) {
+            // Update local state if callback provided
+            if (onUserCreated) {
+                onUserCreated(newUser)
+            }
+
+            showSuccess('Usuario creado exitosamente', 'Creación exitosa')
+
             // Limpiar formulario después de creación exitosa
             setUser({
                 name: '',
@@ -82,9 +88,12 @@ const UserCreate = ({ onSuccess }: UserCreateProps) => {
             if (onSuccess) {
                 onSuccess()
             }
+        } catch (error) {
+            showError('Error al crear el usuario', 'Error')
+            console.error('Error creating user:', error)
+        } finally {
+            setLoading(false)
         }
-
-        setLoading(false)
     }
 
     return (

@@ -8,9 +8,26 @@ import {
 import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Product from '../../../types/Product'
-import { productService } from '../../../services/ProductService'
-import { useServerPagination } from '../../../hooks/useServerPagination'
+import { ProductService } from '../../../services/ProductService'
 import Pagination from '../../components/pagination/Pagination'
+import { useToast } from '../../../hooks/useToast'
+
+const productService = new ProductService()
+
+interface ProductsTableProps {
+    products: Product[]
+    loading: boolean
+    error: string | null
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    itemsPerPage: number
+    goToPage: (page: number) => void
+    setItemsPerPage: (limit: number) => void
+    refresh: () => void
+    updateItem: (updatedItem: Product, idField?: keyof Product) => void
+    removeItem: (itemId: string | number, idField?: keyof Product) => void
+}
 
 const headersTable = [
     'Nombre',
@@ -19,50 +36,60 @@ const headersTable = [
     'Acciones',
 ]
 
-export default function ProductsTable() {
+export default function ProductsTable({
+    products,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+    refresh,
+    updateItem,
+    removeItem
+}: Readonly<ProductsTableProps>) {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<Product>({} as Product)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
 
-    // Usar paginación del servidor
-    const {
-        data: products,
-        loading,
-        error,
-        currentPage,
-        totalPages,
-        totalItems,
-        itemsPerPage,
-        goToPage,
-        setItemsPerPage,
-        refresh
-    } = useServerPagination({
-        fetchFunction: productService.getAllPaginated.bind(productService),
-        initialPage: 1, initialLimit: 10,
-    })
+    const { showSuccess, showError, confirmDelete } = useToast()
 
     const handleDelete = async (id: number) => {
+        const confirmed = await confirmDelete(
+            // '¿Estás seguro de que deseas eliminar este producto?',
+            `¿Estás seguro de que deseas eliminar el producto <span class="font-semibold text-red-600">${selectedProduct.name}</span>?`,
+            'Eliminar Producto'
+        )
+
+        if (!confirmed) return
+
         try {
-            console.log(`Deleting product with id: ${id}`)
             await productService.delete(id)
-            refresh() // Refresca los datos de la página actual
-            setIsDeleteConfirmOpen(false)
+            removeItem(id)
+            showSuccess('Producto eliminado exitosamente', 'Eliminación exitosa')
         } catch (error) {
-            console.error('Error al eliminar el producto', error)
-            alert('Error al eliminar el producto')
+            showError('Error al eliminar el producto', 'Error')
+            console.error('Error deleting product:', error)
         }
     }
 
-    const editProduct = async (id: number) => {
+    const handleEdit = async (product: Product) => {
         try {
-            await productService.update(id, selectedProduct)
-            refresh() // Refresca los datos de la página actual
+            const updatedProduct = await productService.update(product.id!, product)
+            updateItem(updatedProduct)
             setIsEditModalOpen(false)
+            showSuccess('Producto actualizado exitosamente', 'Actualización exitosa')
         } catch (error) {
-            console.error('Error al actualizar el producto', error)
-            alert('Error al actualizar el producto')
+            showError('Error al actualizar el producto', 'Error')
+            console.error('Error updating product:', error)
         }
+    }
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target
+        setSelectedProduct({ ...selectedProduct, [name]: value })
     }
 
     // Loading state
@@ -87,7 +114,6 @@ export default function ProductsTable() {
 
     return (
         <section className='px-2 py-4 overflow-x-auto sm:overflow-visible'>
-
             <table className='w-full border border-gray-50 rounded-xl table-auto text-sm sm:text-base'>
                 <thead>
                     <tr className='bg-gray-50 text-left text-gray-600 uppercase text-xs sm:text-sm'>
@@ -98,14 +124,13 @@ export default function ProductsTable() {
                         ))}
                     </tr>
                 </thead>
-                <tbody className='bg-white sectionide-y sectionide-gray-200'>
+                <tbody className='bg-white divide-y divide-gray-200'>
                     {products.map((p) => (
                         <tr key={p.id} className='text-sm sm:text-base'>
                             <td className='p-2 whitespace-nowrap'>{p.name}</td>
                             <td className='p-2 whitespace-nowrap'>{p.stock}</td>
                             <td className='p-2 whitespace-nowrap'>{p.code}</td>
                             <td className='p-2 cursor-pointer text-center'>
-                                {/* Edit */}
                                 <DropdownMenu>
                                     {isOpen && selectedProduct.id === p.id && (
                                         <button
@@ -144,7 +169,7 @@ export default function ProductsTable() {
                                         <DropdownMenuItem
                                             className='text-red-600'
                                             onClick={() => {
-                                                setIsDeleteConfirmOpen(true)
+                                                handleDelete(p.id!)
                                                 setIsOpen(false)
                                             }}>
                                             <Trash2 className='mr-2 h-4 w-4' />
@@ -174,13 +199,8 @@ export default function ProductsTable() {
                             id='name'
                             name='name'
                             type='text'
-                            value={selectedProduct.name}
-                            onChange={(e) =>
-                                setSelectedProduct({
-                                    ...selectedProduct,
-                                    name: e.target.value,
-                                })
-                            }
+                            value={selectedProduct.name || ''}
+                            onChange={handleChange}
                             className='mt-1 p-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         />
                     </section>
@@ -194,12 +214,28 @@ export default function ProductsTable() {
                             id='code'
                             name='code'
                             type='text'
-                            value={selectedProduct.code}
-                            onChange={(e) =>
-                                setSelectedProduct({
-                                    ...selectedProduct,
-                                    code: e.target.value,
-                                })
+                            value={selectedProduct.code || ''}
+                            onChange={handleChange}
+                            className='mt-1 p-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                        />
+                    </section>
+                    <section className='mb-4'>
+                        <label
+                            htmlFor='stock'
+                            className='block text-sm font-medium text-gray-700'>
+                            Stock (KG)
+                        </label>
+                        <input
+                            id='stock'
+                            name='stock'
+                            type='number'
+                            value={selectedProduct.stock || ''}
+                            onChange={
+                                (e) =>
+                                    setSelectedProduct({
+                                        ...selectedProduct,
+                                        stock: Number(e.target.value),
+                                    })
                             }
                             className='mt-1 p-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         />
@@ -213,9 +249,8 @@ export default function ProductsTable() {
                             Cancelar
                         </button>
                         <button
-                            disabled={loading}
-                            onClick={() => selectedProduct.id && editProduct(selectedProduct.id)}
-                            type='submit'
+                            type='button'
+                            onClick={() => handleEdit(selectedProduct)}
                             className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                             Guardar
                         </button>
@@ -223,38 +258,6 @@ export default function ProductsTable() {
                 </form>
             </Modal>
 
-            {/* Delete Confirmation Modal */}
-            <Modal
-                isOpen={isDeleteConfirmOpen}
-                onClose={() => setIsDeleteConfirmOpen(false)}>
-                <h2 className='text-xl font-semibold mb-4'>
-                    Confirmar Eliminación de Producto
-                </h2>
-                <article className='mb-4'>
-                    ¿Estás seguro de que deseas eliminar el producto{' '}
-                    <p className='font-semibold text-red-600 inline-block'>
-                        {selectedProduct.name}
-                    </p>{' '}
-                    ?
-                </article>
-                <section className='flex justify-end'>
-                    <button
-                        type='button'
-                        onClick={() => setIsDeleteConfirmOpen(false)}
-                        className='mr-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'>
-                        Cancelar
-                    </button>
-                    <button
-                        disabled={loading}
-                        type='button'
-                        onClick={() =>
-                            selectedProduct.id && handleDelete(selectedProduct.id)
-                        }
-                        className='inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
-                        Eliminar
-                    </button>
-                </section>
-            </Modal>
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

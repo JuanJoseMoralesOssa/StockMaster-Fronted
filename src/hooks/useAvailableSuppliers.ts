@@ -6,7 +6,7 @@ import { personService } from '../services/PersonService'
 let supplierCache: Person[] | null = null
 let isLoading = false
 let loadError: Error | null = null
-let listeners: Function[] = []
+let listeners: (() => void)[] = []
 
 // Función para notificar a todos los suscriptores
 const notifyListeners = () => {

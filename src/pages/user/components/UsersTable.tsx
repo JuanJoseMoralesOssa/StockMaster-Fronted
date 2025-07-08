@@ -9,11 +9,25 @@ import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import User from '../../../types/User'
 import { userService } from '../../../services/User'
-import { useServerPagination } from '../../../hooks/useServerPagination'
 import Pagination from '../../components/pagination/Pagination'
 import bcrypt from 'bcryptjs'
 import { Roles } from '../../../enums/Roles'
-import { useCrudToast } from '../../../hooks/useToast'
+import { useToast } from '../../../hooks/useToast'
+
+interface UsersTableProps {
+    users: User[]
+    loading: boolean
+    error: string | null
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    itemsPerPage: number
+    goToPage: (page: number) => void
+    setItemsPerPage: (limit: number) => void
+    refresh: () => void
+    updateItem: (updatedItem: User, idField?: keyof User) => void
+    removeItem: (itemId: string | number, idField?: keyof User) => void
+}
 
 const headersTable = ['Usuario', 'Email', 'Rol', 'Acciones']
 
@@ -23,7 +37,20 @@ const getRoleDisplayName = (role: string): string => {
     return 'Operador'
 }
 
-export default function UsersTable() {
+export default function UsersTable({
+    users,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+    refresh,
+    updateItem,
+    removeItem
+}: Readonly<UsersTableProps>) {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User>({} as User)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -33,25 +60,7 @@ export default function UsersTable() {
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-    const { handleDelete: handleDeleteToast, handleUpdate } = useCrudToast()
-
-    // Server-side pagination
-    const {
-        data: users,
-        loading,
-        error,
-        currentPage,
-        totalPages,
-        totalItems,
-        itemsPerPage,
-        goToPage,
-        setItemsPerPage,
-        refresh
-    } = useServerPagination({
-        fetchFunction: userService.getAllPaginated.bind(userService),
-        initialPage: 1,
-        initialLimit: 10,
-    })
+    const { showSuccess, showError, confirmDelete } = useToast()
 
     const validatePassword = () => {
         if (newPassword && newPassword.length < 6) {
@@ -66,12 +75,20 @@ export default function UsersTable() {
     }
 
     const handleDelete = async (id: number) => {
-        const result = await handleDeleteToast(async () => {
-            return await userService.delete(id)
-        }, 'Usuario')
+        const confirmed = await confirmDelete(
+            `¿Estás seguro de que deseas eliminar el usuario <span class="font-semibold text-red-600">${selectedUser.name}</span>?`,
+            'Eliminar Usuario'
+        )
 
-        if (result) {
-            refresh() // Refresh data after delete
+        if (!confirmed) return
+
+        try {
+            await userService.delete(id)
+            removeItem(id) // Update local state immediately
+            showSuccess('Usuario eliminado exitosamente', 'Eliminación exitosa')
+        } catch (error) {
+            showError('Error al eliminar el usuario', 'Error')
+            console.error('Error deleting user:', error)
         }
     }
 
@@ -80,32 +97,42 @@ export default function UsersTable() {
         if (newPassword && !validatePassword()) {
             return
         }
+        console.log('Updating user:', selectedUser, 'with new password:', newPassword);
 
-        const result = await handleUpdate(async () => {
+        try {
             const updatedUser = {
                 ...selectedUser,
             }
+            console.log('Selected user before update:', updatedUser);
+
             if (newPassword) {
                 updatedUser.password = bcrypt.hashSync(newPassword, 12)
             } else {
                 updatedUser.password = selectedUser.password
             }
             if (updatedUser.id !== undefined) {
-                return await userService.updatePartial(Number(updatedUser.id), updatedUser)
+                const result = await userService.updatePartial(Number(updatedUser.id), updatedUser)
+                updateItem(result, 'id') // Update local state immediately
+                showSuccess('Usuario actualizado exitosamente', 'Actualización exitosa')
+                // Reset form state
+                setIsEditModalOpen(false)
+                setNewPassword('')
+                setConfirmPassword('')
+                setPasswordError('')
+                setShowNewPassword(false)
+                setShowConfirmPassword(false)
             } else {
                 throw new Error('ID de usuario no definido')
             }
-        }, 'Usuario')
-
-        if (result) {
-            refresh()
-            setIsEditModalOpen(false)
-            setNewPassword('')
-            setConfirmPassword('')
-            setPasswordError('')
-            setShowNewPassword(false)
-            setShowConfirmPassword(false)
+        } catch (error) {
+            showError('Error al actualizar el usuario', 'Error')
+            console.error('Error updating user:', error)
         }
+    }
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target
+        setSelectedUser({ ...selectedUser, [name]: value })
     }
 
     // Loading state
@@ -215,12 +242,7 @@ export default function UsersTable() {
                             id='userName'
                             type='text'
                             value={selectedUser.name || ''}
-                            onChange={(e) =>
-                                setSelectedUser({
-                                    ...selectedUser,
-                                    name: e.target.value,
-                                })
-                            }
+                            onChange={handleChange}
                             className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         />
                     </div>
@@ -234,12 +256,7 @@ export default function UsersTable() {
                             id='userEmail'
                             type='email'
                             value={selectedUser.email || ''}
-                            onChange={(e) =>
-                                setSelectedUser({
-                                    ...selectedUser,
-                                    email: e.target.value,
-                                })
-                            }
+                            onChange={handleChange}
                             className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         />
                     </div>
