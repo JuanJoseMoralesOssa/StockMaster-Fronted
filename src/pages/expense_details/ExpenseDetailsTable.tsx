@@ -59,7 +59,7 @@ export default function ExpensesDetailsTable({
         }
         const newExpenses = details.map((row) => {
             if (row.id === id) {
-                return { ...row, toDelete: true }
+                return { id: row.id, toDelete: true }
             }
             return row
         })

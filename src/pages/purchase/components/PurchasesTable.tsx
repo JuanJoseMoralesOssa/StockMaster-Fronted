@@ -189,7 +189,7 @@ export default function PurchasesTable({
 
                                 {/* Total KG */}
                                 <td className='p-2 whitespace-nowrap'>
-                                    {purchase.total_kg} kg
+                                    {`${purchase.total_kg ? purchase.total_kg + 'kg' : '-'}`}
                                 </td>
 
                                 {/* Productos (resumen) */}

@@ -43,6 +43,16 @@ export class ExpenseService extends ApiService<Expense> {
    * - toUpdate = true => PUT
    * - toCreate = true => POST
    * - toDelete = true => DELETE
+   * const expense = {
+        id: 123,
+        name: "Compra actualizada",
+        expense_details: [
+          { id: 1, weight_kg: 10, toUpdate: true },      // Actualizar
+          { id: 2, toDelete: true },                      // Eliminar
+          { weight_kg: 5, product_id: 3, toCreate: true } // Crear
+        ]
+      };
+      await updateWithDetails(expense);
    */
   async updateWithDetails(expense: Expense): Promise<Expense> {
     if (!expense.id) {
