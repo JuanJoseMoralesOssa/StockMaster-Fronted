@@ -321,7 +321,11 @@ export default function PurchasesTable({
                                     <td colSpan={headersTable.length} className="px-0 py-0">
                                         <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
                                             <h4 className="text-sm font-medium text-gray-700 mb-3">
-                                                Detalles de la Compra del {new Date(purchase.date).toLocaleDateString('es-ES')}
+                                                Detalles de la Compra del {(() => {
+                                                    const date = new Date(purchase.date)
+                                                    date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000)
+                                                    return date.toLocaleDateString('es-ES')
+                                                })()}
                                             </h4>
                                             <div className="bg-white rounded border border-gray-200 overflow-hidden">
                                                 <table className="w-full text-sm">

@@ -188,7 +188,7 @@ export default function ExpensesTable({
 
                                 {/* Total KG */}
                                 <td className='p-2 whitespace-nowrap'>
-                                    {expense.total_kg} kg
+                                    {`${expense.total_kg ? expense.total_kg + 'kg' : '-'}`}
                                 </td>
 
                                 {/* Productos (resumen) */}
@@ -320,7 +320,11 @@ export default function ExpensesTable({
                                     <td colSpan={headersTable.length} className="px-0 py-0">
                                         <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
                                             <h4 className="text-sm font-medium text-gray-700 mb-3">
-                                                Detalles del Gasto del {new Date(expense.date).toLocaleDateString('es-ES')}
+                                                Detalles del Gasto del {(() => {
+                                                    const date = new Date(expense.date)
+                                                    date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000)
+                                                    return date.toLocaleDateString('es-ES')
+                                                })()}
                                             </h4>
                                             <div className="bg-white rounded border border-gray-200 overflow-hidden">
                                                 <table className="w-full text-sm">
