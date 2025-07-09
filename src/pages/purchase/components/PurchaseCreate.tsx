@@ -16,7 +16,6 @@ const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreat
     const [loading, setLoading] = useState(false)
     const [purchase, setPurchase] = useState<Purchase>({
         date: new Date().toISOString().split('T')[0],
-        total_kg: 0,
     })
     const [details, setDetails] = useState<PurchaseDetails[]>([])
 
@@ -36,24 +35,12 @@ const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreat
         if (loading) return
         e.preventDefault()
         setLoading(true)
-        const total_kg = details?.reduce((acc, detail) => {
-            if (detail.toCreate && !detail.toDelete && !detail.toUpdate) {
-                return acc + (detail.weight_kg ?? 0)
-            }
-            return acc
-        }, 0)
-
-        const purchaseDetails = details?.filter((d) => d.toCreate && !d.toDelete && !d.toUpdate)
-        const purchaseWithDetails = {
-            ...purchase,
-            total_kg: total_kg ?? 0,
-        }
-        if (purchaseDetails && purchaseDetails.length > 0) {
-            purchaseWithDetails.purchase_details = purchaseDetails
+        if (details && details.length > 0) {
+            purchase.purchase_details = details
         }
 
         try {
-            const response = await purchaseService.createWithDetails(purchaseWithDetails)
+            const response = await purchaseService.createWithDetails(purchase)
             onPurchaseCreated(response)
             showSuccess('Compra creada exitosamente', 'Creación exitosa')
             onSuccess()

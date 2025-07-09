@@ -16,7 +16,6 @@ const ExpenseCreate = ({ onExpenseCreated, onSuccess }: Readonly<ExpenseCreatePr
     const [loading, setLoading] = useState(false)
     const [expense, setExpense] = useState<Expense>({
         date: new Date().toISOString().split('T')[0],
-        total_kg: 0,
     })
     const [details, setDetails] = useState<ExpenseDetails[]>([])
 
@@ -36,20 +35,9 @@ const ExpenseCreate = ({ onExpenseCreated, onSuccess }: Readonly<ExpenseCreatePr
         if (loading) return
         e.preventDefault()
         setLoading(true)
-        const total_kg = details?.reduce((acc, detail) => {
-            if (detail.toCreate && !detail.toDelete && !detail.toUpdate) {
-                return acc + (detail.weight_kg ?? 0)
-            }
-            return acc
-        }, 0)
 
-        const expenseDetails = details?.filter((d) => d.toCreate && !d.toDelete && !d.toUpdate)
-        const expenseWithDetails = {
-            ...expense,
-            total_kg: total_kg ?? 0,
-        }
-        if (expenseDetails && expenseDetails.length > 0) {
-            expenseWithDetails.expense_details = expenseDetails
+        if (details && details.length > 0) {
+            expense.expense_details = details
         }
         // else {
         //     showError('Debe agregar al menos un detalle al gasto', 'Error')
@@ -58,7 +46,7 @@ const ExpenseCreate = ({ onExpenseCreated, onSuccess }: Readonly<ExpenseCreatePr
         // }
 
         try {
-            const response = await expenseService.createWithDetails(expenseWithDetails)
+            const response = await expenseService.createWithDetails(expense)
             onExpenseCreated(response)
             showSuccess('Gasto creado exitosamente', 'Creación exitosa')
             onSuccess()

@@ -14,41 +14,28 @@ export class ExpenseService extends ApiService<Expense> {
   }
 
   /**
-   * Crea una compra y luego sus detalles marcados con toCreate = true
+   * Crea un gasto y luego sus detalles
+   * Acepta tanto el formato interno como el formato simplificado
    */
   async createWithDetails(expense: Expense): Promise<Expense> {
     if (!expense.expense_details) {
       return this.create(expense)
     }
-
-    // Calcular total_kg solo de los detalles a crear
-    expense.total_kg = expense.expense_details
-      .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
-
-    const toCreateExpense = { ...expense }
-    delete toCreateExpense.expense_details
-    const created = await this.create(toCreateExpense)
-    if (!created.id) {
-      throw new Error('Error al crear el gasto principal')
-    }
-
-    // Crear detalles nuevos
+    const expenseDetails = []
     for (const det of expense.expense_details) {
-      if (det.toCreate && !det.toDelete) {
-        if (!det.product?.id || !det.person?.id) {
-          throw new Error('Producto o persona indefinida en detalle a crear')
-        }
-        const payload = {
-          weight_kg: det.weight_kg,
-          productId: det.product.id,
-          personId: det.person.id,
-        }
-        await axios.post(`${this.getUrl()}/${created.id}/expense-details`, payload)
+      const detail = {
+        weight_kg: det.weight_kg,
+        productId: det.productId,
+        personId: det.personId,
       }
+      expenseDetails.push(detail)
     }
-    const expenseDetails = await axios.get(`${this.getUrl()}/${created.id}/expense-details`)
-      .then(res => res.data)
-    return { ...created, expense_details: expenseDetails }
+    const response = await axios.post(
+      this.getUrl() + '/with-details', {
+      date: expense.date,
+      expenseDetails
+    });
+    return response.data as Expense;
   }
 
   /**
@@ -62,7 +49,6 @@ export class ExpenseService extends ApiService<Expense> {
       throw new Error('ID de la compra indefinido')
     }
 
-    // Procesar detalles
     for (const det of expense.expense_details ?? []) {
       // Eliminar primero los marcados para borrar
       if (det.toCreate && det.toDelete) {

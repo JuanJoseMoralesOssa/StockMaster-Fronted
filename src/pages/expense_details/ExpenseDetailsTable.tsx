@@ -54,11 +54,12 @@ export default function ExpensesDetailsTable({
     }
 
     const deleteExpense = (id: number) => {
+        if (mode === 'add') {
+            setDetails(details.filter((val: ExpenseDetails) => val.id !== id))
+            return
+        }
         const newExpenses = details.map((row) => {
             if (row.id === id) {
-                if (mode === 'add') {
-                    return { ...row, toDelete: true, toCreate: true, toUpdate: false }
-                }
                 return { ...row, toDelete: true, toUpdate: true, toCreate: false }
             }
             return row

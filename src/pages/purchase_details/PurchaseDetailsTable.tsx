@@ -54,11 +54,12 @@ export default function PurchasesDetailsTable({
     }
 
     const deletePurchase = (id: number) => {
+        if (mode === 'add') {
+            setDetails(details.filter((val: PurchaseDetails) => val.id !== id))
+            return
+        }
         const newPurchases = details.map((row) => {
             if (row.id === id) {
-                if (mode === 'add') {
-                    return { ...row, toDelete: true, toCreate: true, toUpdate: false }
-                }
                 return { ...row, toDelete: true, toUpdate: true, toCreate: false }
             }
             return row

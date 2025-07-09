@@ -248,14 +248,14 @@ export class NotificationFactory {
   /**
    * Notificaciones para operaciones de kardex
    */
-  static readonly kardex = {
-    created: () => ToastService.success('Registro de kardex creado exitosamente'),
-    updated: () => ToastService.success('Registro de kardex actualizado exitosamente'),
-    deleted: () => ToastService.success('Registro de kardex eliminado exitosamente'),
-    createError: (error?: string) => ToastService.error(error || 'Error al crear el registro del kardex'),
-    updateError: (error?: string) => ToastService.error(error || 'Error al actualizar el kardex'),
-    deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar el registro del kardex'),
-  }
+  // static readonly kardex = {
+  //   created: () => ToastService.success('Registro de kardex creado exitosamente'),
+  //   updated: () => ToastService.success('Registro de kardex actualizado exitosamente'),
+  //   deleted: () => ToastService.success('Registro de kardex eliminado exitosamente'),
+  //   createError: (error?: string) => ToastService.error(error || 'Error al crear el registro del kardex'),
+  //   updateError: (error?: string) => ToastService.error(error || 'Error al actualizar el kardex'),
+  //   deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar el registro del kardex'),
+  // }
 
   /**
    * Notificaciones para operaciones de gastos

@@ -116,6 +116,10 @@ export default function ExpensesTable({
         }
         if (bad) return
 
+        if (selectedExpense.date.includes('T')) {
+            selectedExpense.date = selectedExpense.date.split('T')[0]
+        }
+
         try {
             const updatedExpense = await expenseService.updateWithDetails(selectedExpense)
             if (updatedExpense) {
@@ -390,9 +394,10 @@ export default function ExpensesTable({
                                 return date.toISOString().split('T')[0]
                             })()}
                             onChange={(e) => {
+                                const date = new Date(e.target.value)
                                 setSelectedExpense({
                                     ...selectedExpense,
-                                    date: e.target.value,
+                                    date: date.toISOString().split('T')[0],
                                 })
                             }}
                             className='mt-1 min-w-fit w-1/3 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'

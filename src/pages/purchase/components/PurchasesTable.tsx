@@ -117,6 +117,10 @@ export default function PurchasesTable({
         }
         if (bad) return
 
+        if (selectedPurchase.date.includes('T')) {
+            selectedPurchase.date = selectedPurchase.date.split('T')[0]
+        }
+
         try {
             const updatedPurchase = await purchaseService.updateWithDetails(selectedPurchase)
             if (updatedPurchase) {
@@ -391,9 +395,10 @@ export default function PurchasesTable({
                                 return date.toISOString().split('T')[0]
                             })()}
                             onChange={(e) => {
+                                const date = new Date(e.target.value).toISOString().split('T')[0]
                                 setSelectedPurchase({
                                     ...selectedPurchase,
-                                    date: e.target.value,
+                                    date: date,
                                 })
                             }}
                             className='mt-1 min-w-fit w-1/3 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'

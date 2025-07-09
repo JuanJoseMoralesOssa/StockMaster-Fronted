@@ -6,7 +6,7 @@ import {
     ClipboardList,
     DollarSign,
     User,
-    ClipboardCheck,
+    // ClipboardCheck,
     // Box,
     // Tags,
     // Truck,
@@ -23,11 +23,11 @@ const navItems: NavItem[] = [
         href: '/usuarios',
         icon: <Users className='h-5 w-5' />,
     },
-    {
-        title: 'Kardex',
-        href: '/kardex',
-        icon: <ClipboardCheck className='h-5 w-5' />,
-    },
+    // {
+    //     title: 'Kardex',
+    //     href: '/kardex',
+    //     icon: <ClipboardCheck className='h-5 w-5' />,
+    // },
     {
         title: 'Compras',
         href: '/compras',

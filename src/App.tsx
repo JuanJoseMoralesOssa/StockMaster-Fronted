@@ -2,7 +2,7 @@ import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/home/Home'
 import Product from './pages/product/Product'
-import Kardex from './pages/kardex/Kardex'
+// import Kardex from './pages/kardex/Kardex'
 import Expense from './pages/expense/Expense'
 import Purchase from './pages/purchase/Purchase'
 import User from './pages/user/User'
@@ -40,7 +40,7 @@ function App() {
                 }>
                     <Route index element={<SupplierPaymentReport />} />
                     <Route path='productos' element={<Product />} />
-                    <Route path='kardex' element={<Kardex />} />
+                    {/* <Route path='kardex' element={<Kardex />} /> */}
                     <Route path='gastos' element={<Expense />} />
                     <Route path='compras' element={<Purchase />} />
                     <Route path='personas' element={<Person />} />

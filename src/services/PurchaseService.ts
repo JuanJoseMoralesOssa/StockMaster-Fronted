@@ -20,37 +20,21 @@ export class PurchaseService extends ApiService<Purchase> {
     if (!purchase.purchase_details) {
       return this.create(purchase)
     }
-
-    // Calcular total_kg solo de los detalles a crear
-    purchase.total_kg = purchase.purchase_details
-      .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
-
-    // Crear compra principal
-    const toCreatePurchase = { ...purchase }
-    delete toCreatePurchase.purchase_details
-    const created = await this.create(toCreatePurchase)
-
-    if (!created.id) {
-      throw new Error('Error al crear la compra principal')
-    }
-
-    // Crear detalles nuevos
+    const purchaseDetails = []
     for (const det of purchase.purchase_details) {
-      if (det.toCreate && !det.toDelete) {
-        if (!det.product?.id || !det.person?.id) {
-          throw new Error('Producto o persona indefinida en detalle a crear')
-        }
-        const payload = {
-          weight_kg: det.weight_kg,
-          productId: det.product.id,
-          personId: det.person.id,
-        }
-        await axios.post(`${this.getUrl()}/${created.id}/purchase-details`, payload)
+      const detail = {
+        weight_kg: det.weight_kg,
+        productId: det.productId,
+        personId: det.personId,
       }
+      purchaseDetails.push(detail)
     }
-    const purchaseDetails = await axios.get(`${this.getUrl()}/${created.id}/purchase-details`)
-      .then(res => res.data)
-    return { ...created, purchase_details: purchaseDetails }
+    const response = await axios.post(
+      this.getUrl() + '/with-details', {
+      date: purchase.date,
+      purchaseDetails
+    });
+    return response.data as Purchase;
   }
 
   /**
