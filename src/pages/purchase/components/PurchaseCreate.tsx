@@ -15,7 +15,7 @@ interface PurchaseCreateProps {
 const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreateProps>) => {
     const [loading, setLoading] = useState(false)
     const [purchase, setPurchase] = useState<Purchase>({
-        date: new Date().toISOString(),
+        date: new Date().toISOString().split('T')[0],
         total_kg: 0,
     })
     const [details, setDetails] = useState<PurchaseDetails[]>([])
@@ -82,7 +82,10 @@ const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreat
                         type='date'
                         name='date'
                         id='date'
-                        value={new Date(purchase.date).toISOString().split('T')[0]}
+                        value={(() => {
+                            const date = new Date(purchase.date);
+                            return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+                        })()}
                         required
                         onChange={handleChange}
                         className='mt-1 p-1 inline-flex md:order-2 border w-fit rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm'

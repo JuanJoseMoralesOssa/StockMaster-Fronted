@@ -126,10 +126,10 @@ export default function UsersTable({
         }
     }
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        setSelectedUser({ ...selectedUser, [name]: value })
-    }
+    // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const { name, value } = e.target
+    //     setSelectedUser({ ...selectedUser, [name]: value })
+    // }
 
     // Loading state
     if (loading) {
@@ -238,7 +238,11 @@ export default function UsersTable({
                             id='userName'
                             type='text'
                             value={selectedUser.name || ''}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                setSelectedUser({
+                                    ...selectedUser,
+                                    name: e.target.value,
+                                })}
                             className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         />
                     </div>
@@ -252,7 +256,11 @@ export default function UsersTable({
                             id='userEmail'
                             type='email'
                             value={selectedUser.email || ''}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                setSelectedUser({
+                                    ...selectedUser,
+                                    email: e.target.value,
+                                })}
                             className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         />
                     </div>

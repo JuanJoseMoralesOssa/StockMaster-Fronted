@@ -15,7 +15,7 @@ interface ExpenseCreateProps {
 const ExpenseCreate = ({ onExpenseCreated, onSuccess }: Readonly<ExpenseCreateProps>) => {
     const [loading, setLoading] = useState(false)
     const [expense, setExpense] = useState<Expense>({
-        date: new Date().toISOString(),
+        date: new Date().toISOString().split('T')[0],
         total_kg: 0,
     })
     const [details, setDetails] = useState<ExpenseDetails[]>([])
@@ -87,7 +87,10 @@ const ExpenseCreate = ({ onExpenseCreated, onSuccess }: Readonly<ExpenseCreatePr
                         type='date'
                         name='date'
                         id='date'
-                        value={new Date(expense.date).toISOString().split('T')[0]}
+                        value={(() => {
+                            const date = new Date(expense.date);
+                            return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+                        })()}
                         required
                         onChange={handleChange}
                         className='mt-1 p-1 inline-flex md:order-2 border w-fit rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm'

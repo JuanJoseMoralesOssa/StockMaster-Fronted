@@ -180,11 +180,18 @@ export default function ExpensesTable({
 
                                 {/* Fecha */}
                                 <td className='p-2 whitespace-nowrap'>
-                                    {new Date(expense.date).toLocaleString('es-ES', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                    })}
+                                    {(() => {
+                                        if (!expense.date) return 'Fecha no disponible'
+                                        const offset = new Date().getTimezoneOffset() * 60000 // offset en mil
+                                        const date = new Date(expense.date)
+                                        date.setTime(date.getTime() + offset)
+                                        if (isNaN(date.getTime())) return 'Fecha inválida'
+                                        return date.toLocaleDateString('es-ES', {
+                                            year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                        })
+                                    })()}
                                 </td>
 
                                 {/* Total KG */}
@@ -374,17 +381,18 @@ export default function ExpensesTable({
                             name='date'
                             id='date'
                             type='date'
-                            value={selectedExpense.date?.split('T')[0]}
+                            value={(() => {
+                                if (!selectedExpense.date) return ''
+                                const offset = new Date().getTimezoneOffset() * 60000
+                                const date = new Date(selectedExpense.date)
+                                date.setTime(date.getTime() + offset)
+                                if (isNaN(date.getTime())) return ''
+                                return date.toISOString().split('T')[0]
+                            })()}
                             onChange={(e) => {
-                                const dateObj = new Date(e.target.value)
-                                // Ajustar para compensar el offset de la zona horaria
-                                dateObj.setMinutes(
-                                    dateObj.getMinutes() +
-                                    dateObj.getTimezoneOffset()
-                                )
                                 setSelectedExpense({
                                     ...selectedExpense,
-                                    date: dateObj.toISOString(),
+                                    date: e.target.value,
                                 })
                             }}
                             className='mt-1 min-w-fit w-1/3 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
