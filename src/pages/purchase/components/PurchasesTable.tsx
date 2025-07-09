@@ -93,7 +93,8 @@ export default function PurchasesTable({
         }
     }
 
-    const handleEdit = async () => {
+    const handleEdit = async (e: React.FormEvent) => {
+        e.preventDefault()
         setIsLoading(true)
         if (!selectedPurchase.id) {
             showError('Error al editar la compra: ID no definido', 'Error')
@@ -105,22 +106,9 @@ export default function PurchasesTable({
             setIsLoading(false)
             return
         }
-        let bad = false
-        for (const detail of selectedPurchase.purchase_details ?? []) {
-            if (detail.toDelete) continue
-            if (!detail.productId || !detail.personId) {
-                showError('Error al editar la compra: Producto o persona indefinida en detalle a crear', 'Error')
-                setIsLoading(false)
-                bad = true
-                break
-            }
-        }
-        if (bad) return
-
         if (selectedPurchase.date.includes('T')) {
             selectedPurchase.date = selectedPurchase.date.split('T')[0]
         }
-
         try {
             const updatedPurchase = await purchaseService.updateWithDetails(selectedPurchase)
             if (updatedPurchase) {
@@ -375,7 +363,7 @@ export default function PurchasesTable({
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}>
                 <h2 className='text-xl font-semibold mb-4'>Editar Compra</h2>
-                <form className='w-fit px-2 pr-5 '>
+                <form onSubmit={handleEdit} className='w-fit px-2 pr-5 '>
                     <section className='mb-4'>
                         <label
                             htmlFor='date'
@@ -412,7 +400,7 @@ export default function PurchasesTable({
                         setDetails={(details: PurchaseDetails[]) => {
                             const total_kg = details.reduce(
                                 (acc, detail) => {
-                                    if (detail.toCreate && !detail.toDelete) {
+                                    if (detail.toCreate) {
                                         return acc + (detail.weight_kg ?? 0)
                                     }
                                     return acc
@@ -436,9 +424,8 @@ export default function PurchasesTable({
                             Cancelar
                         </button>
                         <button
-                            onClick={() => selectedPurchase.id && handleEdit()}
                             disabled={isLoading}
-                            type='button'
+                            type='submit'
                             className='inline-flex w-full sm:w-fit justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                             Guardar
                         </button>

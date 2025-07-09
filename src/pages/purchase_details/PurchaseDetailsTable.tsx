@@ -41,26 +41,25 @@ export default function PurchasesDetailsTable({
             ...details,
             {
                 id: -Date.now(),
-                toCreate: true,
-                toUpdate: false,
-                toDelete: false,
                 productId: 0,
                 product: { id: 0, name: '' },
                 personId: 0,
                 person: { id: 0, name: '' },
+                toCreate: true,
             },
         ]
         setDetails(newPurchases)
     }
 
     const deletePurchase = (id: number) => {
-        if (mode === 'add') {
+        const createdAndDeleted = id < 0
+        if (createdAndDeleted) {
             setDetails(details.filter((val: PurchaseDetails) => val.id !== id))
             return
         }
         const newPurchases = details.map((row) => {
             if (row.id === id) {
-                return { ...row, toDelete: true, toUpdate: true, toCreate: false }
+                return { ...row, toDelete: true }
             }
             return row
         })
@@ -68,7 +67,6 @@ export default function PurchasesDetailsTable({
     }
 
     const updatePurchase = (id: number, field: string, value: { id: number; name: string }) => {
-
         const newPurchases = details.map((row) => {
             if (row.id === id) {
                 const updatedRow = { ...row, [field]: value };
@@ -77,16 +75,9 @@ export default function PurchasesDetailsTable({
                 } else if (field === 'person') {
                     updatedRow.personId = value.id;
                 }
-                if (mode === 'add') {
-                    updatedRow.toUpdate = !updatedRow.toCreate;
-                } else if (mode === 'edit') {
-                    if (updatedRow.toCreate) {
-                        updatedRow.toUpdate = false;
-                    } else if (updatedRow.toUpdate) {
-                        updatedRow.toCreate = false;
-                    }
+                if (mode === 'edit' && !updatedRow.toCreate) {
+                    updatedRow.toUpdate = true;
                 }
-                updatedRow.toDelete = false;
                 return updatedRow;
             }
             return row;

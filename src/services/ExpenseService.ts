@@ -40,51 +40,28 @@ export class ExpenseService extends ApiService<Expense> {
 
   /**
    * Actualiza una compra y sus detalles según flags:
-   * - toUpdate = true (y toCreate/toDelete = false) => PUT
-   * - toCreate = true (y toDelete = false) => POST
+   * - toUpdate = true => PUT
+   * - toCreate = true => POST
    * - toDelete = true => DELETE
    */
   async updateWithDetails(expense: Expense): Promise<Expense> {
     if (!expense.id) {
       throw new Error('ID de la compra indefinido')
     }
-
     for (const det of expense.expense_details ?? []) {
-      // Eliminar primero los marcados para borrar
-      if (det.toCreate && det.toDelete) {
-        continue
+      if (!det.productId || !det.personId) {
+        throw new Error('Producto o persona indefinida en detalle a actualizar')
       }
-      // Actualizar los existentes
-      if (det.toUpdate && !det.toCreate && !det.toDelete && det.id) {
-        if (!det.productId || !det.personId) {
-          throw new Error('Producto o persona indefinida en detalle a actualizar')
-        }
+      if (det.toDelete && det.id) {
+        await expenseDetailsService.delete(det.id)
+      } else if (det.toUpdate && det.id) {
         const payload = {
           weight_kg: det.weight_kg,
           productId: det.productId,
           personId: det.personId,
         }
         await expenseDetailsService.updatePartial(det.id, payload)
-        continue
-      }
-
-      if (!det.id) {
-        throw new Error('ID de detalle indefinido')
-      }
-
-      const isNotDeletedNewDetail = det.id > 0
-      const isDeletedDetail = isNotDeletedNewDetail && det.toDelete && !det.toCreate
-      if (isDeletedDetail) {
-        // Eliminar detalle existente
-        await expenseDetailsService.delete(det.id)
-        continue
-      }
-
-      // Crear nuevos detalles
-      if (det.toCreate && !det.toDelete && !det.toUpdate) {
-        if (!det.productId || !det.personId) {
-          throw new Error('Producto o persona indefinida en detalle a crear')
-        }
+      } else if (det.toCreate) {
         const payload = {
           weight_kg: det.weight_kg,
           productId: det.productId,
@@ -93,12 +70,10 @@ export class ExpenseService extends ApiService<Expense> {
         await axios.post(`${this.getUrl()}/${expense.id}/expense-details`, payload)
       }
     }
-
     // Recalcular total_kg de todos los detalles conservados o nuevos
     expense.total_kg = (expense.expense_details ?? [])
       .filter((d) => !d.toDelete)
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
-
     const toUpdateExpense = { ...expense }
     delete toUpdateExpense.expense_details
     delete toUpdateExpense.id

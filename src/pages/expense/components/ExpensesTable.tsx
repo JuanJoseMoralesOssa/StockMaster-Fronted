@@ -92,7 +92,8 @@ export default function ExpensesTable({
         }
     }
 
-    const handleEdit = async () => {
+    const handleEdit = async (e: React.FormEvent) => {
+        e.preventDefault()
         setIsLoading(true)
         if (!selectedExpense.id) {
             showError('Error al editar el gasto: ID no definido', 'Error')
@@ -104,22 +105,9 @@ export default function ExpensesTable({
             setIsLoading(false)
             return
         }
-        let bad = false
-        for (const detail of selectedExpense.expense_details ?? []) {
-            if (detail.toDelete) continue
-            if (!detail.productId || !detail.personId) {
-                showError('Error al editar el gasto: Producto o persona indefinida en detalle a crear', 'Error')
-                setIsLoading(false)
-                bad = true
-                break
-            }
-        }
-        if (bad) return
-
         if (selectedExpense.date.includes('T')) {
             selectedExpense.date = selectedExpense.date.split('T')[0]
         }
-
         try {
             const updatedExpense = await expenseService.updateWithDetails(selectedExpense)
             if (updatedExpense) {
@@ -374,7 +362,7 @@ export default function ExpensesTable({
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}>
                 <h2 className='text-xl font-semibold mb-4'>Editar Gasto</h2>
-                <form className='w-fit px-2 pr-5 '>
+                <form onSubmit={handleEdit} className='w-fit px-2 pr-5 '>
                     <section className='mb-4'>
                         <label
                             htmlFor='date'
@@ -411,7 +399,7 @@ export default function ExpensesTable({
                         setDetails={(details: ExpenseDetails[]) => {
                             const total_kg = details.reduce(
                                 (acc, detail) => {
-                                    if (detail.toCreate && !detail.toDelete) {
+                                    if (detail.toCreate) {
                                         return acc + (detail.weight_kg ?? 0)
                                     }
                                     return acc
@@ -436,9 +424,8 @@ export default function ExpensesTable({
                             Cancelar
                         </button>
                         <button
-                            onClick={() => selectedExpense.id && handleEdit()}
                             disabled={isLoading}
-                            type='button'
+                            type='submit'
                             className='inline-flex w-full sm:w-fit justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
                             Guardar
                         </button>

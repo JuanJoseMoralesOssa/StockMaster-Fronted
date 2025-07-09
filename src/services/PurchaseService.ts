@@ -39,53 +39,28 @@ export class PurchaseService extends ApiService<Purchase> {
 
   /**
    * Actualiza una compra y sus detalles según flags:
-   * - toUpdate = true (y toCreate/toDelete = false) => PUT
-   * - toCreate = true (y toDelete = false) => POST
+   * - toUpdate = true => PUT
+   * - toCreate = true => POST
    * - toDelete = true => DELETE
    */
   async updateWithDetails(purchase: Purchase): Promise<Purchase> {
     if (!purchase.id) {
       throw new Error('ID de la compra indefinido')
     }
-
-    // Procesar detalles
     for (const det of purchase.purchase_details ?? []) {
-      // Eliminar primero los marcados para borrar
-      if (det.toCreate && det.toDelete) {
-        continue
+      if (!det.productId || !det.personId) {
+        throw new Error('Producto o persona indefinida en detalle a actualizar')
       }
-
-      // Actualizar los existentes
-      if (det.toUpdate && !det.toCreate && !det.toDelete && det.id) {
-        if (!det.productId || !det.personId) {
-          throw new Error('Producto o persona indefinida en detalle a actualizar')
-        }
+      if (det.toDelete && det.id) {
+        await purchaseDetailsService.delete(det.id)
+      } else if (det.toUpdate && det.id) {
         const payload = {
           weight_kg: det.weight_kg,
           productId: det.productId,
           personId: det.personId,
         }
         await purchaseDetailsService.update(det.id, payload)
-        continue
-      }
-
-      if (!det.id) {
-        throw new Error('ID de detalle indefinido')
-      }
-
-      const isNotDeletedNewDetail = det.id > 0
-      const isDeletedDetail = isNotDeletedNewDetail && det.toDelete && !det.toCreate
-      if (isDeletedDetail) {
-        // Eliminar detalle existente
-        await purchaseDetailsService.delete(det.id)
-        continue
-      }
-
-      // Crear nuevos detalles
-      if (det.toCreate && !det.toDelete && !det.toUpdate) {
-        if (!det.productId || !det.personId) {
-          throw new Error('Producto o persona indefinida en detalle a crear')
-        }
+      } else if (det.toCreate) {
         const payload = {
           weight_kg: det.weight_kg,
           productId: det.productId,
@@ -94,12 +69,10 @@ export class PurchaseService extends ApiService<Purchase> {
         await axios.post(`${this.getUrl()}/${purchase.id}/purchase-details`, payload)
       }
     }
-
     // Recalcular total_kg de todos los detalles conservados o nuevos
     purchase.total_kg = (purchase.purchase_details ?? [])
       .filter((d) => !d.toDelete)
       .reduce((sum, d) => sum + (d.weight_kg ?? 0), 0)
-
     // Actualizar compra principal
     const toUpdatePurchase = { ...purchase }
     delete toUpdatePurchase.purchase_details
