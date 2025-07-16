@@ -1,10 +1,4 @@
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '../../components/dropdown/DropdownMenu'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Expense from '../../../types/Expense'
@@ -49,10 +43,9 @@ export default function ExpensesTable({
     updateItem,
     removeItem
 }: Readonly<ExpensesTableProps>) {
-    const [isOpen, setIsOpen] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
     const [selectedExpense, setSelectedExpense] = useState<Expense>({} as Expense)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
     const [expandedExpenses, setExpandedExpenses] = useState<number[]>([])
 
     const { showSuccess, showError, confirmDelete } = useToast()
@@ -73,9 +66,15 @@ export default function ExpensesTable({
         )
     }
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (expense: Expense) => {
+        const id = expense.id
+        if (!id) return
         const confirmed = await confirmDelete(
-            `¿Estás seguro de que deseas eliminar el gasto del <span class="font-semibold text-red-600">${new Date(selectedExpense.date ?? '').toLocaleDateString('es-ES')}</span>?`,
+            `¿Estás seguro de que deseas eliminar el gasto del <span class="font-semibold text-red-600">${(() => {
+                const date = new Date(expense.date ?? '')
+                date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000)
+                return date.toLocaleDateString('es-ES')
+            })()}</span>?`,
             'Eliminar Gasto'
         )
 
@@ -251,66 +250,32 @@ export default function ExpensesTable({
                                 </td>
 
                                 {/* Acciones */}
-                                <td className='p-2 cursor-pointer text-center'>
-                                    <DropdownMenu>
-                                        {isOpen &&
-                                            selectedExpense.id === expense.id && (
-                                                <button
-                                                    className='fixed inset-0 z-0 w-full h-full bg-transparent cursor-default'
-                                                    onClick={() => setIsOpen(false)}>
-                                                    <span className='sr-only'>
-                                                        Cerrar menú
-                                                    </span>
-                                                </button>
-                                            )}
-                                        <DropdownMenuTrigger
+                                <td className='p-2 flex gap-4 cursor-pointer text-center'
+                                    onClick={() => setSelectedExpense(expense)}
+                                >
+                                    {!isLoading ? (
+                                        <button className='flex items-center text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-sm'
                                             onClick={() => {
-                                                setIsOpen(!isOpen)
-                                                setSelectedExpense(expense)
+                                                setIsLoading(true)
+                                                setIsEditModalOpen(true)
+                                                setIsLoading(false)
                                             }}
-                                            className='focus:outline-none hover:bg-gray-100 rounded-2xl px-4 py-1 text-center'>
-                                            <MoreHorizontal className='h-4 w-4' />
-                                            <span className='sr-only'>Abrir menú</span>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent
-                                            isOpen={
-                                                isOpen &&
-                                                selectedExpense.id === expense.id
-                                            }>
-                                            <DropdownMenuItem
-                                                className='text-blue-600 hover:text-blue-800'
-                                                onClick={() => {
-                                                    setIsLoading(true)
-                                                    setIsEditModalOpen(true)
-                                                    setIsOpen(false)
-                                                    setIsLoading(false)
-                                                }}
-                                                disabled={isLoading}
-                                            >
-                                                {!isLoading ? (
-                                                    <>
-                                                        <Pencil className='mr-2 h-4 w-4' />
-                                                        <span>Editar</span>
-                                                    </>
-                                                ) : <span>Cargando...</span>}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                className='text-red-600'
-                                                onClick={() => {
-                                                    setIsLoading(true)
-                                                    handleDelete(expense.id!)
-                                                    setIsOpen(false)
-                                                    setIsLoading(false)
-                                                }}>
-                                                {!isLoading ? (
-                                                    <>
-                                                        <Trash2 className='mr-2 h-4 w-4' />
-                                                        <span>Eliminar</span>
-                                                    </>
-                                                ) : <span>Cargando...</span>}
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                            disabled={isLoading}>
+                                            <Pencil className='mr-2 h-4 w-4' />
+                                            <span>Editar</span>
+                                        </button>
+                                    ) : <span>Cargando...</span>}
+                                    {!isLoading ? (
+                                        <button className='flex items-center text-red-600 hover:text-red-800 bg-red-50 px-2 py-1 rounded text-sm'
+                                            onClick={() => {
+                                                setIsLoading(true)
+                                                handleDelete(expense)
+                                                setIsLoading(false)
+                                            }}>
+                                            <Trash2 className='mr-2 h-4 w-4' />
+                                            <span>Eliminar</span>
+                                        </button>
+                                    ) : <span>Cargando...</span>}
                                 </td>
                             </tr>
 
