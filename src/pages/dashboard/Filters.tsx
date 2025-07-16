@@ -3,8 +3,8 @@ import Product from "../../types/Product";
 
 interface FiltersProps {
   suppliers: Person[];
-  filters: { startDate: string; endDate: string; supplierId: string; productId: string };
   products: Partial<Product>[];
+  filters: { startDate: string; endDate: string; supplierId: string; productId: string };
   setFilters: (range: { startDate: string; endDate: string; supplierId: string; productId: string }) => void;
   setSelectedFilter: (filter: string) => void;
   selectedFilter: string;

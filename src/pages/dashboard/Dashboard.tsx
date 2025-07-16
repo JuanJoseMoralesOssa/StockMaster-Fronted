@@ -139,10 +139,15 @@ export default function SupplierPaymentReport() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen w-full">
-      <div className='flex flex-col md:flex-row justify-between items-center'>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Reporte de Pagos a Proveedores</h1>
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Reporte de Pagos a Proveedores</h1>
-        <div className='flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-fit'>
+      <ModeToggleDashboard
+        dashboardMode={dashboardMode}
+        handleModeChange={handleModeChange}
+      />
+
+      <div className='flex flex-col gap-2'>
+        <div className='flex flex-col md:flex-row self-end gap-2 md:gap-4 w-full md:w-fit'>
           <button
             onClick={fetchData}
             className={`px-4 py-2 rounded-2xl w-full md:w-fit text-white transition-colors ${dashboardMode === 'detailed'
@@ -155,7 +160,6 @@ export default function SupplierPaymentReport() {
             onClick={() => {
               setFilters(
                 {
-                  ...filters,
                   startDate:
                     date.getFullYear() + '-' +
                     (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
@@ -164,7 +168,8 @@ export default function SupplierPaymentReport() {
                     date.getFullYear() + '-' +
                     (date.getMonth() + 1).toString().padStart(2, '0') + '-' +
                     date.getDate().toString().padStart(2, '0'),
-                  supplierId: '', productId: ''
+                  supplierId: '',
+                  productId: ''
                 }
               )
               setSelectedFilter('all')
@@ -173,24 +178,18 @@ export default function SupplierPaymentReport() {
               setSupplierProductResults([])
             }}
             className='px-4 py-2 rounded-2xl w-full md:w-fit text-white bg-blue-600 hover:text-gray-50 hover:bg-blue-700'>
-            Limpiar Filtros
+            🧹 Limpiar Filtros
           </button>
         </div>
+        <Filters
+          filters={filters}
+          setFilters={setFilters}
+          products={products}
+          suppliers={suppliers}
+          selectedFilter={selectedFilter}
+          setSelectedFilter={(filter: string) => setSelectedFilter(filter as 'all' | 'withDebt' | 'fullyPaid')}
+        />
       </div>
-
-      <ModeToggleDashboard
-        dashboardMode={dashboardMode}
-        handleModeChange={handleModeChange}
-      />
-
-      <Filters
-        filters={filters}
-        setFilters={setFilters}
-        products={products}
-        suppliers={suppliers}
-        selectedFilter={selectedFilter}
-        setSelectedFilter={(filter: string) => setSelectedFilter(filter as 'all' | 'withDebt' | 'fullyPaid')}
-      />
 
       <RenderingWithMode
         dashboardMode={dashboardMode}

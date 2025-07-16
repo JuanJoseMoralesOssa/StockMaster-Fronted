@@ -18,6 +18,7 @@ export class PurchaseService extends ApiService<Purchase> {
    */
   async createWithDetails(purchase: Purchase): Promise<Purchase> {
     if (!purchase.purchase_details) {
+      purchase.total_kg = 0
       return this.create(purchase)
     }
     const purchaseDetails = []
@@ -113,6 +114,38 @@ export class PurchaseService extends ApiService<Purchase> {
       })
       return await this.handleResponse<PaginatedResponse<Purchase>>(
         axios.get(`${this.getUrl()}?${params.toString()}`)
+      )
+    } catch (error) {
+      this.handleError(error, 'Error getting paginated purchases with details')
+    }
+  }
+
+  async getAllPaginatedFiltered(
+    filters: { startDate?: string; endDate?: string; personId?: string; productId?: string, activeDate: boolean },
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<Purchase>> {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      })
+      if (filters.activeDate) {
+        if (filters.startDate) {
+          params.append('startDate', filters.startDate)
+        }
+        if (filters.endDate) {
+          params.append('endDate', filters.endDate)
+        }
+      }
+      if (filters.personId) {
+        params.append('personId', filters.personId)
+      }
+      if (filters.productId) {
+        params.append('productId', filters.productId)
+      }
+      return await this.handleResponse<PaginatedResponse<Purchase>>(
+        axios.get(`${this.getUrl()}/filtered?${params.toString()}`)
       )
     } catch (error) {
       this.handleError(error, 'Error getting paginated purchases with details')

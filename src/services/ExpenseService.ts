@@ -4,6 +4,7 @@ import { PaginatedResponse } from '../types/PaginatedResponse'
 import { ApiService } from './ApiService'
 import { expenseDetailsService } from './ExpenseDetailsService'
 
+
 /**
  * Servicio para manejar creación y actualización de compras con detalles
  * Respecta los flags toCreate, toUpdate y toDelete en cada detalle
@@ -19,6 +20,7 @@ export class ExpenseService extends ApiService<Expense> {
    */
   async createWithDetails(expense: Expense): Promise<Expense> {
     if (!expense.expense_details) {
+      expense.total_kg = 0
       return this.create(expense)
     }
     const expenseDetails = []
@@ -110,7 +112,7 @@ export class ExpenseService extends ApiService<Expense> {
 
   async getAllPaginatedWithDetails(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<PaginatedResponse<Expense>> {
     try {
       const params = new URLSearchParams({
@@ -128,6 +130,39 @@ export class ExpenseService extends ApiService<Expense> {
       this.handleError(error, 'Error getting paginated expenses with details')
     }
   }
+
+  async getAllPaginatedFiltered(
+    filters: { startDate?: string; endDate?: string; personId?: string; productId?: string, activeDate: boolean },
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<Expense>> {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      })
+      if (filters.activeDate) {
+        if (filters.startDate) {
+          params.append('startDate', filters.startDate)
+        }
+        if (filters.endDate) {
+          params.append('endDate', filters.endDate)
+        }
+      }
+      if (filters.personId) {
+        params.append('personId', filters.personId)
+      }
+      if (filters.productId) {
+        params.append('productId', filters.productId)
+      }
+      return await this.handleResponse<PaginatedResponse<Expense>>(
+        axios.get(`${this.getUrl()}/filtered?${params.toString()}`)
+      )
+    } catch (error) {
+      this.handleError(error, 'Error getting paginated expenses with details')
+    }
+  }
+
 }
 
 export const expenseService = new ExpenseService()

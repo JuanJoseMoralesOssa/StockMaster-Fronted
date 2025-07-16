@@ -63,7 +63,7 @@ export default function Pagination({
       <div className={`flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 ${className}`}>
         <div className="flex-1 flex justify-between sm:hidden">
           <p className="text-sm text-gray-700">
-            Showing {startItem} to {endItem} of {totalItems} results
+            Mostrando {startItem} a {endItem} de {totalItems} resultados
           </p>
         </div>
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
