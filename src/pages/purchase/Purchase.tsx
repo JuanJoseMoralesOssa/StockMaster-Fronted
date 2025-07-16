@@ -97,7 +97,7 @@ function PurchasePage() {
                                     activeDate: false
                                 }
                             )
-                            refresh()
+                            goToPage(1)
                         }}
                         className='px-4 py-2 rounded-2xl w-full md:w-fit text-white bg-blue-600 hover:text-gray-50 hover:bg-blue-700 transition-colors'>
                         🧹 Limpiar Filtros
