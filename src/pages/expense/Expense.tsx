@@ -84,7 +84,6 @@ function ExpensePage() {
                     <button
                         onClick={() => {
                             setActiveFilters(false)
-                            goToPage(1)
                             setFilters(
                                 {
                                     startDate:
