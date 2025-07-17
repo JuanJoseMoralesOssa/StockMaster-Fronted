@@ -54,15 +54,10 @@ export default function Autocomplete({
     return filtered.slice(0, maxOptions);
   }, [inputValue, options, displayKey, maxOptions]);
 
-  // Handle initial value
+  // Handle initial value - sync inputValue with initialValue
   useEffect(() => {
-    if (initialValue && options.length > 0) {
-      const initialOption = options.find(opt => opt[displayKey] === initialValue);
-      if (initialOption) {
-        // Solo establecemos el valor del input, no necesitamos estado adicional
-      }
-    }
-  }, [initialValue, options, displayKey]);
+    setInputValue(initialValue);
+  }, [initialValue]);
 
   // Reset highlight when filtered options change
   useEffect(() => {

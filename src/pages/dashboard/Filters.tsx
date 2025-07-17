@@ -32,6 +32,14 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
   const selectedSupplier = supplierOptions.find(option => option.id.toString() === filters.supplierId);
   const selectedProduct = productOptions.find(option => option.id.toString() === filters.productId);
 
+  // Valores iniciales para los autocomplete - usar key para forzar re-render cuando se limpien
+  const supplierInitialValue = selectedSupplier?.label || '';
+  const productInitialValue = selectedProduct?.label || '';
+
+  // Crear una key única para forzar re-render cuando se limpien los filtros
+  const supplierKey = `supplier-${filters.supplierId || 'empty'}`;
+  const productKey = `product-${filters.productId || 'empty'}`;
+
   return (
     <div>
       <div className="bg-white p-4 rounded-lg shadow mb-6">
@@ -64,11 +72,12 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
             <div className='flex gap-4'>
               <div className='flex flex-col w-48'>
                 <Autocomplete
+                  key={supplierKey}
                   options={supplierOptions}
                   label="Proveedor"
                   placeholder="Buscar proveedor..."
                   displayKey="label"
-                  initialValue={selectedSupplier?.label || ''}
+                  initialValue={supplierInitialValue}
                   onSelect={(option) => {
                     const supplierId = option ? option.id.toString() : '';
                     setFilters({ ...filters, supplierId });
@@ -79,11 +88,12 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
               </div>
               <div className='flex flex-col w-48'>
                 <Autocomplete
+                  key={productKey}
                   options={productOptions}
                   label="Producto"
                   placeholder="Buscar producto..."
                   displayKey="label"
-                  initialValue={selectedProduct?.label || ''}
+                  initialValue={productInitialValue}
                   onSelect={(option) => {
                     const productId = option ? option.id.toString() : '';
                     setFilters({ ...filters, productId });
