@@ -2,6 +2,7 @@ import { Trash2 } from 'lucide-react'
 import PurchaseDetails from '../../../types/PurchaseDetails'
 import Product from '../../../types/Product'
 import Person from '../../../types/Person'
+import Autocomplete from '../../components/common/Autocomplete'
 
 interface PurchaseRowProps {
     purchase: PurchaseDetails
@@ -18,21 +19,48 @@ const PurchaseRow: React.FC<PurchaseRowProps> = ({
     products,
     suppliers,
 }) => {
-    const handleProductChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    // Transformar datos para el autocomplete
+    const productOptions = products
+        .filter(product => product.id !== undefined && product.name !== undefined)
+        .map(product => ({
+            id: product.id!,
+            label: product.name!,
+            name: product.name!
+        }));
+
+    const supplierOptions = suppliers
+        .filter(supplier => supplier.id !== undefined)
+        .map(supplier => ({
+            id: supplier.id!,
+            label: supplier.name,
+            name: supplier.name
+        }));
+
+    // Buscar opciones seleccionadas actuales
+    const selectedProduct = productOptions.find(option =>
+        option.id.toString() === (purchase.product?.id ?? purchase.productId)?.toString()
+    );
+    const selectedSupplier = supplierOptions.find(option =>
+        option.id.toString() === (purchase.person?.id ?? purchase.personId)?.toString()
+    );
+
+    // Manejar selección de producto desde autocomplete
+    const handleProductSelect = (option: { id: string | number;[key: string]: unknown } | null) => {
         if (purchase.id) {
-            onUpdate(purchase.id, 'product', {
-                id: parseInt(event.target.value, 10),
-                name: event.target.options[event.target.selectedIndex].text,
-            })
+            onUpdate(purchase.id, 'product', option ? {
+                id: option.id,
+                name: option.label,
+            } : null)
         }
     }
 
-    const handleSupplierChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    // Manejar selección de proveedor desde autocomplete
+    const handleSupplierSelect = (option: { id: string | number;[key: string]: unknown } | null) => {
         if (purchase.id) {
-            onUpdate(purchase.id, 'person', {
-                id: parseInt(event.target.value, 10),
-                name: event.target.options[event.target.selectedIndex].text,
-            })
+            onUpdate(purchase.id, 'person', option ? {
+                id: option.id,
+                name: option.label,
+            } : null)
         }
     }
 
@@ -48,37 +76,41 @@ const PurchaseRow: React.FC<PurchaseRowProps> = ({
         }
 
     return (
-        <tr className='text-sm sm:text-base' key={purchase.id}>
+        <tr className='text-sm sm:text-base items-center odd:bg-white even:bg-gray-50' key={purchase.id}>
             <td className='p-2 whitespace-nowrap'>
-                <select
-                    value={purchase.product?.id ?? purchase.productId}
-                    onChange={handleProductChange}
-                    required>
-                    <option value=''>Selecciona un producto</option>
-                    {products.map((product) => (
-                        <option key={product.id} value={product.id}>
-                            {product.name}
-                        </option>
-                    ))}
-                </select>
+                <div className="w-48">
+                    <Autocomplete
+                        options={productOptions}
+                        label=""
+                        placeholder="Buscar producto..."
+                        displayKey="label"
+                        initialValue={selectedProduct?.label || ''}
+                        onSelect={handleProductSelect}
+                        clearable={true}
+                        noOptionsText="No se encontraron productos"
+                        className="text-sm"
+                    />
+                </div>
             </td>
             <td className='p-2 whitespace-nowrap'>
-                <select
-                    value={purchase.person?.id ?? purchase.personId}
-                    onChange={handleSupplierChange}
-                    required>
-                    <option value=''>Selecciona un proveedor</option>
-                    {suppliers.map((supplier) => (
-                        <option key={supplier.id} value={supplier.id}>
-                            {supplier.name}
-                        </option>
-                    ))}
-                </select>
+                <div className="w-48">
+                    <Autocomplete
+                        options={supplierOptions}
+                        label=""
+                        placeholder="Buscar proveedor..."
+                        displayKey="label"
+                        initialValue={selectedSupplier?.label || ''}
+                        onSelect={handleSupplierSelect}
+                        clearable={true}
+                        noOptionsText="No se encontraron proveedores"
+                        className="text-sm"
+                    />
+                </div>
             </td>
             <td className='p-2 whitespace-nowrap'>
                 <input
                     type='number'
-                    className='w-24 h-8 text-sm text-center mt-1 p-1 block border rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500'
+                    className='w-24 h-9 text-sm text-center block border rounded-md bg-white border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500'
                     name='weight_kg'
                     id={`weight_kg_${purchase.id}`}
                     value={purchase.weight_kg ?? ''}

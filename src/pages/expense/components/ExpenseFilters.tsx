@@ -1,5 +1,6 @@
 import Person from "../../../types/Person";
 import Product from "../../../types/Product";
+import Autocomplete from "../../components/common/Autocomplete";
 
 interface ExpenseFiltersProps {
   suppliers: Person[];
@@ -9,6 +10,27 @@ interface ExpenseFiltersProps {
 }
 
 function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<ExpenseFiltersProps>) {
+  // Transformar datos para el autocomplete
+  const supplierOptions = suppliers
+    .filter(supplier => supplier.id !== undefined)
+    .map(supplier => ({
+      id: supplier.id!,
+      label: supplier.name,
+      name: supplier.name
+    }));
+
+  const productOptions = products
+    .filter(product => product.id !== undefined && product.name !== undefined)
+    .map(product => ({
+      id: product.id!,
+      label: product.name!,
+      name: product.name!
+    }));
+
+  // Buscar la opción seleccionada para mostrar el valor inicial
+  const selectedSupplier = supplierOptions.find(option => option.id.toString() === filters.personId);
+  const selectedProduct = productOptions.find(option => option.id.toString() === filters.productId);
+
   return (
     <div className="flex flex-col md:flex-row gap-4 justify-between items-center w-full md:w-fit">
       <div className='flex flex-col gap-2'>
@@ -51,39 +73,35 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
         </div>
       </div>
       <div className='flex gap-4 md:mt-7'>
-        <div className='flex flex-col'>
-          <label htmlFor='supplierId' className="text-sm font-medium text-gray-700 mb-1">Proveedor</label>
-          <select
-            id='supplierId'
-            name='supplierId'
-            value={filters.personId}
-            onChange={(e) => setFilters({ ...filters, personId: e.target.value })}
-            className="border rounded p-2 w-fit"
-            required>
-            <option value=''>Selecciona un proveedor</option>
-            {suppliers.map((supplier) => (
-              <option key={supplier.id} value={supplier.id}>
-                {supplier.name}
-              </option>
-            ))}
-          </select>
+        <div className='flex flex-col w-48'>
+          <Autocomplete
+            options={supplierOptions}
+            label="Proveedor"
+            placeholder="Buscar proveedor..."
+            displayKey="label"
+            initialValue={selectedSupplier?.label || ''}
+            onSelect={(option) => {
+              const personId = option ? option.id.toString() : '';
+              setFilters({ ...filters, personId });
+            }}
+            clearable={true}
+            noOptionsText="No se encontraron proveedores"
+          />
         </div>
-        <div className='flex flex-col'>
-          <label htmlFor='productId' className="text-sm font-medium text-gray-700 mb-1">Producto</label>
-          <select
-            id='productId'
-            name='productId'
-            className="border rounded p-2 w-fit"
-            value={filters.productId}
-            onChange={(e) => setFilters({ ...filters, productId: e.target.value })}
-            required>
-            <option value=''>Selecciona un producto</option>
-            {products.map((product) => (
-              <option key={product.id} value={product.id}>
-                {product.name}
-              </option>
-            ))}
-          </select>
+        <div className='flex flex-col w-48'>
+          <Autocomplete
+            options={productOptions}
+            label="Producto"
+            placeholder="Buscar producto..."
+            displayKey="label"
+            initialValue={selectedProduct?.label || ''}
+            onSelect={(option) => {
+              const productId = option ? option.id.toString() : '';
+              setFilters({ ...filters, productId });
+            }}
+            clearable={true}
+            noOptionsText="No se encontraron productos"
+          />
         </div>
       </div>
     </div>
