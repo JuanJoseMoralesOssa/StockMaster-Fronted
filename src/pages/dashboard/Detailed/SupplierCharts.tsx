@@ -140,7 +140,8 @@ const ProductReport: React.FC<ProductReportProps> = ({
   const dailyDataByProduct: Record<number, Record<string, DailyData[]>> = {};
 
   results.forEach((product) => {
-    const date = new Date(product.date);
+    const date = new Date(product.date ?? '');
+    date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000);
     const monthName = formatMonthName(date);
     const dayNumber = date.getDate();
     const dayString = `Día ${dayNumber}`;

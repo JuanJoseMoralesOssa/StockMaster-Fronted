@@ -131,7 +131,8 @@ const ProductChart: React.FC<ProductChartProps> = ({
   const dailyDataBySupplier: Record<number, Record<string, DailyData[]>> = {};
 
   results.forEach((item) => {
-    const date = new Date(item.date);
+    const date = new Date(item.date ?? '');
+    date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000);
     const monthName = formatMonthName(date);
     const dayNumber = date.getDate();
     const dayString = `Día ${dayNumber}`;

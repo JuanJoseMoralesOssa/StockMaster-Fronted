@@ -46,7 +46,8 @@ function SupplierProductCharts({
     const dailyMap = new Map<string, DailyData>();
 
     results.forEach(result => {
-      const date = new Date(result.date);
+      const date = new Date(result.date ?? '');
+      date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000);
       const dateKey = date.toISOString().split('T')[0];
       const day = date.getDate();
 
