@@ -3,7 +3,7 @@ import NavItem from '../../../../types/NavItem'
 import navItems from '../../../../constants/NavItems'
 
 function NavbarDesktop() {
-    let location = useLocation().pathname
+    const location = useLocation().pathname
     return (
         <nav className='flex-1 space-y-0.5 overflow-y-auto w-fit'>
             {navItems.map((item: NavItem) => (

@@ -4,9 +4,14 @@ import Product from '../../../types/Product'
 import Person from '../../../types/Person'
 import Autocomplete from '../../components/common/Autocomplete'
 
+type PurchaseUpdateValue =
+    | { id: string | number; name: unknown }
+    | null
+    | number
+    | string
 interface PurchaseRowProps {
     purchase: PurchaseDetails
-    onUpdate: (id: number, field: string, value: any) => void
+    onUpdate: (id: number, field: string, value: PurchaseUpdateValue) => void
     onDelete: (id: number) => void
     products: Partial<Product>[]
     suppliers: Person[]
@@ -26,7 +31,7 @@ const PurchaseRow: React.FC<PurchaseRowProps> = ({
             id: product.id!,
             label: product.name!,
             name: product.name!
-        }));
+        }))
 
     const supplierOptions = suppliers
         .filter(supplier => supplier.id !== undefined)
@@ -34,15 +39,15 @@ const PurchaseRow: React.FC<PurchaseRowProps> = ({
             id: supplier.id!,
             label: supplier.name,
             name: supplier.name
-        }));
+        }))
 
     // Buscar opciones seleccionadas actuales
     const selectedProduct = productOptions.find(option =>
         option.id.toString() === (purchase.product?.id ?? purchase.productId)?.toString()
-    );
+    )
     const selectedSupplier = supplierOptions.find(option =>
         option.id.toString() === (purchase.person?.id ?? purchase.personId)?.toString()
-    );
+    )
 
     // Manejar selección de producto desde autocomplete
     const handleProductSelect = (option: { id: string | number;[key: string]: unknown } | null) => {

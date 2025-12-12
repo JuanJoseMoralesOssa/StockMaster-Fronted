@@ -10,7 +10,7 @@ interface NavbarMobileProps {
 
 const NavbarMobile: React.FC<NavbarMobileProps> = ({ open, setOpen }) => {
     const { logout } = useAuthStore()
-    let location = useLocation().pathname
+    const location = useLocation().pathname
     return (
         <section className='bg-'>
             {!open && (

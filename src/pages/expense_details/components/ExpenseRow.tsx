@@ -4,9 +4,15 @@ import Product from '../../../types/Product'
 import Person from '../../../types/Person'
 import Autocomplete from '../../components/common/Autocomplete'
 
+type ExpenseUpdateValue =
+    | { id: string | number; name: unknown }
+    | null
+    | number
+    | string
+
 interface ExpenseRowProps {
     expense: ExpenseDetails
-    onUpdate: (id: number, field: string, value: any) => void
+    onUpdate: (id: number, field: string, value: ExpenseUpdateValue) => void
     onDelete: (id: number) => void
     products: Partial<Product>[]
     suppliers: Person[]
@@ -26,7 +32,7 @@ const ExpenseRow: React.FC<ExpenseRowProps> = ({
             id: product.id!,
             label: product.name!,
             name: product.name!
-        }));
+        }))
 
     const supplierOptions = suppliers
         .filter(supplier => supplier.id !== undefined)
@@ -34,15 +40,15 @@ const ExpenseRow: React.FC<ExpenseRowProps> = ({
             id: supplier.id!,
             label: supplier.name,
             name: supplier.name
-        }));
+        }))
 
     // Buscar opciones seleccionadas actuales
     const selectedProduct = productOptions.find(option =>
         option.id.toString() === (expense.product?.id ?? expense.productId)?.toString()
-    );
+    )
     const selectedSupplier = supplierOptions.find(option =>
         option.id.toString() === (expense.person?.id ?? expense.personId)?.toString()
-    );
+    )
 
     // Manejar selección de producto desde autocomplete
     const handleProductSelect = (option: { id: string | number;[key: string]: unknown } | null) => {

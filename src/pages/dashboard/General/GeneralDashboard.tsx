@@ -1,27 +1,28 @@
-import Person from "../../../types/Person";
-import Product from "../../../types/Product";
-import { useGeneralAnalytics } from "../../../hooks/useGeneralAnalytics";
-import { AnalyticsFilters } from "../../../types/Analytics";
-import SummaryStats from "./components/SummaryStats";
-import SuppliersCard from "./components/SuppliersCard";
-import ProductsCard from "./components/ProductsCard";
-import AnalyticsInsights from "./components/AnalyticsInsights";
-import LoadingSkeleton from "./components/LoadingSkeleton";
-import ErrorState from "./components/ErrorState";
-import RefreshButton from "./components/RefreshButton";
+import Person from "../../../types/Person"
+import Product from "../../../types/Product"
+import { useGeneralAnalytics } from "../../../hooks/useGeneralAnalytics"
+import { AnalyticsFilters } from "../../../types/Analytics"
+import { DashboardResult, ProductsResults, SuppliersResults } from "../../../types/DashboardResults"
+import SummaryStats from "./components/SummaryStats"
+import SuppliersCard from "./components/SuppliersCard"
+import ProductsCard from "./components/ProductsCard"
+import AnalyticsInsights from "./components/AnalyticsInsights"
+import LoadingSkeleton from "./components/LoadingSkeleton"
+import ErrorState from "./components/ErrorState"
+import RefreshButton from "./components/RefreshButton"
 
 interface GeneralDashboardProps {
-  supplierProductResults: any[];
-  productsResults: any[];
-  suppliersResults: any[];
+  supplierProductResults: DashboardResult[]
+  productsResults: ProductsResults[]
+  suppliersResults: SuppliersResults[]
   filters: {
-    supplierId?: string;
-    productId?: string;
-    startDate: string;
-    endDate: string;
-  };
-  suppliers: Person[];
-  products: Partial<Product>[];
+    supplierId?: string
+    productId?: string
+    startDate: string
+    endDate: string
+  }
+  suppliers: Person[]
+  products: Partial<Product>[]
 }
 
 function GeneralDashboard(
@@ -39,7 +40,7 @@ function GeneralDashboard(
     startDate: filters.startDate,
     endDate: filters.endDate,
     type: 'both'
-  };
+  }
 
   const {
     dateRangeAnalytics,
@@ -48,14 +49,14 @@ function GeneralDashboard(
     loading,
     error,
     refetch
-  } = useGeneralAnalytics(analyticsFilters);
+  } = useGeneralAnalytics(analyticsFilters)
 
   if (loading) {
-    return <LoadingSkeleton />;
+    return <LoadingSkeleton />
   }
 
   if (error) {
-    return <ErrorState error={error} onRetry={refetch} />;
+    return <ErrorState error={error} onRetry={refetch} />
   }
 
   return (
