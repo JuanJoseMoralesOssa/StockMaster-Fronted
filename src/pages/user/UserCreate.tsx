@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import User from '../../../types/User'
-import { userService } from '../../../services/User'
 import bcrypt from 'bcryptjs'
-import { Roles } from '../../../enums/Roles'
-import { useToast } from '../../../hooks/useToast'
+
+import { useToast } from '../../hooks/useToast'
+import { userService } from '../../services/User'
+import { Roles } from '../../enums/Roles'
+import User from '../../types/User'
 
 interface UserCreateProps {
     onSuccess?: () => void

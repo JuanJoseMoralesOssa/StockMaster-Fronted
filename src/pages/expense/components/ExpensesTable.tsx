@@ -328,7 +328,8 @@ export default function ExpensesTable({
 
             {/* Edit Modal */}
             <Modal
-                isOpen={isEditModalOpen}
+                className="sm:max-w-fit"
+                open={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}>
                 <h2 className='text-xl font-semibold mb-4'>Editar Gasto</h2>
                 <form onSubmit={handleEdit} className='w-fit px-2 pr-5 '>
