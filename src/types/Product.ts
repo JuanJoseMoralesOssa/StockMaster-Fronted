@@ -7,7 +7,6 @@ export default interface Product {
   id?: number
   name: string
   stock?: number
-  code?: string
   // description: string
   // createdAt: string
 
