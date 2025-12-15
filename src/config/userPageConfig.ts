@@ -79,6 +79,8 @@ export const userPageConfig: GenericPageConfig<User> = {
     canDelete: true,
   },
 
+  updatePartial: true,
+
   service: userService,
 
   prepareDataForSubmit: async (data: Partial<User>, isEdit) => {

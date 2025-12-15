@@ -1,8 +1,8 @@
 import { useServerPagination } from '../../hooks/useServerPagination'
-import GenericHeader from './components/GenericHeader'
-import GenericTable from './components/GenericTable'
-import GenericForm from './components/GenericForm'
+import GenericHeader from './components/generic_table/GenericHeader'
+import GenericTable from './components/generic_table/GenericTable'
 import { GenericPageConfig } from '../../types/GenericConfig'
+import GenericForm from './components/generic_form/GenericForm'
 
 interface GenericPageProps<T> {
   config: GenericPageConfig<T>
@@ -65,9 +65,9 @@ function GenericPage<T extends Record<string, any>>({ config }: GenericPageProps
         throw new Error(validationError)
       }
     }
-
-    const updatedItem = await config.service.update.call(config.service, id, dataToSubmit)
-    return updatedItem
+    return config.updatePartial
+      ? await config.service.updatePartial.call(config.service, id, dataToSubmit)
+      : await config.service.update.call(config.service, id, dataToSubmit as T)
   }
 
   return (
@@ -78,7 +78,7 @@ function GenericPage<T extends Record<string, any>>({ config }: GenericPageProps
         modalTitle={`Crear ${config.entityName}`}
         modalDescription={`Completa los detalles del ${config.entityName}. Los campos marcados con * son requeridos.`}
         onItemCreated={addItem}
-        renderCreateForm={(onSuccess, onItemCreated) => (
+        renderCreateForm={(onSuccess: () => void, onItemCreated: (item: T) => void) => (
           <GenericForm
             fields={config.formFields}
             onSubmit={async (data) => {

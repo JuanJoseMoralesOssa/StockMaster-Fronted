@@ -1,0 +1,72 @@
+import React, { useState, useCallback, ReactNode } from "react"
+import { Plus } from "lucide-react"
+import PrimaryButton from "../../../components/common/PrimaryButton"
+import HeaderTitle from "../HeaderTitle"
+import { Modal } from "../../../components/modal/Modal"
+
+export interface GenericHeaderProps<T> {
+  /** Función que se ejecuta cuando se crea un nuevo elemento */
+  onItemCreated: (newItem: T) => void
+  /** Título del header */
+  title: string
+  /** Clase CSS adicional para el título */
+  headerClassName?: string
+  /** Texto del botón de crear */
+  createButtonText?: string
+  /** Título del modal de creación */
+  modalTitle?: string
+  /** Descripción del modal de creación */
+  modalDescription?: string
+  /** Renderizado del formulario de creación */
+  renderCreateForm: (onSuccess: () => void, onItemCreated: (item: T) => void) => ReactNode
+  /** Ícono personalizado para el botón (opcional) */
+  buttonIcon?: ReactNode
+  /** Clase CSS adicional para el botón */
+  buttonClassName?: string
+  /** Función personalizada para renderizar el botón completo (sobrescribe el botón por defecto) */
+  renderCustomButton?: (onClick: () => void) => ReactNode
+}
+
+const DEFAULT_CREATE_TEXT = "Nuevo"
+const DEFAULT_MODAL_TITLE = "Crear Nuevo"
+const DEFAULT_MODAL_DESCRIPTION = "Completa los detalles. Todos los campos son requeridos."
+
+function GenericHeaderInner<T>({
+  onItemCreated,
+  title,
+  headerClassName,
+  createButtonText = DEFAULT_CREATE_TEXT,
+  modalTitle = DEFAULT_MODAL_TITLE,
+  modalDescription = DEFAULT_MODAL_DESCRIPTION,
+  renderCreateForm,
+  buttonIcon,
+  buttonClassName,
+  renderCustomButton
+}: GenericHeaderProps<T>) {
+  const [open, setOpen] = useState(false)
+
+  const openModal = useCallback(() => setOpen(true), [])
+  const closeModal = useCallback(() => setOpen(false), [])
+
+  const defaultButton = (
+    <PrimaryButton onClick={openModal} icon={buttonIcon ?? <Plus className='md:mr-2 h-4 w-4' />} className={buttonClassName} title={createButtonText}>
+      {createButtonText}
+    </PrimaryButton>
+  )
+
+  return (
+    <section className='flex items-center justify-between gap-4 p-2 mr-10 md:mr-5 max-w-fit'>
+      <HeaderTitle title={title} className={headerClassName} />
+
+      {renderCustomButton ? renderCustomButton(openModal) : defaultButton}
+
+      <Modal open={open} onClose={closeModal} title={modalTitle} description={modalDescription} className="sm:max-w-150">
+        {renderCreateForm(closeModal, onItemCreated)}
+      </Modal>
+    </section>
+  )
+}
+
+const GenericHeader = React.memo(GenericHeaderInner) as typeof GenericHeaderInner
+
+export default GenericHeader

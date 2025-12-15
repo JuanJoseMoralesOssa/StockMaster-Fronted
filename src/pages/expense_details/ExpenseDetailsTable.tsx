@@ -66,22 +66,28 @@ export default function ExpensesDetailsTable({
         setDetails(newExpenses)
     }
 
-    const updateExpense = (id: number, field: string, value: { id: number; name: string }) => {
+    type ExpenseUpdateValue =
+        | { id: string | number; name: unknown }
+        | null
+        | number
+        | string
+
+    const updateExpense = (id: number, field: string, value: ExpenseUpdateValue) => {
         const newExpenses = details.map((row) => {
             if (row.id === id) {
-                const updatedRow = { ...row, [field]: value };
-                if (field === 'product') {
-                    updatedRow.productId = value.id;
-                } else if (field === 'person') {
-                    updatedRow.personId = value.id;
+                const updatedRow = { ...row, [field]: value }
+                if (field === 'product' && value && typeof value === 'object' && 'id' in value) {
+                    updatedRow.productId = value.id as number
+                } else if (field === 'person' && value && typeof value === 'object' && 'id' in value) {
+                    updatedRow.personId = value.id as number
                 }
                 if (mode === 'edit' && !updatedRow.toCreate) {
-                    updatedRow.toUpdate = true;
+                    updatedRow.toUpdate = true
                 }
-                return updatedRow;
+                return updatedRow
             }
-            return row;
-        });
+            return row
+        })
         setDetails(newExpenses)
     }
 

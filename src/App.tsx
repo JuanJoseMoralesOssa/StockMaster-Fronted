@@ -34,7 +34,8 @@ function App() {
             <Routes>
                 {/* Ruta pública de login */}
                 <Route path="/login" element={<Login />} />
-                <Route path="/generic" element={<GenericPage />} />
+                {/* Comment out GenericPage until properly configured */}
+                {/* <Route path="/generic" element={<GenericPage />} /> */}
 
                 {/* Rutas protegidas */}
                 <Route path='/' element={

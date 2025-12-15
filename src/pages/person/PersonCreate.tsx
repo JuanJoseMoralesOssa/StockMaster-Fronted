@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import Person from '../../../types/Person'
-import { PersonService } from '../../../services/PersonService'
-import { useToast } from '../../../hooks/useToast'
+import Person from '../../types/Person'
+import { PersonService } from '../../services/PersonService'
+import { useToast } from '../../hooks/useToast'
 
 const personService = new PersonService()
 

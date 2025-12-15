@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import Product from '../../../types/Product'
-import { ProductService } from '../../../services/ProductService'
-import { useToast } from '../../../hooks/useToast'
+import Product from '../../types/Product'
+import { ProductService } from '../../services/ProductService'
+import { useToast } from '../../hooks/useToast'
 
 const productService = new ProductService()
 
@@ -59,38 +59,21 @@ const ProductCreate = ({ onSuccess, onProductCreated }: ProductCreateProps) => {
 
     return (
         <form onSubmit={handleSubmit} className='space-y-4 px-2 overflow-auto'>
-            <section className='md:flex md:items-center md:justify-evenly space-y-4 md:space-y-0 md:space-x-4'>
-                <section className='md:flex md:items-center md:justify-between md:space-x-4'>
-                    <label
-                        htmlFor='name'
-                        className='block text-sm font-medium text-gray-700 md:w-1/3'>
-                        Nombre
-                    </label>
-                    <input
-                        type='text'
-                        name='name'
-                        id='name'
-                        value={product.name}
-                        required
-                        onChange={handleChange}
-                        className='mt-1 p-1 block border w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm md:w-full'
-                    />
-                </section>
-                <section className='md:w-1/2 md:flex md:items-center md:justify-evenly md:space-x-4'>
-                    <label
-                        htmlFor='code'
-                        className='block text-sm font-medium text-gray-700 md:w-1/2'>
-                        Código
-                    </label>
-                    <input
-                        type='text'
-                        name='code'
-                        id='code'
-                        value={product.code}
-                        onChange={handleChange}
-                        className='mt-1 p-1 block border w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm md:w-1/2'
-                    />
-                </section>
+            <section className='md:flex md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4'>
+                <label
+                    htmlFor='name'
+                    className='block text-sm font-medium text-gray-700 md:w-1/3'>
+                    Nombre
+                </label>
+                <input
+                    type='text'
+                    name='name'
+                    id='name'
+                    value={product.name}
+                    required
+                    onChange={handleChange}
+                    className='mt-1 p-1 block border w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm md:w-full'
+                />
             </section>
             <section className='flex w-full sm:justify-end'>
                 <button

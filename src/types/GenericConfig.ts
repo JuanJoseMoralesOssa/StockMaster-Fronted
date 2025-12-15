@@ -98,10 +98,14 @@ export interface GenericPageConfig<T> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     create: (data: any) => Promise<T>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: (id: any, data: Partial<T>) => Promise<T>
+    update: (id: any, data: T) => Promise<T>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updatePartial: (id: any, data: Partial<T>) => Promise<T>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete: (id: any) => Promise<void>
   }
+
+  updatePartial?: boolean
   /** Función para preparar datos antes de enviar (ej: hash passwords) */
   prepareDataForSubmit?: (data: Partial<T>, isEdit: boolean) => Promise<Partial<T>>
   /** Función para validar datos personalizados */

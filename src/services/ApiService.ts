@@ -110,11 +110,9 @@ export class ApiService<T> {
     }
   }
 
-  async update(id: number, data: Partial<T>): Promise<T> {
+  async update(id: number, data: T): Promise<T> {
     try {
-      if ('id' in data) {
-        delete (data as Partial<T> & { id?: unknown }).id
-      }
+      delete (data as Partial<T> & { id?: unknown }).id
       return await this.handleResponse<T>(
         axios.put(this.getUrl(id.toString()), data, defaultConfig)
       )

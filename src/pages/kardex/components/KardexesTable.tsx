@@ -1,10 +1,4 @@
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '../../components/dropdown/DropdownMenu'
+import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Kardex from '../../../types/Kardex'
@@ -24,7 +18,6 @@ const headersTable = [
 ]
 
 export default function KardexesTable() {
-    const [isOpen, setIsOpen] = useState(false)
     const [selectedKardex, setSelectedKardex] = useState<Kardex>({} as Kardex)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
@@ -134,53 +127,25 @@ export default function KardexesTable() {
                                 {entry.operation === 3 ? 'Kardex' : ''}
                             </td>
                             <td className='p-2'>
-                                <DropdownMenu>
-                                    {isOpen && selectedKardex.id === entry.id && (
-                                        <button
-                                            className='fixed inset-0 z-0 w-full h-full bg-transparent cursor-default'
-                                            onClick={() => {
-                                                setIsOpen(false)
-                                            }}>
-                                            <span className='sr-only'>
-                                                Cerrar menú
-                                            </span>
-                                        </button>
-                                    )}
-                                    <DropdownMenuTrigger
-                                        className='focus:outline-none hover:bg-gray-100 rounded-2xl px-4 py-1 text-center'
-                                        onClick={() => {
-                                            setIsOpen(!isOpen)
-                                            setSelectedKardex(entry)
-                                        }}>
-                                        <MoreHorizontal className='h-4 w-4' />
-                                        <span className='sr-only'>Abrir menú</span>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        isOpen={
-                                            isOpen && selectedKardex.id === entry.id
-                                        }>
-                                        <DropdownMenuItem
-                                            className='text-blue-600'
-                                            onClick={() => {
-                                                setSelectedKardex(entry)
-                                                setIsEditModalOpen(true)
-                                                setIsOpen(false)
-                                            }}>
-                                            <Pencil className='mr-2 h-4 w-4' />
-                                            Editar
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            className='text-red-600'
-                                            onClick={() => {
-                                                setSelectedKardex(entry)
-                                                setIsDeleteConfirmOpen(true)
-                                                setIsOpen(false)
-                                            }}>
-                                            <Trash2 className='mr-2 h-4 w-4' />
-                                            Eliminar
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+
+                                <button
+                                    className='text-blue-600'
+                                    onClick={() => {
+                                        setSelectedKardex(entry)
+                                        setIsEditModalOpen(true)
+                                    }}>
+                                    <Pencil className='mr-2 h-4 w-4' />
+                                    Editar
+                                </button>
+                                <button
+                                    className='text-red-600'
+                                    onClick={() => {
+                                        setSelectedKardex(entry)
+                                        setIsDeleteConfirmOpen(true)
+                                    }}>
+                                    <Trash2 className='mr-2 h-4 w-4' />
+                                    Eliminar
+                                </button>
                             </td>
                         </tr>
                     ))}
@@ -189,7 +154,7 @@ export default function KardexesTable() {
 
             {/* Modal de Edición */}
             <Modal
-                isOpen={isEditModalOpen}
+                open={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}>
                 <h2 className='text-xl font-semibold mb-4'>
                     Editar Registro del Kardex
@@ -284,7 +249,7 @@ export default function KardexesTable() {
 
             {/* Modal de Confirmación de Eliminación */}
             <Modal
-                isOpen={isDeleteConfirmOpen}
+                open={isDeleteConfirmOpen}
                 onClose={() => setIsDeleteConfirmOpen(false)}>
                 <h2 className='text-xl font-semibold mb-4'>Confirmar Eliminación</h2>
                 <p>¿Está seguro que desea eliminar este registro del kardex?</p>
