@@ -1,3 +1,4 @@
+import React, { useState } from 'react'
 import GenericTableHeader from './GenericTableHeader'
 import GenericTableBody from './GenericTableBody'
 
@@ -38,6 +39,12 @@ interface GenericTableProps<T> {
   // Campos del formulario (si se usa el formulario genérico)
   formFields?: GenericField<T>[]
   prepareDataForSubmit?: (data: Partial<T>, isEdit: boolean) => Promise<Partial<T>>
+
+  // Configuración para filas expandibles
+  expandableConfig?: {
+    renderExpandedContent: (item: T) => React.ReactNode
+    expandedTitle?: (item: T) => string
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,10 +68,24 @@ export default function GenericTable<T extends Record<string, any>>({
   onUpdate,
   renderEditForm,
   formFields,
-  prepareDataForSubmit
+  prepareDataForSubmit,
+  expandableConfig
 }: Readonly<GenericTableProps<T>>) {
   const actionsWithDefaults = actions || { canEdit: true, canDelete: true }
+  const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set())
   const { openDropdownIndex, dropdownPosition, dropdownRef, handleDropdownToggle, closeDropdown } = useDropdown()
+
+  const toggleRowExpansion = (id: string | number) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) {
+        newSet.delete(id)
+      } else {
+        newSet.add(id)
+      }
+      return newSet
+    })
+  }
 
   const {
     isEditModalOpen,
@@ -101,8 +122,12 @@ export default function GenericTable<T extends Record<string, any>>({
   return (
     <>
       <div className='overflow-x-auto rounded-lg shadow-md'>
-        <table className='min-w-full divide-y divide-gray-200'>
-          <GenericTableHeader columns={columns} showActions={showActions} />
+        <table className='min-w-full divide-y divide-gray-200 '>
+          <GenericTableHeader
+            columns={columns}
+            showActions={showActions}
+            hasExpandable={!!expandableConfig}
+          />
           <GenericTableBody
             data={data}
             columns={columns}
@@ -111,6 +136,10 @@ export default function GenericTable<T extends Record<string, any>>({
             onEdit={handleEdit}
             onDelete={(item) => handleDelete(item, idField)}
             onDropdownToggle={handleDropdownToggle}
+            expandableConfig={expandableConfig}
+            expandedRows={expandedRows}
+            toggleRowExpansion={toggleRowExpansion}
+            idField={idField}
           />
         </table>
       </div>
@@ -149,6 +178,7 @@ export default function GenericTable<T extends Record<string, any>>({
         onEditSuccess={(updatedItem) => handleEditSuccess(updatedItem, idField)}
         onClose={closeEditModal}
       />
+
     </>
   )
 }

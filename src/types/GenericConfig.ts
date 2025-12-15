@@ -103,9 +103,43 @@ export interface GenericPageConfig<T> {
     updatePartial: (id: any, data: Partial<T>) => Promise<T>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete: (id: any) => Promise<void>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getAllPaginatedFiltered?: (filters: any, page?: number, limit?: number) => Promise<PaginatedResponse<T>>
   }
 
   updatePartial?: boolean
+  /** Estado inicial de los filtros */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  initialFilterState?: any
+  /** Renderizado personalizado de filtros */
+  renderCustomFilters?: (props: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    filters: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setFilters: (filters: any) => void
+    onSearch: () => void
+    onClear: () => void
+  }) => ReactNode
+  /** Configuración para la vista de detalles */
+  detailConfig?: {
+    /** Título del modal de detalles */
+    title?: string | ((item: T) => string)
+    /** Descripción del modal de detalles */
+    description?: string
+    /** Renderizado del contenido de detalles */
+    renderContent: (item: T) => ReactNode
+  }
+  /** Configuración para filas expandibles */
+  expandableConfig?: {
+    /** Renderizado del contenido expandido */
+    renderExpandedContent: (item: T) => ReactNode
+    /** Título opcional para la sección expandida */
+    expandedTitle?: (item: T) => string
+  }
+  /** Renderizado personalizado para el formulario de crear */
+  renderCustomForm?: (onSuccess: () => void, onItemCreated: (item: T) => void) => ReactNode
+  /** Renderizado personalizado para el formulario de editar */
+  renderEditForm?: (item: T, onSuccess: () => void, onItemUpdated: (item: T) => void) => ReactNode
   /** Función para preparar datos antes de enviar (ej: hash passwords) */
   prepareDataForSubmit?: (data: Partial<T>, isEdit: boolean) => Promise<Partial<T>>
   /** Función para validar datos personalizados */

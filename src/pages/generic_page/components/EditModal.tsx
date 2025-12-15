@@ -35,7 +35,7 @@ export default function EditModal<T extends Record<string, any>>({
       onClose={onClose}
       title={`Editar ${entityName}`}
       description={`Actualiza la información del ${entityName}`}
-      className="sm:max-w-150"
+      className="sm:max-w-fit"
     >
       {renderEditForm ? (
         renderEditForm(

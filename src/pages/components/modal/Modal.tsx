@@ -16,7 +16,7 @@ export const Modal = ({
     title,
     description,
     children,
-    className = 'sm:max-w-150'
+    className = 'sm:max-w-fit '
 }: ModalProps) => {
     if (!open) return null
 

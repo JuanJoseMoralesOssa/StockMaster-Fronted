@@ -60,7 +60,7 @@ function GenericHeaderInner<T>({
 
       {renderCustomButton ? renderCustomButton(openModal) : defaultButton}
 
-      <Modal open={open} onClose={closeModal} title={modalTitle} description={modalDescription} className="sm:max-w-150">
+      <Modal open={open} onClose={closeModal} title={modalTitle} description={modalDescription}>
         {renderCreateForm(closeModal, onItemCreated)}
       </Modal>
     </section>
