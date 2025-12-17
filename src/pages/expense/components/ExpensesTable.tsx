@@ -2,13 +2,14 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Expense from '../../../types/Expense'
+import Product from '../../../types/Product'
 import { ExpenseService } from '../../../services/ExpenseService'
 import Pagination from '../../components/pagination/Pagination'
 import ExpensesDetailsTable from '../../expense_details/ExpenseDetailsTable'
 import ExpenseDetails from '../../../types/ExpenseDetails'
-import { useAvailableProducts } from '../../../hooks/useAvailableProducts'
-import { useAvailableSuppliers } from '../../../hooks/useAvailableSuppliers'
+import Person from '../../../types/Person'
 import { useToast } from '../../../hooks/useToast'
+import { useProductStore, useSupplierStore } from '../../../stores'
 
 const expenseService = new ExpenseService()
 
@@ -52,10 +53,10 @@ export default function ExpensesTable({
 
     const {
         products,
-    } = useAvailableProducts()
+    } = useProductStore()
     const {
         suppliers,
-    } = useAvailableSuppliers()
+    } = useSupplierStore()
 
     const toggleExpenseExpansion = (expenseId: number | undefined) => {
         if (!expenseId) return
@@ -304,10 +305,10 @@ export default function ExpensesTable({
                                                         {expense.expense_details.map((detail) => (
                                                             <tr key={detail.id} className="hover:bg-gray-50">
                                                                 <td className="px-4 py-2 text-gray-900">
-                                                                    {products.find(p => p.id === detail.productId)?.name || detail.productId}
+                                                                    {products.find((p: Product) => p.id === detail.productId)?.name || detail.productId}
                                                                 </td>
                                                                 <td className="px-4 py-2 text-gray-900">
-                                                                    {suppliers.find(s => s.id === detail.personId)?.name || detail.personId}
+                                                                    {suppliers.find((s: Person) => s.id === detail.personId)?.name || detail.personId}
                                                                 </td>
                                                                 <td className="px-4 py-2 text-gray-900">
                                                                     {detail.weight_kg} kg
