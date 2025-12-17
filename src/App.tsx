@@ -15,7 +15,7 @@ import Login from './pages/components/auth/Login'
 import PrivateRoute from './pages/components/auth/PrivateRoute'
 import { LoadingScreen } from './pages/components/common/LoadingSpinner'
 import AccessDenied from './pages/components/common/AccessDenied'
-import GenericPage from './pages/generic_page/GenericPage'
+// import GenericPage from './pages/generic_page/GenericPage'
 
 function App() {
     const { checkAuth, isLoading } = useAuthStore()

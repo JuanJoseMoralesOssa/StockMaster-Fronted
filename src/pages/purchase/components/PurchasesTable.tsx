@@ -1,13 +1,13 @@
 import { Pencil, Trash2 } from 'lucide-react'
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { Modal } from '../../components/modal/Modal'
 import Purchase from '../../../types/Purchase'
 import { PurchaseService } from '../../../services/PurchaseService'
 import Pagination from '../../components/pagination/Pagination'
 import PurchasesDetailsTable from '../../purchase_details/PurchaseDetailsTable'
 import PurchaseDetails from '../../../types/PurchaseDetails'
-import { useAvailableProducts } from '../../../hooks/useAvailableProducts'
-import { useAvailableSuppliers } from '../../../hooks/useAvailableSuppliers'
+import { useProductStore } from '../../../stores/useProductStore'
+import { useSupplierStore } from '../../../stores/useSupplierStore'
 import { useToast } from '../../../hooks/useToast'
 
 const purchaseService = new PurchaseService()
@@ -50,12 +50,15 @@ export default function PurchasesTable({
 
     const { showSuccess, showError, confirmDelete } = useToast()
 
-    const {
-        products,
-    } = useAvailableProducts()
-    const {
-        suppliers,
-    } = useAvailableSuppliers()
+    const products = useProductStore(state => state.products)
+    const suppliers = useSupplierStore(state => state.suppliers)
+    const fetchProducts = useProductStore(state => state.fetchProducts)
+    const fetchSuppliers = useSupplierStore(state => state.fetchSuppliers)
+
+    useEffect(() => {
+        fetchProducts()
+        fetchSuppliers()
+    }, [fetchProducts, fetchSuppliers])
 
     const togglePurchaseExpansion = (purchaseId: number | undefined) => {
         if (!purchaseId) return

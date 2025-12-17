@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Kardex from '../../../types/Kardex'
-import { useAvailableProducts } from '../../../hooks/useAvailableProducts'
+import { useProductStore } from '../../../stores/useProductStore'
 import { kardexService } from '../../../services/KardexService'
 
 // const createKardex = async (entry: Kardex) => {
@@ -23,10 +23,15 @@ const KardexCreate = () => {
     const [isLoading, setIsLoading] = useState(false)
     const {
         products,
-        loading: productsLoading,
+        isLoading: productsLoading,
         error: productsError,
+        fetchProducts,
         refreshProducts,
-    } = useAvailableProducts()
+    } = useProductStore()
+
+    useEffect(() => {
+        fetchProducts()
+    }, [fetchProducts])
     const [entry, setEntry] = useState<Kardex>({
         operation: 3, // 1 para entrada, 2 para salida
         input: 0,

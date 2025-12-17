@@ -4,9 +4,9 @@ import { useServerPagination } from '../../hooks/useServerPagination'
 import { PurchaseService } from '../../services/PurchaseService'
 import Purchase from '../../types/Purchase'
 import PurchaseFilters from './components/PurchaseFilters'
-import { useState } from 'react'
-import { useAvailableProducts } from '../../hooks/useAvailableProducts'
-import { useAvailableSuppliers } from '../../hooks/useAvailableSuppliers'
+import { useState, useEffect } from 'react'
+import { useProductStore } from '../../stores/useProductStore'
+import { useSupplierStore } from '../../stores/useSupplierStore'
 
 const purchaseService = new PurchaseService()
 
@@ -24,7 +24,7 @@ function PurchasePage() {
         personId: '',
         productId: '',
         activeDate: false
-    });
+    })
     const {
         data: purchases,
         loading,
@@ -49,12 +49,15 @@ function PurchasePage() {
         initialLimit: 10,
     })
 
-    const {
-        products,
-    } = useAvailableProducts()
-    const {
-        suppliers,
-    } = useAvailableSuppliers()
+    const products = useProductStore(state => state.products)
+    const suppliers = useSupplierStore(state => state.suppliers)
+    const fetchProducts = useProductStore(state => state.fetchProducts)
+    const fetchSuppliers = useSupplierStore(state => state.fetchSuppliers)
+
+    useEffect(() => {
+        fetchProducts()
+        fetchSuppliers()
+    }, [fetchProducts, fetchSuppliers])
 
     const handlePurchaseCreated = (newPurchase: Purchase) => {
         addItem(newPurchase)

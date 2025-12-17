@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { useAvailableSuppliers } from '../../hooks/useAvailableSuppliers';
-import { useAvailableProducts } from '../../hooks/useAvailableProducts';
-import Filters from './Filters';
-import { dashboardService } from '../../services/DashboardService';
-import { DashboardResult, ProductsResults, SuppliersResults } from '../../types/DashboardResults';
-import ModeToggleDashboard from './ModeToggle';
-import RenderingWithMode from './RenderingWithMode';
+import { useState, useEffect } from 'react'
+import { useProductStore } from '../../stores/useProductStore'
+import { useSupplierStore } from '../../stores/useSupplierStore'
+import Filters from './Filters'
+import { dashboardService } from '../../services/DashboardService'
+import { DashboardResult, ProductsResults, SuppliersResults } from '../../types/DashboardResults'
+import ModeToggleDashboard from './ModeToggle'
+import RenderingWithMode from './RenderingWithMode'
 
-type DashboardMode = 'detailed' | 'general';
+type DashboardMode = 'detailed' | 'general'
 
 export default function SupplierPaymentReport() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [dashboardMode, setDashboardMode] = useState<DashboardMode>('detailed');
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [dashboardMode, setDashboardMode] = useState<DashboardMode>('detailed')
 
-  const [supplierProductResults, setSupplierProductResults] = useState<DashboardResult[]>([]);
-  const [suppliersResults, setSuppliersResults] = useState<SuppliersResults[]>([]);
-  const [productsResults, setProductsResults] = useState<ProductsResults[]>([]);
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'withDebt' | 'fullyPaid'>('all');
+  const [supplierProductResults, setSupplierProductResults] = useState<DashboardResult[]>([])
+  const [suppliersResults, setSuppliersResults] = useState<SuppliersResults[]>([])
+  const [productsResults, setProductsResults] = useState<ProductsResults[]>([])
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'withDebt' | 'fullyPaid'>('all')
   const date = new Date()
   const [filters, setFilters] = useState({
     startDate:
@@ -31,54 +31,57 @@ export default function SupplierPaymentReport() {
       date.getDate().toString().padStart(2, '0'),
     supplierId: '',
     productId: '',
-  });
-  const {
-    products,
-  } = useAvailableProducts()
-  const {
-    suppliers,
-  } = useAvailableSuppliers()
+  })
+  const products = useProductStore(state => state.products)
+  const suppliers = useSupplierStore(state => state.suppliers)
+  const fetchProducts = useProductStore(state => state.fetchProducts)
+  const fetchSuppliers = useSupplierStore(state => state.fetchSuppliers)
+
+  useEffect(() => {
+    fetchProducts()
+    fetchSuppliers()
+  }, [fetchProducts, fetchSuppliers])
 
 
   // Colores para los gráficos
   // const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a83232', '#8884d8'];
 
   const handleModeChange = (newMode: DashboardMode) => {
-    setDashboardMode(newMode);
+    setDashboardMode(newMode)
     // Limpiar resultados al cambiar de modo para evitar confusión
-    setSupplierProductResults([]);
-    setSuppliersResults([]);
-    setProductsResults([]);
-    setError(null);
-  };
+    setSupplierProductResults([])
+    setSuppliersResults([])
+    setProductsResults([])
+    setError(null)
+  }
 
   const fetchData = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
       // Limpiar arrays antes de cargar nuevos datos
-      setSupplierProductResults([]);
-      setSuppliersResults([]);
-      setProductsResults([]);
+      setSupplierProductResults([])
+      setSuppliersResults([])
+      setProductsResults([])
       if (!filters.startDate || !filters.endDate) {
-        setError('Por favor, selecciona un rango de fechas válido.');
-        setLoading(false);
-        return;
+        setError('Por favor, selecciona un rango de fechas válido.')
+        setLoading(false)
+        return
       }
       if (filters.startDate > filters.endDate) {
-        setError('La fecha de inicio no puede ser posterior a la fecha de fin.');
-        setLoading(false);
-        return;
+        setError('La fecha de inicio no puede ser posterior a la fecha de fin.')
+        setLoading(false)
+        return
       }
       if (filters.supplierId && isNaN(Number(filters.supplierId))) {
-        setError('Por favor, selecciona un proveedor válido.');
-        setLoading(false);
-        return;
+        setError('Por favor, selecciona un proveedor válido.')
+        setLoading(false)
+        return
       }
       if (filters.productId && isNaN(Number(filters.productId))) {
-        setError('Por favor, selecciona un producto válido.');
-        setLoading(false);
-        return;
+        setError('Por favor, selecciona un producto válido.')
+        setLoading(false)
+        return
       }
       if (filters.supplierId && filters.productId) {
         await dashboardService.getPersonProductTransactions(
@@ -87,11 +90,11 @@ export default function SupplierPaymentReport() {
           filters.startDate,
           filters.endDate
         ).then((data) => {
-          setSupplierProductResults([...data]);
+          setSupplierProductResults([...data])
         }).catch((err) => {
           console.error('Error fetching person product transactions:', err)
           setError('Error al cargar los datos de transacciones de proveedor y producto')
-        });
+        })
       }
       if (filters.supplierId && !filters.productId) {
         await dashboardService.getPersonTransactions(
@@ -99,11 +102,11 @@ export default function SupplierPaymentReport() {
           filters.startDate,
           filters.endDate
         ).then((data) => {
-          setProductsResults([...data]);
+          setProductsResults([...data])
         }).catch((err) => {
           console.error('Error fetching person transactions:', err)
           setError('Error al cargar los datos de transacciones de proveedor')
-        });
+        })
       }
       if (!filters.supplierId && filters.productId) {
         await dashboardService.getProductTransactions(
@@ -111,31 +114,31 @@ export default function SupplierPaymentReport() {
           filters.startDate,
           filters.endDate
         ).then((data) => {
-          setSuppliersResults([...data]);
+          setSuppliersResults([...data])
         }).catch((err) => {
           console.error('Error fetching product transactions:', err)
           setError('Error al cargar los datos de transacciones de producto')
-        });
+        })
       }
-      setLoading(false);
+      setLoading(false)
     } catch (err) {
-      console.error('Error fetching supplier payment data:', err);
-      setError('Error al cargar los datos de pagos');
-      setLoading(false);
+      console.error('Error fetching supplier payment data:', err)
+      setError('Error al cargar los datos de pagos')
+      setLoading(false)
     }
-  };
+  }
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
       <div className="text-xl font-semibold text-blue-600">Cargando datos...</div>
     </div>
-  );
+  )
 
   if (error) return (
     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
       {error}
     </div>
-  );
+  )
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen w-full">
@@ -214,5 +217,5 @@ export default function SupplierPaymentReport() {
         )
       }
     </div >
-  );
+  )
 }

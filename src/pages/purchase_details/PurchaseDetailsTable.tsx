@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import PurchaseRow from './components/PurchaseRow'
 import PurchaseDetails from '../../types/PurchaseDetails'
-import { usePurchaseSummary } from '../../hooks/usePurchaseSummary'
-import { useAvailableProducts } from '../../hooks/useAvailableProducts'
-import { useAvailableSuppliers } from '../../hooks/useAvailableSuppliers'
+import { useDetailsSummary } from '../../hooks/useDetailsSummary'
+import { useProductStore } from '../../stores/useProductStore'
+import { useSupplierStore } from '../../stores/useSupplierStore'
 import SummaryTable from '../components/common/SummaryTable'
 
 export default function PurchasesDetailsTable({
@@ -18,18 +18,25 @@ export default function PurchasesDetailsTable({
     const [purchasesLength, setPurchasesLength] = useState(details.length ?? 0)
     const {
         products,
-        loading: productsLoading,
+        isLoading: productsLoading,
         error: productsError,
+        fetchProducts,
         refreshProducts,
-    } = useAvailableProducts()
+    } = useProductStore()
     const {
         suppliers,
-        loading: suppliersLoading,
+        isLoading: suppliersLoading,
         error: suppliersError,
+        fetchSuppliers,
         refreshSuppliers,
-    } = useAvailableSuppliers()
+    } = useSupplierStore()
 
-    const { productSummary } = usePurchaseSummary(details)
+    useEffect(() => {
+        fetchProducts()
+        fetchSuppliers()
+    }, [fetchProducts, fetchSuppliers])
+
+    const { productSummary } = useDetailsSummary(details)
 
     useEffect(() => {
         setPurchasesLength(details.filter((row) => !row.toDelete).length)

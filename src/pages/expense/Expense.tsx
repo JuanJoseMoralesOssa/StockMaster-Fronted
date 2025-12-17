@@ -4,9 +4,9 @@ import { useServerPagination } from '../../hooks/useServerPagination'
 import { ExpenseService } from '../../services/ExpenseService'
 import Expense from '../../types/Expense'
 import ExpenseFilters from './components/ExpenseFilters'
-import { useState } from 'react'
-import { useAvailableProducts } from '../../hooks/useAvailableProducts'
-import { useAvailableSuppliers } from '../../hooks/useAvailableSuppliers'
+import { useState, useEffect } from 'react'
+import { useProductStore } from '../../stores/useProductStore'
+import { useSupplierStore } from '../../stores/useSupplierStore'
 
 const expenseService = new ExpenseService()
 
@@ -25,7 +25,7 @@ function ExpensePage() {
         personId: '',
         productId: '',
         activeDate: false
-    });
+    })
 
     const {
         data: expenses,
@@ -51,12 +51,15 @@ function ExpensePage() {
         initialLimit: 10,
     })
 
-    const {
-        products,
-    } = useAvailableProducts()
-    const {
-        suppliers,
-    } = useAvailableSuppliers()
+    const products = useProductStore(state => state.products)
+    const suppliers = useSupplierStore(state => state.suppliers)
+    const fetchProducts = useProductStore(state => state.fetchProducts)
+    const fetchSuppliers = useSupplierStore(state => state.fetchSuppliers)
+
+    useEffect(() => {
+        fetchProducts()
+        fetchSuppliers()
+    }, [fetchProducts, fetchSuppliers])
 
     const handleExpenseCreated = (newExpense: Expense) => {
         addItem(newExpense)
