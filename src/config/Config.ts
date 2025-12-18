@@ -56,4 +56,11 @@ export const securityConfig = {
     },
 }
 
-export * as Config from './Config'
+// Agrupa y exporta la configuración como `Config` para importaciones tipo
+// `import { Config } from '../config/Config'`
+export const Config = {
+    LOGIC_URL,
+    AppConfig,
+    defaultConfig,
+    securityConfig,
+}
