@@ -12,7 +12,8 @@ const getApiUrl = (): string => {
         throw new Error('URL del API no configurada para producción')
     }
 
-    return prodUrl
+    // Asegurar que la URL tenga protocolo
+    return prodUrl.startsWith('http') ? prodUrl : `https://${prodUrl}`
 }
 
 export const LOGIC_URL = getApiUrl()
