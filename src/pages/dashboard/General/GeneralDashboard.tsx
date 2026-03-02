@@ -43,9 +43,7 @@ function GeneralDashboard(
   }
 
   const {
-    dateRangeAnalytics,
-    topSuppliers,
-    topProducts,
+    data,
     loading,
     error,
     refetch
@@ -62,49 +60,49 @@ function GeneralDashboard(
   return (
     <div className="space-y-6">
       {/* Analytics Section */}
-      {dateRangeAnalytics && (
+      {data && (
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">📈 Analytics General</h2>
+            <h2 className="text-xl font-bold text-gray-800">📈 Análisis General</h2>
             <RefreshButton onRefresh={refetch} loading={loading} />
           </div>
 
           {/* Summary Statistics */}
           <SummaryStats
-            totalSuppliers={dateRangeAnalytics.summary.totalSuppliers}
-            totalProducts={dateRangeAnalytics.summary.totalProducts}
-            totalWeight={dateRangeAnalytics.summary.totalWeight}
-            totalTransactions={dateRangeAnalytics.summary.totalTransactions}
+            totalSuppliers={data.summary.totalSuppliers}
+            totalProducts={data.summary.totalProducts}
+            totalWeight={data.summary.totalWeight}
+            totalTransactions={data.summary.totalTransactions}
           />
 
           {/* Top Performers Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <SuppliersCard
-              suppliers={dateRangeAnalytics.topSuppliers}
-              title="🏆 Top Proveedores (Mayor Peso)"
+              suppliers={data.topSuppliersByWeight}
+              title="🏆 Mejores Proveedores (Mayor Peso)"
               icon="📈"
               colorClass="bg-blue-50 border border-blue-200"
             />
 
             <ProductsCard
-              products={dateRangeAnalytics.topProducts}
-              title="🏆 Top Productos (Mayor Peso)"
+              products={data.topProductsByWeight}
+              title="🏆 Mejores Productos (Mayor Peso)"
               icon="📦"
               colorClass="bg-green-50 border border-green-200"
             />
           </div>
 
           {/* Additional Top Lists */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <SuppliersCard
-              suppliers={topSuppliers}
+              suppliers={data.mostActiveSuppliers}
               title="💪 Proveedores Más Activos"
               icon="🔄"
               colorClass="bg-purple-50 border border-purple-200"
             />
 
             <ProductsCard
-              products={topProducts}
+              products={data.mostTransactedProducts}
               title="🚀 Productos Más Comercializados"
               icon="📊"
               colorClass="bg-orange-50 border border-orange-200"
@@ -112,7 +110,7 @@ function GeneralDashboard(
           </div>
 
           {/* Analytics Insights */}
-          <AnalyticsInsights analytics={dateRangeAnalytics} />
+          <AnalyticsInsights data={data} />
 
           <div className="text-gray-600 mt-6">
             <p className="mb-2">🔍 <strong>Período:</strong> {filters.startDate} al {filters.endDate}</p>
@@ -123,7 +121,7 @@ function GeneralDashboard(
               <p className="mb-2">📦 <strong>Producto:</strong> {products.find(p => p.id === Number(filters.productId))?.name || 'No encontrado'}</p>
             )}
             <p className="text-sm text-gray-500 mt-4">
-              💡 Esta vista muestra analytics basados en datos reales de transacciones. Cambia a "Vista Detallada" para ver gráficas completas y opciones de exportación.
+              💡 Esta vista muestra un análisis basado en datos reales de transacciones. Cambia a "Vista Detallada" para ver gráficas completas y opciones de exportación.
             </p>
           </div>
         </div>
@@ -131,7 +129,7 @@ function GeneralDashboard(
 
       {/* Legacy Results Section */}
       {(supplierProductResults.length > 0 || productsResults.length > 0 || suppliersResults.length > 0) && (
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-6 rounded-lg shadow mt-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">📊 Resumen de Búsqueda</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

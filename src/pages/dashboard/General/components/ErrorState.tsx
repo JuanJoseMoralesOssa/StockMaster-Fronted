@@ -1,6 +1,6 @@
 interface ErrorStateProps {
-  error: string;
-  onRetry: () => void;
+  error: string
+  onRetry: () => void
 }
 
 function ErrorState({ error, onRetry }: ErrorStateProps) {
@@ -9,7 +9,7 @@ function ErrorState({ error, onRetry }: ErrorStateProps) {
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <div className="text-6xl mb-4">🚫</div>
-          <h3 className="text-red-800 font-semibold mb-2 text-lg">Error al cargar analytics</h3>
+          <h3 className="text-red-800 font-semibold mb-2 text-lg">Error al cargar el análisis</h3>
           <p className="text-red-600 mb-6 max-w-md mx-auto">{error}</p>
           <div className="flex justify-center gap-4">
             <button
@@ -28,7 +28,7 @@ function ErrorState({ error, onRetry }: ErrorStateProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default ErrorState;
+export default ErrorState

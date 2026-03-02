@@ -19,11 +19,17 @@ const ExpenseForm = ({ onExpenseCreated, onSuccess, initialExpense }: Readonly<E
     // Función helper para obtener fecha en formato YYYY-MM-DD desde UTC
     const getLocalDateString = (date: string | Date | undefined): string => {
         if (!date) {
-            // Fecha actual
+            // Fecha actual forzando zona horaria de Bogotá
             const now = new Date()
-            const year = now.getFullYear()
-            const month = String(now.getMonth() + 1).padStart(2, '0')
-            const day = String(now.getDate()).padStart(2, '0')
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Bogota',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).formatToParts(now)
+            const year = parts.find(p => p.type === 'year')?.value
+            const month = parts.find(p => p.type === 'month')?.value
+            const day = parts.find(p => p.type === 'day')?.value
             return `${year}-${month}-${day}`
         }
 

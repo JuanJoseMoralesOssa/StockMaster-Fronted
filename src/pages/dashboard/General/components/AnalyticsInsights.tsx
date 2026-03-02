@@ -1,13 +1,18 @@
-import { DateRangeAnalytics } from "../../../../types/Analytics";
-import InsightCard from "./base/InsightCard";
-import { calculateInsights, formatWeight } from "./adapters/analyticsAdapters";
+import { DashboardSummaryResponse } from "../../../../types/Analytics"
+import InsightCard from "./base/InsightCard"
+import { calculateInsights, formatWeight } from "./adapters/analyticsAdapters"
 
 interface AnalyticsInsightsProps {
-  analytics: DateRangeAnalytics;
+  data: DashboardSummaryResponse
 }
 
-function AnalyticsInsights({ analytics }: Readonly<AnalyticsInsightsProps>) {
-  const { summary, topSuppliers, bottomSuppliers, topProducts } = analytics;
+function AnalyticsInsights({ data }: Readonly<AnalyticsInsightsProps>) {
+  const {
+    summary,
+    topSuppliersByWeight: topSuppliers,
+    bottomSuppliersByWeight: bottomSuppliers,
+    topProductsByWeight: topProducts
+  } = data
 
   const insights = calculateInsights(
     summary.totalSuppliers,
@@ -16,7 +21,7 @@ function AnalyticsInsights({ analytics }: Readonly<AnalyticsInsightsProps>) {
     topSuppliers,
     bottomSuppliers,
     topProducts
-  );
+  )
 
   const insightCards = [
     {
@@ -29,7 +34,7 @@ function AnalyticsInsights({ analytics }: Readonly<AnalyticsInsightsProps>) {
     ...(insights.weightGap > 0 ? [{
       title: "Brecha de Rendimiento",
       value: `${formatWeight(insights.weightGap)} kg`,
-      description: "Entre el top y bottom proveedor",
+      description: "Entre el mejor y el peor proveedor",
       icon: "📈",
       borderColor: "border-orange-500"
     }] : []),
@@ -47,12 +52,12 @@ function AnalyticsInsights({ analytics }: Readonly<AnalyticsInsightsProps>) {
       icon: "⭐",
       borderColor: "border-purple-500"
     }] : [])
-  ];
+  ]
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border">
       <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-        🧠 Insights Inteligentes
+        🧠 Estadísticas Inteligentes
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -68,7 +73,7 @@ function AnalyticsInsights({ analytics }: Readonly<AnalyticsInsightsProps>) {
         ))}
       </div>
     </div>
-  );
+  )
 }
 
-export default AnalyticsInsights;
+export default AnalyticsInsights

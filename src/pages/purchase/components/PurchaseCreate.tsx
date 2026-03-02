@@ -15,7 +15,19 @@ interface PurchaseCreateProps {
 const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreateProps>) => {
     const [loading, setLoading] = useState(false)
     const [purchase, setPurchase] = useState<Purchase>({
-        date: new Date().toISOString().split('T')[0],
+        date: (() => {
+            const d = new Date()
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Bogota',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).formatToParts(d)
+            const year = parts.find(p => p.type === 'year')?.value
+            const month = parts.find(p => p.type === 'month')?.value
+            const day = parts.find(p => p.type === 'day')?.value
+            return `${year}-${month}-${day}`
+        })(),
     })
     const [details, setDetails] = useState<PurchaseDetails[]>([])
 
@@ -70,8 +82,12 @@ const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreat
                         name='date'
                         id='date'
                         value={(() => {
-                            const date = new Date(purchase.date);
-                            return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+                            if (!purchase.date) return ''
+                            // If it's already YYYY-MM-DD, return it directly to avoid timezone shift
+                            if (/^\d{4}-\d{2}-\d{2}$/.test(purchase.date)) return purchase.date
+                            const d = new Date(purchase.date)
+                            if (isNaN(d.getTime())) return ''
+                            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
                         })()}
                         required
                         onChange={handleChange}

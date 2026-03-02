@@ -348,17 +348,15 @@ export default function PurchasesTable({
                             type='date'
                             value={(() => {
                                 if (!selectedPurchase.date) return ''
-                                const offset = new Date().getTimezoneOffset() * 60000
+                                if (/^\d{4}-\d{2}-\d{2}$/.test(selectedPurchase.date)) return selectedPurchase.date
                                 const date = new Date(selectedPurchase.date)
-                                date.setTime(date.getTime() + offset)
                                 if (isNaN(date.getTime())) return ''
-                                return date.toISOString().split('T')[0]
+                                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
                             })()}
                             onChange={(e) => {
-                                const date = new Date(e.target.value).toISOString().split('T')[0]
                                 setSelectedPurchase({
                                     ...selectedPurchase,
-                                    date: date,
+                                    date: e.target.value,
                                 })
                             }}
                             className='mt-1 min-w-fit w-1/3 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
