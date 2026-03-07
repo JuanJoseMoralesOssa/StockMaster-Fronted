@@ -1,11 +1,38 @@
 @import 'tailwindcss';
 
+/* ── Tokens semánticos de color (Tailwind v4 @theme) ── */
+@theme {
+  --color-primary: #2563eb; /* blue-600: Acciones primarias, botones clave */
+  --color-primary-hover: #1d4ed8; /* blue-700: Estado hover del primario */
+  --color-secondary: #f3f4f6; /* gray-100: Fondos secundarios, superficies */
+  --color-secondary-hover: #e5e7eb; /* gray-200: Estado hover del secundario */
+  --color-accent: #7c3aed; /* violet-700: Acentos — pasa WCAG AA (4.77:1 sobre blanco) */
+  --color-success: #10b981; /* emerald-500: Éxito / positivo */
+  --color-alert: #b45309; /* amber-700: Advertencia — pasa WCAG AA (4.75:1 sobre blanco) */
+  --color-error: #ef4444; /* red-500: Error / crítico */
+}
+
 /* Reset básico para evitar conflictos */
 /* * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 } */
+
+/* Dark mode CSS variables */
+:root {
+  --bg-base: #ffffff;
+  --text-base: #213547;
+  --surface: #ffffff;
+  --border-base: #e5e7eb;
+}
+
+.dark {
+  --bg-base: #0f172a;
+  --text-base: #e2e8f0;
+  --surface: #1e293b;
+  --border-base: #334155;
+}
 
 body {
   margin: 0;
@@ -14,11 +41,83 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #213547; /* Color de texto por defecto */
-  background-color: #ffffff; /* Color de fondo por defecto */
+  color: var(--text-base);
+  background-color: var(--bg-base);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 #root {
   min-height: 100vh;
   width: 100%;
+}
+
+/* ── Design tokens: input sizing ─────────────────────────────────── */
+/* Centralising arbitrary values that appeared across Filters.tsx     */
+@theme {
+  --height-input: 2.375rem; /* 38px — consistent form input/select height */
+  --spacing-label: 0.3125rem; /*  5px — gap between a label and its input   */
+}
+
+/* Shorthand utility classes that consume the above tokens */
+.h-input {
+  height: var(--height-input);
+}
+.mb-label {
+  margin-bottom: var(--spacing-label);
+}
+
+/* ── Entry animations ────────────────────────────────────────────── */
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
+
+.animate-modal-in {
+  animation: modal-in 0.15s ease-out forwards;
+}
+.animate-slide-left {
+  animation: slide-in-left 0.2s ease-out forwards;
+}
+.animate-dropdown-in {
+  animation: dropdown-in 0.1s ease-out forwards;
+}
+.animate-backdrop {
+  animation: backdrop-fade 0.2s ease-out forwards;
 }

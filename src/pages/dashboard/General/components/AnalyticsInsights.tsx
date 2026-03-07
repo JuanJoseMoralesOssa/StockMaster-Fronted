@@ -55,7 +55,7 @@ function AnalyticsInsights({ data }: Readonly<AnalyticsInsightsProps>) {
   ]
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border">
+    <div className="bg-linear-to-r from-blue-50 to-purple-50 p-6 rounded-lg border">
       <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
         🧠 Estadísticas Inteligentes
       </h3>

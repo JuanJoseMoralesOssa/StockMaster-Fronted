@@ -55,7 +55,7 @@ function GenericHeaderInner<T>({
   )
 
   return (
-    <section className='flex items-center justify-between gap-4 p-2 mr-10 md:mr-5 max-w-fit'>
+    <section className='flex items-center justify-between gap-4 p-2 pl-14 md:pl-0 w-full'>
       <HeaderTitle title={title} className={headerClassName} />
 
       {renderCustomButton ? renderCustomButton(openModal) : defaultButton}

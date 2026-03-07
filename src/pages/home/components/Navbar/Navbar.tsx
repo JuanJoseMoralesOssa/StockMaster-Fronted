@@ -1,84 +1,46 @@
-import { useEffect, useState } from 'react'
 import NavbarDesktop from './NavbarDesktop'
-import { LogOut, Menu, X } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import NavbarMobile from './NavbarMobile'
 import useAuthStore from '../../../../stores/useAuthStore'
+import { useState } from 'react'
 
 function Navbar() {
     const { logout } = useAuthStore()
     const [open, setOpen] = useState(false)
 
-    const [windowDimensions, setWindowDimensions] = useState({
-        width: window.innerWidth,
-        height: window.innerHeight,
-    })
-
-    const detectWindowDimensions = () => {
-        if (windowDimensions.width >= 768) {
-            setOpen(false)
-        }
-        setWindowDimensions({
-            width: window.innerWidth,
-            height: window.innerHeight,
-        })
-    }
-
-    useEffect(() => {
-        window.addEventListener('resize', detectWindowDimensions)
-        return () => {
-            window.removeEventListener('resize', detectWindowDimensions)
-        }
-    }, [windowDimensions.width])
-
     return (
-        <section className='flex flex-col md:flex-row w-fit min-h-screen justify-between bg-gray-50'>
-            <section
-                className={
-                    'flex min-h-screen justify-between ' +
-                    (open ? ' fixed inset-0 z-50' : '')
-                }>
-                {!open ? (
-                    <Menu
-                        className='h-6 w-6 fixed top-4 right-4 md:hidden'
-                        onClick={() => setOpen(true)}
-                    />
-                ) : (
-                    <X
-                        className='h-6 w-6 fixed top-4 right-4 bg-gray-200 hover:bg-gray-400 rounded-full p-1 transition-colors duration-200 ease-in-out'
-                        onClick={() => setOpen(false)}
-                    />
-                )}
-            </section>
-            {
-                /* Sidebar for desktop */
-                windowDimensions.width >= 768 ? (
-                    <aside className='hidden md:flex w-44 flex-col relative'>
-                        <section className='flex flex-col flex-grow border-r bg-gray-50 h-screen'>
-                            <section className='flex items-center h-16 pl-4 pr-2 border-b bg-white'>
-                                <p className='text-xl font-semibold'>
-                                    StockMaster
-                                </p>
-                            </section>
-                            <NavbarDesktop></NavbarDesktop>
-                            <section className='p-2 border-t hover:bg-gray-300  cursor-pointer'>
-                                <button
-                                    onClick={logout}
-                                    className='w-full justify-start gap-2 flex p-1 items-center border rounded-lg border-gray-50 hover:bg-gray-600 hover:border-gray-800'
-                                >
-                                    <LogOut className='h-5 w-5' />
-                                    Cerrar Sesión
-                                </button>
-                            </section>
-                        </section>
-                    </aside>
-                ) : (
-                    open && (
-                        /* Mobile navigation */
-                        <NavbarMobile open={open} setOpen={setOpen}></NavbarMobile>
-                    )
-                )
-            }
-        </section>
+        <>
+            {/* Mobile nav — visible only on small screens, controlled by CSS not JS */}
+            <div className='md:hidden'>
+                <NavbarMobile open={open} setOpen={setOpen} />
+            </div>
+
+            {/* Desktop sidebar — visible only on md+ screens */}
+            <aside className='hidden md:flex w-55 flex-col relative'>
+                <section className='flex flex-col grow border-r border-white/5 bg-slate-900 h-screen'>
+                    <section className='flex items-center gap-2.5 py-5.5 px-5 border-b border-white/5'>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[15px] font-bold bg-linear-to-br from-blue-600 to-purple-500 shadow-sm">
+                            📦
+                        </div>
+                        <p className='text-[16px] font-bold text-white tracking-tight'>
+                            StockMaster
+                        </p>
+                    </section>
+                    <NavbarDesktop />
+                    <section className='p-3 border-t border-white/5'>
+                        <button
+                            id="desktop-logout-btn"
+                            aria-label="Cerrar sesión"
+                            onClick={logout}
+                            className='w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500'
+                        >
+                            <LogOut className='h-4.5 w-4.5' />
+                            Cerrar Sesión
+                        </button>
+                    </section>
+                </section>
+            </aside>
+        </>
     )
 }
 

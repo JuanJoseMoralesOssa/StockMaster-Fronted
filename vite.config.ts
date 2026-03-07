@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -39,5 +40,19 @@ export default defineConfig({
     server: {
         host: true,
         port: 5173,
+    },
+    test: {
+        globals: true,
+        environment: 'node',
+        setupFiles: ['./src/services/__tests__/setup.ts'],
+        env: {
+            VITE_API_URL_PROD: 'http://127.0.0.1:3000/',
+        },
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'html'],
+            include: ['src/services/**/*.ts'],
+            exclude: ['src/services/__tests__/**'],
+        },
     }
 })

@@ -17,11 +17,13 @@ const navItems: NavItem[] = [
         title: 'Dashboard',
         href: '/',
         icon: <BarChart3 className='h-5 w-5' />,
+        category: 'Principal',
     },
     {
         title: 'Usuarios',
         href: '/usuarios',
         icon: <Users className='h-5 w-5' />,
+        category: 'Principal',
     },
     // {
     //     title: 'Kardex',
@@ -32,21 +34,25 @@ const navItems: NavItem[] = [
         title: 'Compras',
         href: '/compras',
         icon: <ClipboardList className='h-5 w-5' />,
+        category: 'Operaciones',
     },
     {
         title: 'Consumos',
         href: '/gastos',
         icon: <DollarSign className='h-5 w-5' />,
+        category: 'Operaciones',
     },
     {
         title: 'Proveedores',
         href: '/personas',
         icon: <User className='h-5 w-5' />,
+        category: 'Operaciones',
     },
     {
         title: 'Productos',
         href: '/productos',
         icon: <Package className='h-5 w-5' />,
+        category: 'Operaciones',
     },
 ]
 

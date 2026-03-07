@@ -33,6 +33,48 @@ export function useGenericForm<T extends Record<string, any>>(
     }
   }
 
+  const handleBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name } = e.target
+    const field = fields.find(f => (f.name as string) === name)
+    if (!field) return
+
+    const value = formData[field.name]
+    const newErrors = { ...errors }
+
+    if (field.required && !value && value !== 0 && value !== false) {
+      newErrors[name] = `${field.label} es requerido`
+    } else if (field.type === 'email' && value) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(String(value))) {
+        newErrors[name] = 'Email inválido'
+      } else {
+        delete newErrors[name]
+      }
+    } else if (field.type === 'number' && value !== undefined && value !== '') {
+      if (field.min !== undefined && Number(value) < field.min) {
+        newErrors[name] = `Debe ser mayor o igual a ${field.min}`
+      } else if (field.max !== undefined && Number(value) > field.max) {
+        newErrors[name] = `Debe ser menor o igual a ${field.max}`
+      } else if (field.validate) {
+        const error = field.validate(value, formData)
+        if (error) newErrors[name] = error
+        else delete newErrors[name]
+      } else {
+        delete newErrors[name]
+      }
+    } else if (field.validate) {
+      const error = field.validate(value, formData)
+      if (error) newErrors[name] = error
+      else delete newErrors[name]
+    } else {
+      delete newErrors[name]
+    }
+
+    setErrors(newErrors)
+  }
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
@@ -115,6 +157,7 @@ export function useGenericForm<T extends Record<string, any>>(
     loading,
     showPasswords,
     handleChange,
+    handleBlur,
     handleSubmit,
     togglePasswordVisibility
   }

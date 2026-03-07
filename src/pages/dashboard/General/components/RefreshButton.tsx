@@ -1,6 +1,6 @@
 interface RefreshButtonProps {
-  onRefresh: () => void;
-  loading: boolean;
+  onRefresh: () => void
+  loading: boolean
 }
 
 function RefreshButton({ onRefresh, loading }: RefreshButtonProps) {
@@ -13,7 +13,7 @@ function RefreshButton({ onRefresh, loading }: RefreshButtonProps) {
         transition-all duration-200 transform hover:scale-105
         ${loading
           ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-          : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
+          : 'bg-primary text-white hover:bg-primary-hover active:scale-95'
         }
       `}
       title={loading ? 'Actualizando...' : 'Actualizar datos'}
@@ -23,7 +23,7 @@ function RefreshButton({ onRefresh, loading }: RefreshButtonProps) {
       </span>
       {loading ? 'Actualizando...' : 'Actualizar'}
     </button>
-  );
+  )
 }
 
-export default RefreshButton;
+export default RefreshButton

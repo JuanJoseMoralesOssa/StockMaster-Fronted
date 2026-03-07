@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { analyticsService } from '../services/AnalyticsService'
 import {
   DashboardSummaryResponse,
@@ -9,16 +9,17 @@ interface UseAnalyticsReturn {
   data: DashboardSummaryResponse | null
   loading: boolean
   error: string | null
-  refetch: () => void
+  refetch: (customFilters?: AnalyticsFilters) => void
 }
 
-export const useGeneralAnalytics = (filters: AnalyticsFilters): UseAnalyticsReturn => {
+export const useDashboardAnalytics = (filters: AnalyticsFilters): UseAnalyticsReturn => {
   const [data, setData] = useState<DashboardSummaryResponse | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchAnalytics = async () => {
-    if (!filters.startDate || !filters.endDate) {
+  const fetchAnalytics = async (customFilters?: AnalyticsFilters) => {
+    const currentFilters = customFilters || filters
+    if (!currentFilters.startDate || !currentFilters.endDate) {
       return
     }
 
@@ -28,8 +29,8 @@ export const useGeneralAnalytics = (filters: AnalyticsFilters): UseAnalyticsRetu
     try {
       // Ahora es una única petición de red
       const response = await analyticsService.getDashboardSummary({
-        ...filters,
-        limit: filters.limit || 10
+        ...currentFilters,
+        limit: currentFilters.limit || 10
       })
 
       setData(response)
@@ -41,12 +42,14 @@ export const useGeneralAnalytics = (filters: AnalyticsFilters): UseAnalyticsRetu
     }
   }
 
-  useEffect(() => {
-    fetchAnalytics()
-  }, [filters.startDate, filters.endDate, filters.type, filters.limit])
+  // Comentado para que no se ejecute automáticamente al montar.
+  // Se ejecutará solo cuando el usuario haga clic en buscar.
+  // useEffect(() => {
+  //   fetchAnalytics()
+  // }, [filters.startDate, filters.endDate, filters.type, filters.limit])
 
-  const refetch = () => {
-    fetchAnalytics()
+  const refetch = (customFilters?: AnalyticsFilters) => {
+    fetchAnalytics(customFilters)
   }
 
   return {

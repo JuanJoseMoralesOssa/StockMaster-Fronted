@@ -5,12 +5,13 @@ interface FieldProps<T> {
   field: GenericField<T>
   value: unknown
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
+  onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
   error?: string
   showPassword?: boolean
   onTogglePassword?: () => void
 }
 
-export default function Field<T>({ field, value, onChange, error, showPassword, onTogglePassword }: FieldProps<T>) {
+export default function Field<T>({ field, value, onChange, onBlur, error, showPassword, onTogglePassword }: FieldProps<T>) {
   const fieldName = field.name as string
   const rawValue = value ?? field.defaultValue ?? ''
   const displayValue = String(rawValue)
@@ -22,9 +23,11 @@ export default function Field<T>({ field, value, onChange, error, showPassword, 
     case 'textarea':
       return (
         <textarea
+          id={fieldName}
           name={fieldName}
           value={displayValue}
           onChange={onChange}
+          onBlur={onBlur}
           placeholder={field.placeholder}
           required={field.required}
           disabled={field.disabled}
@@ -37,9 +40,11 @@ export default function Field<T>({ field, value, onChange, error, showPassword, 
     case 'select':
       return (
         <select
+          id={fieldName}
           name={fieldName}
           value={displayValue}
           onChange={onChange}
+          onBlur={onBlur}
           required={field.required}
           disabled={field.disabled}
           className={commonClasses}
@@ -58,6 +63,7 @@ export default function Field<T>({ field, value, onChange, error, showPassword, 
         <div className="flex items-center">
           <input
             type="checkbox"
+            id={fieldName}
             name={fieldName}
             checked={!!rawValue}
             onChange={onChange}
@@ -75,6 +81,7 @@ export default function Field<T>({ field, value, onChange, error, showPassword, 
         <div className="relative">
           <input
             type={showPassword ? 'text' : 'password'}
+            id={fieldName}
             name={fieldName}
             value={displayValue}
             onChange={onChange}
@@ -87,8 +94,11 @@ export default function Field<T>({ field, value, onChange, error, showPassword, 
           {field.showPasswordToggle && onTogglePassword && (
             <button
               type="button"
+              id={`toggle-${fieldName}`}
               onClick={onTogglePassword}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-pressed={showPassword}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -104,6 +114,7 @@ export default function Field<T>({ field, value, onChange, error, showPassword, 
       return (
         <input
           type={field.type}
+          id={fieldName}
           name={fieldName}
           value={displayValue}
           onChange={onChange}
@@ -114,6 +125,7 @@ export default function Field<T>({ field, value, onChange, error, showPassword, 
           min={field.min}
           max={field.max}
           step={field.step}
+          onBlur={onBlur}
           className={commonClasses}
         />
       )

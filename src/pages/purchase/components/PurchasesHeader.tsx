@@ -12,12 +12,12 @@ function PurchasesHeader({ onPurchaseCreated }: Readonly<PurchasesHeaderProps>) 
     const [open, setOpen] = useState(false)
 
     return (
-        <section className='flex items-center justify-between gap-4 p-2 mr-10 md:mr-5 max-w-fit'>
+        <section className='flex items-center justify-between gap-4 p-2 pl-14 md:pl-0 w-full'>
             <h2 className='text-3xl font-bold tracking-tight'>Compra</h2>
 
             <button
                 onClick={() => setOpen(true)}
-                className='flex items-center justify-center gap-2 p-2 border rounded-lg text-white bg-blue-500 border-gray-50 hover:bg-gray-600 hover:border-gray-800'>
+                className='flex items-center justify-center gap-2 p-2 border rounded-lg text-white bg-primary border-transparent hover:bg-primary-hover transition-colors'>
                 <Plus className='md:mr-2 h-4 w-4' />
                 <p>Nueva Compra</p>
             </button>

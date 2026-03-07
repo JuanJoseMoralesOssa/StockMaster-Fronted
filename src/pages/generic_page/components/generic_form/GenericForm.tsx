@@ -29,6 +29,7 @@ export default function GenericForm<T extends Record<string, any>>({
     loading,
     showPasswords,
     handleChange,
+    handleBlur,
     handleSubmit,
     togglePasswordVisibility
   } = useGenericForm(fields, initialData, onSubmit)
@@ -43,6 +44,7 @@ export default function GenericForm<T extends Record<string, any>>({
           field={field}
           value={formData[field.name]}
           onChange={handleChange}
+          onBlur={handleBlur}
           error={errors[field.name as string]}
           showPassword={showPasswords[field.name as string]}
           onTogglePassword={() => togglePasswordVisibility(field.name as string)}

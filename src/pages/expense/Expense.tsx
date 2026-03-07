@@ -81,8 +81,9 @@ function ExpensePage() {
                             setActiveFilters(true)
                             refreshWithFilters(filters)
                         }}
-                        className='px-4 py-2 rounded-2xl w-full md:w-fit text-white transition-colors bg-blue-600 hover:bg-blue-700'>
-                        🔍 Buscar Detallado
+                        aria-label="Buscar Detallado"
+                        className='px-4 py-2 rounded-2xl w-full md:w-fit text-white transition-colors bg-primary hover:bg-primary-hover'>
+                        <span aria-hidden="true">🔍 </span>Buscar Detallado
                     </button>
                     <button
                         onClick={() => {
@@ -104,8 +105,9 @@ function ExpensePage() {
                             )
                             goToPage(1)
                         }}
-                        className='px-4 py-2 rounded-2xl w-full md:w-fit text-white bg-blue-600 hover:text-gray-50 hover:bg-blue-700 transition-colors'>
-                        🧹 Limpiar Filtros
+                        aria-label="Limpiar Filtros"
+                        className='px-4 py-2 rounded-2xl w-full md:w-fit text-white bg-primary hover:bg-primary-hover transition-colors'>
+                        <span aria-hidden="true">🧹 </span>Limpiar Filtros
                     </button>
                 </div>
             </div>

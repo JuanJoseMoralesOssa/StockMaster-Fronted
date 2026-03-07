@@ -5,12 +5,14 @@ interface FieldWrapperProps<T> {
   field: GenericField<T>
   value: unknown
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
+  onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
   error?: string
   showPassword?: boolean
   onTogglePassword?: () => void
 }
 
-export default function FieldWrapper<T>({ field, value, onChange, error, showPassword, onTogglePassword }: FieldWrapperProps<T>) {
+export default function FieldWrapper<T>({ field, value, onChange, onBlur, error, showPassword, onTogglePassword }: FieldWrapperProps<T>) {
+  const fieldId = typeof field.name === 'string' ? field.name : String(field.name)
 
   if (field.type === 'checkbox') {
     return (
@@ -19,12 +21,13 @@ export default function FieldWrapper<T>({ field, value, onChange, error, showPas
           field={field}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           error={error}
           showPassword={showPassword}
           onTogglePassword={onTogglePassword}
         />
         {error && (
-          <p className="text-red-500 text-sm">{error}</p>
+          <p className="text-red-500 text-sm flex items-center gap-1">⚠️ {error}</p>
         )}
       </div>
     )
@@ -32,7 +35,7 @@ export default function FieldWrapper<T>({ field, value, onChange, error, showPas
 
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">
+      <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700">
         {field.label}
         {field.required && <span className="text-red-500 ml-1">*</span>}
       </label>
@@ -40,12 +43,13 @@ export default function FieldWrapper<T>({ field, value, onChange, error, showPas
         field={field}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         error={error}
         showPassword={showPassword}
         onTogglePassword={onTogglePassword}
       />
       {error && (
-        <p className="text-red-500 text-sm">{error}</p>
+        <p className="text-red-500 text-sm flex items-center gap-1">⚠️ {error}</p>
       )}
     </div>
   )

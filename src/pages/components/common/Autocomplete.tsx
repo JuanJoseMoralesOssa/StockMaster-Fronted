@@ -1,23 +1,25 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 
 interface AutocompleteOption {
-  id: string | number;
-  [key: string]: unknown;
+  id: string | number
+  [key: string]: unknown
 }
 
 interface AutocompleteProps {
-  options: AutocompleteOption[];
-  label: string;
-  onSelect: (option: AutocompleteOption | null) => void;
-  displayKey?: string;
-  placeholder?: string;
-  disabled?: boolean;
-  required?: boolean;
-  clearable?: boolean;
-  noOptionsText?: string;
-  maxOptions?: number;
-  initialValue?: string;
-  className?: string;
+  options: AutocompleteOption[]
+  label: string
+  onSelect: (option: AutocompleteOption | null) => void
+  displayKey?: string
+  placeholder?: string
+  disabled?: boolean
+  required?: boolean
+  clearable?: boolean
+  noOptionsText?: string
+  maxOptions?: number
+  initialValue?: string
+  className?: string
+  inputClassName?: string
+  labelClassName?: string
 }
 
 export default function Autocomplete({
@@ -32,151 +34,153 @@ export default function Autocomplete({
   noOptionsText = "No se encontraron opciones",
   maxOptions = 50,
   initialValue = "",
-  className = ""
+  className = "",
+  inputClassName = "",
+  labelClassName = ""
 }: Readonly<AutocompleteProps>) {
-  const [inputValue, setInputValue] = useState(initialValue);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [highlightIndex, setHighlightIndex] = useState(-1);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
+  const [inputValue, setInputValue] = useState(initialValue)
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [highlightIndex, setHighlightIndex] = useState(-1)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
 
   // Memoized filtered options with performance optimization
   const filteredOptions = useMemo(() => {
-    if (!inputValue.trim()) return options.slice(0, maxOptions);
+    if (!inputValue.trim()) return options.slice(0, maxOptions)
 
     const filtered = options.filter(opt => {
-      const displayValue = opt[displayKey];
-      if (typeof displayValue !== 'string') return false;
-      return displayValue.toLowerCase().includes(inputValue.toLowerCase());
-    });
+      const displayValue = opt[displayKey]
+      if (typeof displayValue !== 'string') return false
+      return displayValue.toLowerCase().includes(inputValue.toLowerCase())
+    })
 
-    return filtered.slice(0, maxOptions);
-  }, [inputValue, options, displayKey, maxOptions]);
+    return filtered.slice(0, maxOptions)
+  }, [inputValue, options, displayKey, maxOptions])
 
   // Handle initial value - sync inputValue with initialValue
   useEffect(() => {
-    setInputValue(initialValue);
-  }, [initialValue]);
+    setInputValue(initialValue)
+  }, [initialValue])
 
   // Reset highlight when filtered options change
   useEffect(() => {
-    setHighlightIndex(-1);
-  }, [filteredOptions]);
+    setHighlightIndex(-1)
+  }, [filteredOptions])
 
   // Handle click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
+        setShowDropdown(false)
       }
-    };
+    }
 
     if (showDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [showDropdown]);
+  }, [showDropdown])
 
   // Handle option selection
   const handleSelect = useCallback((option: AutocompleteOption) => {
-    const displayValue = typeof option[displayKey] === 'string' ? option[displayKey] : '';
-    setInputValue(displayValue);
-    setShowDropdown(false);
-    setHighlightIndex(-1);
-    onSelect(option);
-  }, [displayKey, onSelect]);
+    const displayValue = typeof option[displayKey] === 'string' ? option[displayKey] : ''
+    setInputValue(displayValue)
+    setShowDropdown(false)
+    setHighlightIndex(-1)
+    onSelect(option)
+  }, [displayKey, onSelect])
 
   // Handle input clear
   const handleClear = useCallback(() => {
-    setInputValue('');
-    setShowDropdown(false);
-    setHighlightIndex(-1);
-    onSelect(null);
-    inputRef.current?.focus();
-  }, [onSelect]);
+    setInputValue('')
+    setShowDropdown(false)
+    setHighlightIndex(-1)
+    onSelect(null)
+    inputRef.current?.focus()
+  }, [onSelect])
 
   // Handle input change with debounced filtering
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
+    const value = e.target.value
+    setInputValue(value)
 
     if (value.trim()) {
-      setShowDropdown(true);
+      setShowDropdown(true)
     } else {
-      setShowDropdown(false);
+      setShowDropdown(false)
     }
-  }, []);  // Handle keyboard navigation
+  }, [])  // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showDropdown) {
       if (e.key === 'ArrowDown' || e.key === 'Enter') {
-        setShowDropdown(true);
-        return;
+        setShowDropdown(true)
+        return
       }
     }
 
     switch (e.key) {
       case 'ArrowDown':
-        e.preventDefault();
+        e.preventDefault()
         setHighlightIndex(prev =>
           prev < filteredOptions.length - 1 ? prev + 1 : 0
-        );
-        break;
+        )
+        break
 
       case 'ArrowUp':
-        e.preventDefault();
+        e.preventDefault()
         setHighlightIndex(prev =>
           prev > 0 ? prev - 1 : filteredOptions.length - 1
-        );
-        break;
+        )
+        break
 
       case 'Enter':
-        e.preventDefault();
+        e.preventDefault()
         if (highlightIndex >= 0 && filteredOptions[highlightIndex]) {
-          handleSelect(filteredOptions[highlightIndex]);
+          handleSelect(filteredOptions[highlightIndex])
         }
-        break;
+        break
 
       case 'Escape':
-        setShowDropdown(false);
-        setHighlightIndex(-1);
-        inputRef.current?.blur();
-        break;
+        setShowDropdown(false)
+        setHighlightIndex(-1)
+        inputRef.current?.blur()
+        break
 
       case 'Tab':
-        setShowDropdown(false);
-        break;
+        setShowDropdown(false)
+        break
 
       default:
-        break;
+        break
     }
-  }, [showDropdown, filteredOptions, highlightIndex, handleSelect]);
+  }, [showDropdown, filteredOptions, highlightIndex, handleSelect])
 
   // Handle input focus
   const handleFocus = useCallback(() => {
     if (!disabled) {
-      setShowDropdown(true);
+      setShowDropdown(true)
     }
-  }, [disabled]);
+  }, [disabled])
 
   // Scroll highlighted option into view
   useEffect(() => {
     if (highlightIndex >= 0 && listRef.current) {
-      const highlightedElement = listRef.current.children[highlightIndex] as HTMLElement;
+      const highlightedElement = listRef.current.children[highlightIndex] as HTMLElement
       if (highlightedElement) {
         highlightedElement.scrollIntoView({
           block: 'nearest',
           behavior: 'smooth'
-        });
+        })
       }
     }
-  }, [highlightIndex]);
+  }, [highlightIndex])
 
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
       {label && (
         <label
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className={labelClassName || "block text-sm font-medium text-gray-700 mb-1"}
           htmlFor={`autocomplete-${label.replace(/\s+/g, '-').toLowerCase()}`}
         >
           {label}
@@ -189,7 +193,7 @@ export default function Autocomplete({
           ref={inputRef}
           id={`autocomplete-${label.replace(/\s+/g, '-').toLowerCase()}`}
           type="text"
-          className={`w-full border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors
+          className={inputClassName || `w-full border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors
             ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
             ${required && !inputValue ? 'border-red-300' : ''}
           `}
@@ -235,7 +239,7 @@ export default function Autocomplete({
               ref={listRef}
               id={`autocomplete-list-${label.replace(/\s+/g, '-').toLowerCase()}`}
               className="max-h-60 overflow-y-auto flex flex-col"
-              role="menu"
+              role="listbox"
               aria-labelledby={`autocomplete-${label.replace(/\s+/g, '-').toLowerCase()}`}
             >
               {filteredOptions.map((option, i) => (
@@ -243,7 +247,8 @@ export default function Autocomplete({
                   key={option.id || i}
                   type="button"
                   id={`option-${option.id}`}
-                  role="menuitem"
+                  role="option"
+                  aria-selected={i === highlightIndex}
                   tabIndex={-1}
                   className={`w-full text-left px-4 py-2 transition-colors border-none bg-transparent cursor-pointer
                     ${i === highlightIndex
@@ -255,8 +260,8 @@ export default function Autocomplete({
                   onMouseEnter={() => setHighlightIndex(i)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleSelect(option);
+                      e.preventDefault()
+                      handleSelect(option)
                     }
                   }}
                 >
@@ -272,5 +277,5 @@ export default function Autocomplete({
         </div>
       )}
     </div>
-  );
+  )
 }

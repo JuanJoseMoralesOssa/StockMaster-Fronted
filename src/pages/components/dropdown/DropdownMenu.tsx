@@ -27,7 +27,7 @@ export default function DropdownMenu<T>({
   return (
     <div
       ref={dropdownRef}
-      className='fixed z-50 w-44 rounded-md bg-white shadow-lg ring-1 ring-black/5'
+      className='fixed z-50 w-44 rounded-md bg-white shadow-lg ring-1 ring-black/5 animate-dropdown-in'
       style={{ top: dropdownPosition.top, left: Math.max(8, dropdownPosition.left) }}
     >
       <div className='flex flex-col py-1'>

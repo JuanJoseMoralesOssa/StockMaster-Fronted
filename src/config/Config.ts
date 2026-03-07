@@ -49,13 +49,14 @@ export const defaultConfig = {
     },
 }
 
-export const securityConfig = {
+// Returns a fresh config object each call, so Authorization always uses the current token
+export const getSecurityConfig = () => ({
     headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
     },
-}
+})
 
 // Agrupa y exporta la configuración como `Config` para importaciones tipo
 // `import { Config } from '../config/Config'`
@@ -63,5 +64,5 @@ export const Config = {
     LOGIC_URL,
     AppConfig,
     defaultConfig,
-    securityConfig,
+    getSecurityConfig,
 }

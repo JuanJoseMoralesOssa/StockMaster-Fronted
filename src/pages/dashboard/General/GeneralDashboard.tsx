@@ -1,73 +1,36 @@
-import Person from "../../../types/Person"
-import Product from "../../../types/Product"
-import { useGeneralAnalytics } from "../../../hooks/useGeneralAnalytics"
-import { AnalyticsFilters } from "../../../types/Analytics"
-import { DashboardResult, ProductsResults, SuppliersResults } from "../../../types/DashboardResults"
-import SummaryStats from "./components/SummaryStats"
+import { DashboardSummaryResponse } from "../../../types/Analytics"
 import SuppliersCard from "./components/SuppliersCard"
 import ProductsCard from "./components/ProductsCard"
 import AnalyticsInsights from "./components/AnalyticsInsights"
 import LoadingSkeleton from "./components/LoadingSkeleton"
 import ErrorState from "./components/ErrorState"
-import RefreshButton from "./components/RefreshButton"
+import SummaryStats from "./components/SummaryStats"
 
 interface GeneralDashboardProps {
-  supplierProductResults: DashboardResult[]
-  productsResults: ProductsResults[]
-  suppliersResults: SuppliersResults[]
-  filters: {
-    supplierId?: string
-    productId?: string
-    startDate: string
-    endDate: string
-  }
-  suppliers: Person[]
-  products: Partial<Product>[]
+  filters: { startDate: string, endDate: string }
+  analyticsData?: DashboardSummaryResponse | null
+  analyticsLoading?: boolean
+  analyticsError?: string | null
 }
 
-function GeneralDashboard(
-  {
-    supplierProductResults,
-    productsResults,
-    suppliersResults,
-    filters,
-    suppliers,
-    products
-  }: Readonly<GeneralDashboardProps>
-) {
-  // Analytics filters
-  const analyticsFilters: AnalyticsFilters = {
-    startDate: filters.startDate,
-    endDate: filters.endDate,
-    type: 'both'
-  }
-
-  const {
-    data,
-    loading,
-    error,
-    refetch
-  } = useGeneralAnalytics(analyticsFilters)
+function GeneralDashboard({ filters, analyticsData: data, analyticsLoading: loading, analyticsError: error }: GeneralDashboardProps) {
 
   if (loading) {
     return <LoadingSkeleton />
   }
 
   if (error) {
-    return <ErrorState error={error} onRetry={refetch} />
+    return <ErrorState error={error} onRetry={() => window.location.reload()} />
   }
 
   return (
     <div className="space-y-6">
       {/* Analytics Section */}
       {data && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">📈 Análisis General</h2>
-            <RefreshButton onRefresh={refetch} loading={loading} />
-          </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">📈 Tablero General</h2>
 
-          {/* Summary Statistics */}
+          {/* Summary Metrics — reflects the user's selected date range */}
           <SummaryStats
             totalSuppliers={data.summary.totalSuppliers}
             totalProducts={data.summary.totalProducts}
@@ -114,48 +77,9 @@ function GeneralDashboard(
 
           <div className="text-gray-600 mt-6">
             <p className="mb-2">🔍 <strong>Período:</strong> {filters.startDate} al {filters.endDate}</p>
-            {filters.supplierId && (
-              <p className="mb-2">🏢 <strong>Proveedor:</strong> {suppliers.find(s => s.id === Number(filters.supplierId))?.name || 'No encontrado'}</p>
-            )}
-            {filters.productId && (
-              <p className="mb-2">📦 <strong>Producto:</strong> {products.find(p => p.id === Number(filters.productId))?.name || 'No encontrado'}</p>
-            )}
-            <p className="text-sm text-gray-500 mt-4">
-              💡 Esta vista muestra un análisis basado en datos reales de transacciones. Cambia a "Vista Detallada" para ver gráficas completas y opciones de exportación.
+            <p className="text-[13.5px] text-gray-500 mt-4 rounded-md bg-gray-50 p-3 border border-gray-100">
+              💡 Esta vista muestra un análisis con todos los datos globales. Cambia a "Vista Detallada" para ver gráficas puntuales y aplicar filtros exactos por producto o proveedor.
             </p>
-          </div>
-        </div>
-      )}
-
-      {/* Legacy Results Section */}
-      {(supplierProductResults.length > 0 || productsResults.length > 0 || suppliersResults.length > 0) && (
-        <div className="bg-white p-6 rounded-lg shadow mt-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">📊 Resumen de Búsqueda</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {supplierProductResults.length > 0 && (
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-800">Transacciones Proveedor-Producto</h3>
-                <p className="text-2xl font-bold text-blue-600">{supplierProductResults.length}</p>
-                <p className="text-sm text-blue-600">registros encontrados</p>
-              </div>
-            )}
-
-            {productsResults.length > 0 && (
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-green-800">Productos por Proveedor</h3>
-                <p className="text-2xl font-bold text-green-600">{productsResults.length}</p>
-                <p className="text-sm text-green-600">productos encontrados</p>
-              </div>
-            )}
-
-            {suppliers.length > 0 && (
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-purple-800">Proveedores por Producto</h3>
-                <p className="text-2xl font-bold text-purple-600">{suppliersResults.length}</p>
-                <p className="text-sm text-purple-600">proveedores encontrados</p>
-              </div>
-            )}
           </div>
         </div>
       )}

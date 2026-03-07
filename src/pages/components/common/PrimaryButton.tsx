@@ -5,7 +5,7 @@ interface PrimaryButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 function PrimaryButton({ icon, children, className, type = "button", ...rest }: PrimaryButtonProps) {
-  const defaultClass = 'flex items-center justify-center gap-2 p-2 border rounded-lg text-white bg-blue-500 border-gray-50 hover:bg-blue-600 hover:border-gray-800 transition-colors'
+  const defaultClass = 'flex items-center justify-center gap-2 p-2 border rounded-lg text-white bg-primary border-gray-50 hover:bg-primary-hover hover:border-gray-800 transition-colors'
   return (
     <button
       type={type}

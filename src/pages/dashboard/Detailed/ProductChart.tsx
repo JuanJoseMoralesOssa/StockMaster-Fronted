@@ -1,5 +1,5 @@
-import React from 'react';
-import * as XLSX from 'xlsx';
+import React from 'react'
+import * as XLSX from 'xlsx'
 import {
   BarChart,
   Bar,
@@ -12,71 +12,71 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
-import { SuppliersResults } from '../../../types/DashboardResults';
-import Person from '../../../types/Person';
-import { EXPENSE, PURCHASE } from '../../../constants/cts';
+} from 'recharts'
+import { SuppliersResults } from '../../../types/DashboardResults'
+import Person from '../../../types/Person'
+import { EXPENSE, PURCHASE } from '../../../constants/cts'
 
 interface Filters {
-  startDate: string;
-  endDate: string;
-  supplierId: string;
-  productId: string;
+  startDate: string
+  endDate: string
+  supplierId: string
+  productId: string
 }
 
 interface ProductChartProps {
-  selectedFilter: 'all' | 'withDebt' | 'fullyPaid';
-  results: SuppliersResults[];
-  suppliers: Person[];
-  filters: Filters;
+  selectedFilter: 'all' | 'withDebt' | 'fullyPaid'
+  results: SuppliersResults[]
+  suppliers: Person[]
+  filters: Filters
 }
 
 interface MonthlyData {
-  name: string;
-  Total: number;
-  Pagado: number;
-  Pendiente: number;
-  personId: number;
+  name: string
+  Total: number
+  Pagado: number
+  Pendiente: number
+  personId: number
 }
 
 interface SupplierMonthlyData {
-  month: string;
-  Total: number;
-  Pagado: number;
-  Pendiente: number;
+  month: string
+  Total: number
+  Pagado: number
+  Pendiente: number
 }
 
 interface DailyData {
-  day: string;
-  Total: number;
-  Pagado: number;
-  Pendiente: number;
+  day: string
+  Total: number
+  Pagado: number
+  Pendiente: number
 }
 
-const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
-const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} ${date.getFullYear()}`
 
 const ProductChart: React.FC<ProductChartProps> = ({
   // selectedFilter,
   results, suppliers, filters }) => {
 
   if (!filters.startDate || !filters.endDate) {
-    return <div className="text-center text-gray-500">Por favor selecciona un rango de fechas.</div>;
+    return <div className="text-center text-gray-500">Por favor selecciona un rango de fechas.</div>
   }
 
-  const suppliersMap = new Map<number, string>();
+  const suppliersMap = new Map<number, string>()
   suppliers.forEach((supplier) => {
     if (supplier.id !== undefined && supplier.name !== undefined) {
-      suppliersMap.set(supplier.id, supplier.name);
+      suppliersMap.set(supplier.id, supplier.name)
     }
-  });
+  })
 
   const monthlyData: Record<string, MonthlyData> = results.reduce((acc: Record<string, MonthlyData>, item) => {
-    const date = new Date(item.date);
-    const monthName = formatMonthName(date);
-    const key = `${monthName}-${item.personId}`; // Unique key for month and supplier
-    const supplierName = suppliersMap.get(item.personId) || 'Proveedor Desconocido';
+    const date = new Date(item.date)
+    const monthName = formatMonthName(date)
+    const key = `${monthName}-${item.personId}` // Unique key for month and supplier
+    const supplierName = suppliersMap.get(item.personId) || 'Proveedor Desconocido'
 
     if (!acc[key]) {
       acc[key] = {
@@ -85,68 +85,68 @@ const ProductChart: React.FC<ProductChartProps> = ({
         Pagado: 0,
         Pendiente: 0,
         personId: item.personId,
-      };
+      }
     }
 
     if (item.type === PURCHASE) {
-      acc[key].Total += item.weight_kg;
+      acc[key].Total += item.weight_kg
     } else if (item.type === EXPENSE) {
-      acc[key].Pagado += item.weight_kg;
+      acc[key].Pagado += item.weight_kg
     }
-    acc[key].Pendiente = acc[key].Total - acc[key].Pagado;
-    return acc;
-  }, {});
+    acc[key].Pendiente = acc[key].Total - acc[key].Pagado
+    return acc
+  }, {})
 
-  const monthlyDataArray = Object.values(monthlyData);
+  const monthlyDataArray = Object.values(monthlyData)
 
   // Agrupar datos por proveedor para las gráficas individuales
-  const dataBySupplier: Record<number, SupplierMonthlyData[]> = {};
+  const dataBySupplier: Record<number, SupplierMonthlyData[]> = {}
 
   monthlyDataArray.forEach((item) => {
     if (!dataBySupplier[item.personId]) {
-      dataBySupplier[item.personId] = [];
+      dataBySupplier[item.personId] = []
     }
 
     // Extraer solo el mes sin el nombre del proveedor
-    const monthOnly = item.name.split(' (')[0];
+    const monthOnly = item.name.split(' (')[0]
 
     dataBySupplier[item.personId].push({
       month: monthOnly,
       Total: item.Total,
       Pagado: item.Pagado,
       Pendiente: item.Pendiente,
-    });
-  });
+    })
+  })
 
   // Ordenar los datos por mes para cada proveedor
   Object.keys(dataBySupplier).forEach((personId) => {
     dataBySupplier[parseInt(personId)].sort((a, b) => {
-      const monthA = monthNames.indexOf(a.month.split(' ')[0]);
-      const monthB = monthNames.indexOf(b.month.split(' ')[0]);
-      return monthA - monthB;
-    });
-  });
+      const monthA = monthNames.indexOf(a.month.split(' ')[0])
+      const monthB = monthNames.indexOf(b.month.split(' ')[0])
+      return monthA - monthB
+    })
+  })
 
   // Agrupar datos por proveedor, mes y día para las gráficas diarias
-  const dailyDataBySupplier: Record<number, Record<string, DailyData[]>> = {};
+  const dailyDataBySupplier: Record<number, Record<string, DailyData[]>> = {}
 
   results.forEach((item) => {
-    const date = new Date(item.date ?? '');
-    date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000);
-    const monthName = formatMonthName(date);
-    const dayNumber = date.getDate();
-    const dayString = `Día ${dayNumber}`;
+    const date = new Date(item.date ?? '')
+    date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000)
+    const monthName = formatMonthName(date)
+    const dayNumber = date.getDate()
+    const dayString = `Día ${dayNumber}`
 
     if (!dailyDataBySupplier[item.personId]) {
-      dailyDataBySupplier[item.personId] = {};
+      dailyDataBySupplier[item.personId] = {}
     }
 
     if (!dailyDataBySupplier[item.personId][monthName]) {
-      dailyDataBySupplier[item.personId][monthName] = [];
+      dailyDataBySupplier[item.personId][monthName] = []
     }
 
     // Buscar si ya existe el día en el array
-    let existingDay = dailyDataBySupplier[item.personId][monthName].find(d => d.day === dayString);
+    let existingDay = dailyDataBySupplier[item.personId][monthName].find(d => d.day === dayString)
 
     if (!existingDay) {
       existingDay = {
@@ -154,41 +154,41 @@ const ProductChart: React.FC<ProductChartProps> = ({
         Total: 0,
         Pagado: 0,
         Pendiente: 0,
-      };
-      dailyDataBySupplier[item.personId][monthName].push(existingDay);
+      }
+      dailyDataBySupplier[item.personId][monthName].push(existingDay)
     }
 
     if (item.type === PURCHASE) {
-      existingDay.Total += item.weight_kg;
+      existingDay.Total += item.weight_kg
     } else if (item.type === EXPENSE) {
-      existingDay.Pagado += item.weight_kg;
+      existingDay.Pagado += item.weight_kg
     }
-    existingDay.Pendiente = existingDay.Total - existingDay.Pagado;
-  });
+    existingDay.Pendiente = existingDay.Total - existingDay.Pagado
+  })
 
   // Ordenar los días dentro de cada mes para cada proveedor
   Object.keys(dailyDataBySupplier).forEach((personId) => {
     Object.keys(dailyDataBySupplier[parseInt(personId)]).forEach((month) => {
       dailyDataBySupplier[parseInt(personId)][month].sort((a, b) => {
-        const dayA = parseInt(a.day.replace('Día ', ''));
-        const dayB = parseInt(b.day.replace('Día ', ''));
-        return dayA - dayB;
-      });
-    });
-  });
+        const dayA = parseInt(a.day.replace('Día ', ''))
+        const dayB = parseInt(b.day.replace('Día ', ''))
+        return dayA - dayB
+      })
+    })
+  })
 
   const totals = {
     Total: Object.values(monthlyData).reduce((acc, d) => acc + d.Total, 0),
     Pagado: Object.values(monthlyData).reduce((acc, d) => acc + d.Pagado, 0),
     Pendiente: Object.values(monthlyData).reduce((acc, d) => acc + d.Pendiente, 0),
-  };
+  }
 
   const state = (m: MonthlyData): string => {
     if (m.Total === 0) {
-      return 'Sin movimientos';
+      return 'Sin movimientos'
     }
-    return `${((m.Pagado / m.Total) * 100).toFixed(2)}% Pagado`;
-  };
+    return `${((m.Pagado / m.Total) * 100).toFixed(2)}% Pagado`
+  }
 
   const exportToExcel = (): void => {
     const exportData = Object.values(monthlyData).map((m) => ({
@@ -200,7 +200,7 @@ const ProductChart: React.FC<ProductChartProps> = ({
         m.Pendiente === 0 && m.Total > 0
           ? 'Completo'
           : state(m),
-    }));
+    }))
 
     exportData.push({
       Mes: 'TOTAL',
@@ -211,29 +211,29 @@ const ProductChart: React.FC<ProductChartProps> = ({
         totals.Pendiente === 0 && totals.Total > 0
           ? 'Completo'
           : `${((totals.Pagado / totals.Total) * 100).toFixed(2)}% Pagado`,
-    });
+    })
 
     const header = [
       [`Reporte Mensual - Proveedores`],
       [`Período: ${filters.startDate} al ${filters.endDate}`],
       [`Generado: ${new Date().toLocaleString()}`],
       [''],
-    ];
+    ]
 
-    const ws = XLSX.utils.aoa_to_sheet(header);
-    XLSX.utils.sheet_add_json(ws, exportData, { origin: `A${header.length + 1}` });
+    const ws = XLSX.utils.aoa_to_sheet(header)
+    XLSX.utils.sheet_add_json(ws, exportData, { origin: `A${header.length + 1}` })
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Pagos Proveedores');
-    XLSX.writeFile(wb, `Reporte_Proveedores_${new Date().getTime()}.xlsx`);
-  };
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Pagos Proveedores')
+    XLSX.writeFile(wb, `Reporte_Proveedores_${new Date().getTime()}.xlsx`)
+  }
 
   // Colores para gráficos
-  const COLORS = ['#0088FE', '#FF8042'];
+  const COLORS = ['#0088FE', '#FF8042']
   const pieChartData = [
     { name: 'Total Pagado', value: totals.Pagado },
     { name: 'Total Pendiente', value: totals.Pendiente },
-  ];
+  ]
 
   return (
     <div>
@@ -299,7 +299,7 @@ const ProductChart: React.FC<ProductChartProps> = ({
         <h2 className="text-xl font-semibold mb-4">Distribución Mensual de Pagos por Proveedor</h2>
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {Object.entries(dataBySupplier).map(([personId, supplierData]) => {
-            const supplierName = suppliersMap.get(parseInt(personId)) || 'Proveedor Desconocido';
+            const supplierName = suppliersMap.get(parseInt(personId)) || 'Proveedor Desconocido'
             return (
               <div key={personId} className="bg-white p-4 rounded-lg shadow">
                 <h3 className="text-lg font-medium mb-4 text-center">{supplierName}</h3>
@@ -322,7 +322,7 @@ const ProductChart: React.FC<ProductChartProps> = ({
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            );
+            )
           })}
         </div>
       </div>
@@ -331,10 +331,10 @@ const ProductChart: React.FC<ProductChartProps> = ({
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Distribución Diaria por Mes y Proveedor</h2>
         {Object.entries(dailyDataBySupplier).map(([personId, monthsData]) => {
-          const supplierName = suppliersMap.get(parseInt(personId)) || 'Proveedor Desconocido';
-          const monthsWithData = Object.entries(monthsData);
+          const supplierName = suppliersMap.get(parseInt(personId)) || 'Proveedor Desconocido'
+          const monthsWithData = Object.entries(monthsData)
 
-          if (monthsWithData.length === 0) return null;
+          if (monthsWithData.length === 0) return null
 
           return (
             <div key={`daily-${personId}`} className="mb-8">
@@ -371,18 +371,19 @@ const ProductChart: React.FC<ProductChartProps> = ({
                 ))}
               </div>
             </div>
-          );
+          )
         })}
       </div>
 
       {/* Table */}
       <div className="bg-white p-4 rounded-lg shadow overflow-x-auto">
-        <div className="flex justify-between mb-4">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-medium">Detalle Mensual por Proveedor</h2>
           <button
             onClick={exportToExcel}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+            className='px-4 py-2 rounded-lg text-green-700 text-[13.5px] font-semibold bg-green-50 hover:bg-green-100 border-[1.5px] border-green-200 hover:border-green-300 transition-all flex items-center justify-center gap-2'
           >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
             Exportar a Excel
           </button>
         </div>
@@ -457,7 +458,7 @@ const ProductChart: React.FC<ProductChartProps> = ({
         </table>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default React.memo(ProductChart);
+export default React.memo(ProductChart)

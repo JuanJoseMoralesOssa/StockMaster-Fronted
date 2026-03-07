@@ -1,23 +1,27 @@
-import { DashboardResult, ProductsResults, SuppliersResults } from "../../types/DashboardResults";
-import Person from "../../types/Person";
-import Product from "../../types/Product";
+import { DashboardResult, ProductsResults, SuppliersResults } from "../../types/DashboardResults"
+import Person from "../../types/Person"
+import Product from "../../types/Product"
+import { DashboardSummaryResponse } from "../../types/Analytics"
 import DetailedDashboard from "./Detailed/DetailedDashboard"
 import GeneralDashboard from "./General/GeneralDashboard"
 
 interface RenderingWithModeProps {
-  dashboardMode: 'detailed' | 'general';
+  dashboardMode: 'detailed' | 'general'
   filters: {
-    startDate: string;
-    endDate: string;
-    supplierId: string;
-    productId: string;
-  };
-  products: Partial<Product>[];
-  suppliers: Person[];
-  suppliersResults: SuppliersResults[];
-  productsResults: ProductsResults[];
-  supplierProductResults: DashboardResult[];
-  selectedFilter: 'all' | 'withDebt' | 'fullyPaid';
+    startDate: string
+    endDate: string
+    supplierId: string
+    productId: string
+  }
+  products: Partial<Product>[]
+  suppliers: Person[]
+  suppliersResults: SuppliersResults[]
+  productsResults: ProductsResults[]
+  supplierProductResults: DashboardResult[]
+  selectedFilter: 'all' | 'withDebt' | 'fullyPaid'
+  analyticsData?: DashboardSummaryResponse | null
+  analyticsLoading?: boolean
+  analyticsError?: string | null
 }
 
 function RenderingWithMode(
@@ -30,6 +34,9 @@ function RenderingWithMode(
     productsResults,
     supplierProductResults,
     selectedFilter,
+    analyticsData,
+    analyticsLoading,
+    analyticsError
   }: Readonly<RenderingWithModeProps>,
 ) {
   return (
@@ -48,12 +55,10 @@ function RenderingWithMode(
 
       {dashboardMode === 'general' && (
         <GeneralDashboard
-          supplierProductResults={supplierProductResults}
-          productsResults={productsResults}
-          suppliersResults={suppliersResults}
           filters={filters}
-          suppliers={suppliers}
-          products={products}
+          analyticsData={analyticsData}
+          analyticsLoading={analyticsLoading}
+          analyticsError={analyticsError}
         />
       )}
     </>
