@@ -32,8 +32,8 @@ export const useToast = () => {
   }, [])
 
   // Métodos de confirmación
-  const confirmDelete = useCallback(async (message?: string, title?: string) => {
-    return await ToastService.confirmDelete(message, title)
+  const confirmDelete = useCallback(async (message?: string, title?: string, confirmText?: string) => {
+    return await ToastService.confirmDelete(message, title, confirmText)
   }, [])
 
   const confirm = useCallback(async (

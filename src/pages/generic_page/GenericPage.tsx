@@ -1,20 +1,53 @@
 import { useServerPagination } from '../../hooks/useServerPagination'
-import GenericHeader from './components/generic_table/GenericHeader'
-import GenericTable from './components/generic_table/GenericTable'
 import { GenericPageConfig } from '../../types/GenericConfig'
-import GenericForm from './components/generic_form/GenericForm'
-import { useState } from 'react'
-import { Modal } from '../components/modal/Modal'
-import { Eye } from 'lucide-react'
+import { useState, useMemo, useCallback } from 'react'
+import type { GenericService } from '../../types/GenericTypes'
 
-interface GenericPageProps<T> {
-  config: GenericPageConfig<T>
+import { PageContextProvider } from './components/page/PageContext'
+import PageHeader from './components/page/PageHeader'
+import PageFilters from './components/page/PageFilters'
+import PageTable from './components/page/PageTable'
+import PageDetailsModal from './components/page/PageDetailsModal'
+
+interface GenericPageProps<T, TFilter extends object = object, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
+  config: GenericPageConfig<T, TFilter, CreateInput, UpdateInput>
+  children?: React.ReactNode
+  serviceHooksFactory?: (service: GenericService<T, TFilter, CreateInput, UpdateInput>) => Partial<GenericService<T, TFilter, CreateInput, UpdateInput>>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function GenericPage<T extends Record<string, any>>({ config }: GenericPageProps<T>) {
-  const [filters, setFilters] = useState(config.initialFilterState || {})
+function GenericPage<T extends object, TFilter extends object = object, CreateInput = Partial<T>, UpdateInput = Partial<T>>({ config, serviceHooksFactory, children }: GenericPageProps<T, TFilter, CreateInput, UpdateInput>) {
+  const initialFilters = (config.initialFilterState || {} as TFilter)
+  const [filters, setFilters] = useState<TFilter>(initialFilters)
+  const [appliedFilters, setAppliedFilters] = useState<TFilter>(initialFilters)
   const [selectedItemForDetail, setSelectedItemForDetail] = useState<T | null>(null)
+  const [filterRefreshToken, setFilterRefreshToken] = useState(0)
+
+  const mergedService = useMemo<GenericPageConfig<T, TFilter, CreateInput, UpdateInput>['service']>(() => {
+    const overrides = serviceHooksFactory ? serviceHooksFactory(config.service) : {}
+    return Object.assign(
+      Object.create(Object.getPrototypeOf(config.service)),
+      config.service,
+      overrides,
+    )
+  }, [config.service, serviceHooksFactory])
+
+  const fetchPaginated = useCallback(
+    (page: number, limit: number) => mergedService.getAllPaginated(page, limit),
+    [mergedService]
+  )
+
+  const fetchWithFiltersFn = useCallback(
+    (f: TFilter, page?: number, limit?: number) => {
+      if (mergedService.getAllPaginatedFiltered) {
+        return mergedService.getAllPaginatedFiltered(f, page, limit)
+      }
+      // Fallback to unfiltered paginated fetch — ensure numeric args
+      const safePage = page ?? 1
+      const safeLimit = limit ?? 10
+      return mergedService.getAllPaginated(safePage, safeLimit)
+    },
+    [mergedService]
+  )
 
   const {
     data,
@@ -31,160 +64,116 @@ function GenericPage<T extends Record<string, any>>({ config }: GenericPageProps
     setActiveFilters,
     addItem,
     updateItem,
-    removeItem
-  } = useServerPagination<T>({
-    fetchFunction: config.service.getAllPaginated.bind(config.service),
-    fetchWithFilters: config.service.getAllPaginatedFiltered?.bind(config.service),
-    filters,
+    removeItem,
+    retry,
+  } = useServerPagination<T, TFilter>({
+    fetchFunction: fetchPaginated,
+    fetchWithFilters: mergedService.getAllPaginatedFiltered ? fetchWithFiltersFn : undefined,
+    filters: appliedFilters,
     initialPage: 1,
     initialLimit: 10,
+    refreshToken: filterRefreshToken,
   })
+  // requestMeta/filterRequestMeta are available for telemetry if needed
 
-  const handleCreate = async (formData: Partial<T>) => {
-    let dataToSubmit = formData
+  const runSubmissionPipeline = async <Output, Input extends Partial<T>>(
+    formData: Input,
+    isEdit: boolean,
+    submitFn: (data: CreateInput | UpdateInput | Partial<UpdateInput>) => Promise<Output>,
+  ) => {
+    const preparedData = config.prepareDataForSubmit
+      ? await config.prepareDataForSubmit(formData, isEdit)
+      : formData
 
-    // Preparar datos antes de enviar si existe la función
-    if (config.prepareDataForSubmit) {
-      dataToSubmit = await config.prepareDataForSubmit(formData, false)
-    }
-
-    // Validar datos personalizados si existe la función
     if (config.validateData) {
-      const validationError = await config.validateData(dataToSubmit)
+      const validationError = await config.validateData(preparedData)
       if (validationError) {
         throw new Error(validationError)
       }
     }
 
-    const newItem = await config.service.create.call(config.service, dataToSubmit)
-    return newItem
+    return submitFn(preparedData as CreateInput | UpdateInput | Partial<UpdateInput>)
+  }
+
+  const handleCreate = async (formData: Partial<T>) => {
+    return runSubmissionPipeline(formData, false, dataToSubmit => mergedService.create(dataToSubmit as CreateInput))
   }
 
   const handleUpdate = async (id: number | string, formData: Partial<T>) => {
-    let dataToSubmit = formData
-
-    // Preparar datos antes de enviar si existe la función
-    if (config.prepareDataForSubmit) {
-      dataToSubmit = await config.prepareDataForSubmit(formData, true)
-    }
-
-    // Validar datos personalizados si existe la función
-    if (config.validateData) {
-      const validationError = await config.validateData(dataToSubmit)
-      if (validationError) {
-        throw new Error(validationError)
-      }
-    }
-    return config.updatePartial
-      ? await config.service.updatePartial.call(config.service, id, dataToSubmit)
-      : await config.service.update.call(config.service, id, dataToSubmit as T)
+    return runSubmissionPipeline(formData, true, dataToSubmit => {
+      return config.updatePartial
+        ? mergedService.updatePartial(id, dataToSubmit as Partial<UpdateInput>)
+        : mergedService.update(id, dataToSubmit as UpdateInput)
+    })
   }
 
-  // Configurar acciones
-  const actions = { ...config.actions }
-  if (config.detailConfig) {
-    const viewAction = {
-      icon: <Eye className="w-4 h-4" />,
-      label: 'Ver Detalles',
-      onClick: (item: T) => setSelectedItemForDetail(item),
-    }
-    actions.customActions = actions.customActions
-      ? [viewAction, ...actions.customActions]
-      : [viewAction]
+  const handleDelete = async (id: number | string) => {
+    return mergedService.delete(id)
+  }
+
+  const applyFilters = () => {
+    setAppliedFilters(filters)
+    setActiveFilters(true)
+    setFilterRefreshToken(prev => prev + 1)
+    goToPage(1)
+  }
+
+  const clearFilters = () => {
+    setFilters(initialFilters)
+    setAppliedFilters(initialFilters)
+    setActiveFilters(false)
+    setFilterRefreshToken(prev => prev + 1)
+    goToPage(1)
+  }
+
+  const contextValue = {
+    data: data as T[],
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    filters,
+    setFilters,
+    goToPage,
+    setItemsPerPage,
+    refresh,
+    refreshWithFilters,
+    setActiveFilters,
+    applyFilters,
+    clearFilters,
+    addItem,
+    updateItem,
+    removeItem,
+    retry,
+    handleCreate,
+    handleUpdate,
+    handleDelete,
+    selectedItemForDetail,
+    setSelectedItemForDetail
   }
 
   return (
-    <section>
-      <GenericHeader<T>
-        title={config.entityNamePlural}
-        createButtonText={`Nuevo ${config.entityName}`}
-        modalTitle={`Crear ${config.entityName}`}
-        modalDescription={`Completa los detalles del ${config.entityName}. Los campos marcados con * son requeridos.`}
-        onItemCreated={addItem}
-        renderCreateForm={(onSuccess: () => void, onItemCreated: (item: T) => void) => (
-          config.renderCustomForm ? config.renderCustomForm(onSuccess, onItemCreated) :
-            <GenericForm
-              fields={config.formFields}
-              onSubmit={async (data) => {
-                const newItem = await handleCreate(data)
-                onItemCreated(newItem)
-                onSuccess()
-              }}
-              onCancel={onSuccess}
-              submitLabel="Crear"
-            />
+    <PageContextProvider value={contextValue}>
+      <section>
+        {children || (
+          <>
+            <PageHeader config={config} />
+            <PageFilters config={config} />
+            <PageTable config={config} />
+            <PageDetailsModal config={config} />
+          </>
         )}
-      />
-
-      {config.renderCustomFilters && (
-        <div className="mb-4">
-          {config.renderCustomFilters({
-            filters,
-            setFilters,
-            onSearch: () => {
-              setActiveFilters(true)
-              refreshWithFilters(filters)
-            },
-            onClear: () => {
-              setActiveFilters(false)
-              setFilters(config.initialFilterState || {})
-              goToPage(1)
-            }
-          })}
-        </div>
-      )}
-
-      <GenericTable<T>
-        data={data as T[]}
-        loading={loading}
-        error={error}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        itemsPerPage={itemsPerPage}
-        goToPage={goToPage}
-        setItemsPerPage={setItemsPerPage}
-        refresh={refresh}
-        updateItem={(item: T, idField?: keyof T) => updateItem(item, idField)}
-        removeItem={(id: string | number, idField?: keyof T) => removeItem(id, idField)}
-        columns={config.columns}
-        actions={actions}
-        idField={config.idField}
-        entityName={config.entityName}
-        onDelete={config.service.delete.bind(config.service)}
-        onUpdate={handleUpdate}
-        formFields={config.formFields}
-        prepareDataForSubmit={config.prepareDataForSubmit}
-        expandableConfig={config.expandableConfig}
-        renderEditForm={config.renderEditForm}
-      />
-
-      {config.detailConfig && (
-        <Modal
-          open={!!selectedItemForDetail}
-          onClose={() => setSelectedItemForDetail(null)}
-          title={
-            selectedItemForDetail && typeof config.detailConfig.title === 'function'
-              ? config.detailConfig.title(selectedItemForDetail)
-              : typeof config.detailConfig.title === 'string'
-                ? config.detailConfig.title
-                : `Detalles de ${config.entityName}`
-          }
-          description={config.detailConfig.description}
-        >
-          {selectedItemForDetail && config.detailConfig.renderContent(selectedItemForDetail)}
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={() => setSelectedItemForDetail(null)}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-            >
-              Cerrar
-            </button>
-          </div>
-        </Modal>
-      )}
-    </section>
+      </section>
+    </PageContextProvider>
   )
 }
+
+// Export sub-components to allow manual composition
+GenericPage.Header = PageHeader
+GenericPage.Filters = PageFilters
+GenericPage.Table = PageTable
+GenericPage.DetailsModal = PageDetailsModal
 
 export default GenericPage

@@ -60,11 +60,17 @@ export default function Autocomplete({
 
   // Handle initial value - sync inputValue with initialValue
   useEffect(() => {
+    // Intentionally update controlled input when `initialValue` changes.
+    // This triggers a state update from a prop change; ESLint warns
+    // about setState-in-effect but here it's intentional and safe.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputValue(initialValue)
   }, [initialValue])
 
   // Reset highlight when filtered options change
   useEffect(() => {
+    // Reset highlight index when filtered options change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHighlightIndex(-1)
   }, [filteredOptions])
 

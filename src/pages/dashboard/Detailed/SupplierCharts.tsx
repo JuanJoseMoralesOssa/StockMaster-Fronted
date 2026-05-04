@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs'
 import {
   BarChart,
   Bar,
@@ -10,46 +10,59 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-} from 'recharts';
-import { ProductsResults } from '../../../types/DashboardResults';
-import Product from '../../../types/Product';
-import { EXPENSE, PURCHASE } from '../../../constants/cts';
+} from 'recharts'
+import { ProductsResults } from '../../../types/DashboardResults'
+import Product from '../../../types/Product'
+import { EXPENSE, PURCHASE } from '../../../constants/cts'
 
 interface Filters { startDate: string; endDate: string; supplierId: string; productId: string }
 
 interface ProductReportProps {
-  selectedFilter: 'all' | 'withDebt' | 'fullyPaid';
-  results: ProductsResults[];
-  products: Partial<Product>[];
-  filters: Filters;
+  selectedFilter: 'all' | 'withDebt' | 'fullyPaid'
+  results: ProductsResults[]
+  products: Partial<Product>[]
+  filters: Filters
 }
 
 interface MonthlyData {
-  name: string;
-  Total: number;
-  Pagado: number;
-  Pendiente: number;
+  name: string
+  Total: number
+  Pagado: number
+  Pendiente: number
   productId: number
 }
 
 interface ProductMonthlyData {
-  month: string;
-  Total: number;
-  Pagado: number;
-  Pendiente: number;
+  month: string
+  Total: number
+  Pagado: number
+  Pendiente: number
 }
 
 interface DailyData {
-  day: string;
-  Total: number;
-  Pagado: number;
-  Pendiente: number;
+  day: string
+  Total: number
+  Pagado: number
+  Pendiente: number
 }
 
-const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
-const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} ${date.getFullYear()}`
+const formatChartValue = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).join(', ')
+  }
+  if (typeof value === 'number') {
+    return value.toLocaleString()
+  }
+  if (typeof value === 'string') {
+    return value
+  }
+  return ''
+}
+const formatChartPercent = (percent: number | undefined): string =>
+  `${((percent ?? 0) * 100).toFixed(0)}%`
 
 
 const ProductReport: React.FC<ProductReportProps> = ({
@@ -57,35 +70,35 @@ const ProductReport: React.FC<ProductReportProps> = ({
   results, products, filters }) => {
 
   if (results.length === 0) {
-    console.warn('SupplierCharts - No products found for the selected date range.');
+    console.warn('SupplierCharts - No products found for the selected date range.')
     return (
       <div className="text-center text-gray-500 p-8">
         <h3 className="text-lg font-semibold mb-2">No hay datos para mostrar</h3>
         <p>No se encontraron productos para el rango de fechas seleccionado.</p>
         <p className="text-sm mt-2">Filtros: {filters.startDate} - {filters.endDate}</p>
       </div>
-    );
+    )
   }
 
   // Validar filtros
   if (!filters.supplierId || !filters.startDate || !filters.endDate) {
-    return <div className="text-center text-gray-500">Por favor selecciona un producto y un rango de fechas.</div>;
+    return <div className="text-center text-gray-500">Por favor selecciona un producto y un rango de fechas.</div>
   }
 
-  const productsMap = new Map<number, string>();
+  const productsMap = new Map<number, string>()
   products.forEach((product) => {
     if (product.id !== undefined && product.name !== undefined) {
-      productsMap.set(product.id, product.name);
+      productsMap.set(product.id, product.name)
     }
-  });
+  })
 
 
 
   const monthlyData: Record<string, MonthlyData> = results.reduce((acc: Record<string, MonthlyData>, item) => {
-    const date = new Date(item.date);
-    const monthName = formatMonthName(date);
-    const key = `${monthName}-${item.productId}`; // Unique key for month and product
-    const productName = productsMap.get(item.productId) || 'Desconocido';
+    const date = new Date(item.date)
+    const monthName = formatMonthName(date)
+    const key = `${monthName}-${item.productId}` // Unique key for month and product
+    const productName = productsMap.get(item.productId) || 'Desconocido'
     if (!acc[key]) {
       acc[key] = {
         name: monthName + ` (${productName})`,
@@ -93,69 +106,69 @@ const ProductReport: React.FC<ProductReportProps> = ({
         Pagado: 0,
         Pendiente: 0,
         productId: item.productId,
-      };
+      }
     }
 
     if (item.type === PURCHASE) {
-      acc[key].Total += item.weight_kg;
+      acc[key].Total += item.weight_kg
     } else if (item.type === EXPENSE) {
-      acc[key].Pagado += item.weight_kg;
+      acc[key].Pagado += item.weight_kg
     }
-    acc[key].Pendiente = acc[key].Total - acc[key].Pagado;
+    acc[key].Pendiente = acc[key].Total - acc[key].Pagado
 
-    return acc;
-  }, {});
+    return acc
+  }, {})
 
-  const monthlyDataArray = Object.values(monthlyData); // Convert object to array
+  const monthlyDataArray = Object.values(monthlyData) // Convert object to array
 
   // Agrupar datos por producto para las gráficas individuales
-  const dataByProduct: Record<number, ProductMonthlyData[]> = {};
+  const dataByProduct: Record<number, ProductMonthlyData[]> = {}
 
   monthlyDataArray.forEach((item) => {
     if (!dataByProduct[item.productId]) {
-      dataByProduct[item.productId] = [];
+      dataByProduct[item.productId] = []
     }
 
     // Extraer solo el mes sin el nombre del producto
-    const monthOnly = item.name.split(' (')[0];
+    const monthOnly = item.name.split(' (')[0]
 
     dataByProduct[item.productId].push({
       month: monthOnly,
       Total: item.Total,
       Pagado: item.Pagado,
       Pendiente: item.Pendiente,
-    });
-  });
+    })
+  })
 
   // Ordenar los datos por mes para cada producto
   Object.keys(dataByProduct).forEach((productId) => {
     dataByProduct[parseInt(productId)].sort((a, b) => {
-      const monthA = monthNames.indexOf(a.month.split(' ')[0]);
-      const monthB = monthNames.indexOf(b.month.split(' ')[0]);
-      return monthA - monthB;
-    });
-  });
+      const monthA = monthNames.indexOf(a.month.split(' ')[0])
+      const monthB = monthNames.indexOf(b.month.split(' ')[0])
+      return monthA - monthB
+    })
+  })
 
   // Agrupar datos por producto, mes y día para las gráficas diarias
-  const dailyDataByProduct: Record<number, Record<string, DailyData[]>> = {};
+  const dailyDataByProduct: Record<number, Record<string, DailyData[]>> = {}
 
   results.forEach((product) => {
-    const date = new Date(product.date ?? '');
-    date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000);
-    const monthName = formatMonthName(date);
-    const dayNumber = date.getDate();
-    const dayString = `Día ${dayNumber}`;
+    const date = new Date(product.date ?? '')
+    date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000)
+    const monthName = formatMonthName(date)
+    const dayNumber = date.getDate()
+    const dayString = `Día ${dayNumber}`
 
     if (!dailyDataByProduct[product.productId]) {
-      dailyDataByProduct[product.productId] = {};
+      dailyDataByProduct[product.productId] = {}
     }
 
     if (!dailyDataByProduct[product.productId][monthName]) {
-      dailyDataByProduct[product.productId][monthName] = [];
+      dailyDataByProduct[product.productId][monthName] = []
     }
 
     // Buscar si ya existe el día en el array
-    let existingDay = dailyDataByProduct[product.productId][monthName].find(d => d.day === dayString);
+    let existingDay = dailyDataByProduct[product.productId][monthName].find(d => d.day === dayString)
 
     if (!existingDay) {
       existingDay = {
@@ -163,44 +176,47 @@ const ProductReport: React.FC<ProductReportProps> = ({
         Total: 0,
         Pagado: 0,
         Pendiente: 0,
-      };
-      dailyDataByProduct[product.productId][monthName].push(existingDay);
+      }
+      dailyDataByProduct[product.productId][monthName].push(existingDay)
     }
 
     if (product.type === PURCHASE) {
-      existingDay.Total += product.weight_kg;
+      existingDay.Total += product.weight_kg
     } else if (product.type === EXPENSE) {
-      existingDay.Pagado += product.weight_kg;
+      existingDay.Pagado += product.weight_kg
     }
-    existingDay.Pendiente = existingDay.Total - existingDay.Pagado;
+    existingDay.Pendiente = existingDay.Total - existingDay.Pagado
 
-  });
+  })
 
   // Ordenar los días dentro de cada mes para cada producto
   Object.keys(dailyDataByProduct).forEach((productId) => {
     Object.keys(dailyDataByProduct[parseInt(productId)]).forEach((month) => {
       dailyDataByProduct[parseInt(productId)][month].sort((a, b) => {
-        const dayA = parseInt(a.day.replace('Día ', ''));
-        const dayB = parseInt(b.day.replace('Día ', ''));
-        return dayA - dayB;
-      });
-    });
-  });
+        const dayA = parseInt(a.day.replace('Día ', ''))
+        const dayB = parseInt(b.day.replace('Día ', ''))
+        return dayA - dayB
+      })
+    })
+  })
 
   const totals = {
     Total: Object.values(monthlyData).reduce((acc, d) => acc + d.Total, 0),
     Pagado: Object.values(monthlyData).reduce((acc, d) => acc + d.Pagado, 0),
     Pendiente: Object.values(monthlyData).reduce((acc, d) => acc + d.Pendiente, 0),
-  };
+  }
 
   const state = (m: MonthlyData): string => {
     if (m.Total === 0) {
-      return 'Sin movimientos';
+      return 'Sin movimientos'
     }
-    return `${((m.Pagado / m.Total) * 100).toFixed(2)}% Pagado`;
+    return `${((m.Pagado / m.Total) * 100).toFixed(2)}% Pagado`
   }
 
-  const exportToExcel = (): void => {
+  const exportToExcel = async (): Promise<void> => {
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Pagos Mensuales')
+
     const exportData = Object.values(monthlyData).map((m) => ({
       Mes: m.name,
       Total: m.Total,
@@ -210,7 +226,7 @@ const ProductReport: React.FC<ProductReportProps> = ({
         m.Pendiente === 0 && m.Total > 0
           ? 'Completo'
           : state(m),
-    }));
+    }))
 
     exportData.push({
       Mes: 'TOTAL',
@@ -221,29 +237,93 @@ const ProductReport: React.FC<ProductReportProps> = ({
         totals.Pendiente === 0 && totals.Total > 0
           ? 'Completo'
           : `${((totals.Pagado / totals.Total) * 100).toFixed(2)}% Pagado`,
-    });
+    })
 
-    const header = [
-      [`Reporte Mensual - Productos`],
-      [`Período: ${filters.startDate} al ${filters.endDate}`],
-      [`Generado: ${new Date().toLocaleString()}`],
-      [''],
-    ];
+    // Header superior
+    worksheet.addRow(['Reporte Mensual - Productos'])
+    worksheet.addRow([`Período: ${filters.startDate} al ${filters.endDate}`])
+    worksheet.addRow([`Generado: ${new Date().toLocaleString()}`])
+    worksheet.addRow([])
 
-    const ws = XLSX.utils.aoa_to_sheet(header);
-    XLSX.utils.sheet_add_json(ws, exportData, { origin: `A${header.length + 1}` });
+    // Encabezados tabla
+    const headerRow = worksheet.addRow([
+      'Mes',
+      'Total',
+      'Pagado',
+      'Pendiente',
+      'Estado',
+    ])
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Pagos Mensuales');
-    XLSX.writeFile(wb, `Reporte_Producto_${filters.supplierId}.xlsx`);
-  };
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '4472C4' },
+    }
+    headerRow.alignment = { horizontal: 'center' }
+
+    // Datos
+    exportData.forEach((row) => {
+      worksheet.addRow([
+        row.Mes,
+        row.Total,
+        row.Pagado,
+        row.Pendiente,
+        row.Estado,
+      ])
+    })
+
+    // Ajustar ancho columnas
+    worksheet.columns = [
+      { key: 'Mes', width: 30 },
+      { key: 'Total', width: 15 },
+      { key: 'Pagado', width: 15 },
+      { key: 'Pendiente', width: 15 },
+      { key: 'Estado', width: 20 },
+    ]
+
+    // Bordes para toda la tabla
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        }
+      })
+    })
+
+    // Descargar archivo
+    const buffer = await workbook.xlsx.writeBuffer()
+
+    const blob = new Blob([buffer], {
+      type:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Reporte_Producto_${filters.supplierId}.xlsx`
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
 
   // Colores para gráficos
-  const COLORS = ['#0088FE', '#FF8042'];
   const pieChartData = [
-    { name: 'Total Pagado', value: totals.Pagado },
-    { name: 'Total Pendiente', value: totals.Pendiente },
-  ];
+    {
+      name: 'Total Pagado',
+      value: totals.Pagado,
+      fill: '#0088FE',
+    },
+    {
+      name: 'Total Pendiente',
+      value: totals.Pendiente,
+      fill: '#FF8042',
+    },
+  ]
+
   return (
     <div>
       {/* Summary Cards */}
@@ -271,7 +351,7 @@ const ProductReport: React.FC<ProductReportProps> = ({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} />
               <YAxis />
-              <Tooltip formatter={(value) => value.toLocaleString()} />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
               <Bar dataKey="Total" name="Total Pedido" fill="#8884d8" />
               <Bar dataKey="Pagado" name="Total Pagado" fill="#82ca9d" />
@@ -290,13 +370,11 @@ const ProductReport: React.FC<ProductReportProps> = ({
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              >
-                {pieChartData.map((data) => (
-                  <Cell key={`cell-${data.name}`} fill={COLORS[pieChartData.indexOf(data) % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => value.toLocaleString()} />
+                label={({ name, percent }) =>
+                  `${name}: ${formatChartPercent(percent)}`
+                }
+              />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -308,7 +386,7 @@ const ProductReport: React.FC<ProductReportProps> = ({
         <h2 className="text-xl font-semibold mb-4">Distribución Mensual de Pagos por Producto</h2>
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {Object.entries(dataByProduct).map(([productId, productData]) => {
-            const productName = productsMap.get(parseInt(productId)) || 'Desconocido';
+            const productName = productsMap.get(parseInt(productId)) || 'Desconocido'
             return (
               <div key={productId} className="bg-white p-4 rounded-lg shadow">
                 <h3 className="text-lg font-medium mb-4 text-center">{productName}</h3>
@@ -323,7 +401,7 @@ const ProductReport: React.FC<ProductReportProps> = ({
                       fontSize={12}
                     />
                     <YAxis fontSize={12} />
-                    <Tooltip formatter={(value) => value.toLocaleString()} />
+                    <Tooltip formatter={(value) => formatChartValue(value)} />
                     <Legend />
                     <Bar dataKey="Total" name="Total" fill="#8884d8" />
                     <Bar dataKey="Pagado" name="Pagado" fill="#82ca9d" />
@@ -331,7 +409,7 @@ const ProductReport: React.FC<ProductReportProps> = ({
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            );
+            )
           })}
         </div>
       </div>
@@ -340,10 +418,10 @@ const ProductReport: React.FC<ProductReportProps> = ({
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Distribución Diaria por Mes y Producto</h2>
         {Object.entries(dailyDataByProduct).map(([productId, monthsData]) => {
-          const productName = productsMap.get(parseInt(productId)) || 'Desconocido';
-          const monthsWithData = Object.entries(monthsData);
+          const productName = productsMap.get(parseInt(productId)) || 'Desconocido'
+          const monthsWithData = Object.entries(monthsData)
 
-          if (monthsWithData.length === 0) return null;
+          if (monthsWithData.length === 0) return null
 
           return (
             <div key={`daily-${productId}`} className="mb-8">
@@ -366,7 +444,7 @@ const ProductReport: React.FC<ProductReportProps> = ({
                         />
                         <YAxis fontSize={10} />
                         <Tooltip
-                          formatter={(value) => value.toLocaleString()}
+                          formatter={(value) => formatChartValue(value)}
                           labelStyle={{ fontSize: '12px' }}
                           contentStyle={{ fontSize: '12px' }}
                         />
@@ -380,7 +458,7 @@ const ProductReport: React.FC<ProductReportProps> = ({
                 ))}
               </div>
             </div>
-          );
+          )
         })}
       </div>
 
@@ -467,7 +545,7 @@ const ProductReport: React.FC<ProductReportProps> = ({
         </table>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ProductReport;
+export default ProductReport

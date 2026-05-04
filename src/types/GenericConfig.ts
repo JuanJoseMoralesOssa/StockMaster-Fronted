@@ -40,8 +40,7 @@ export interface GenericActions<T> {
 /**
  * Configuración para un campo de formulario genérico
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface GenericField<T = any> {
+export interface GenericField<T = object> {
   /** Nombre del campo */
   name: keyof T
   /** Label del campo */
@@ -53,13 +52,11 @@ export interface GenericField<T = any> {
   /** Si el campo es requerido */
   required?: boolean
   /** Validación personalizada */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validate?: (value: any, formData: Partial<T>) => string | undefined
+  validate?: (value: unknown, formData: Partial<T>) => string | undefined
   /** Opciones para select */
   options?: Array<{ value: string | number; label: string }>
   /** Valor por defecto */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultValue?: any
+  defaultValue?: unknown
   /** Si el campo es de solo lectura */
   readOnly?: boolean
   /** Si el campo está deshabilitado */
@@ -79,7 +76,7 @@ export interface GenericField<T = any> {
 /**
  * Configuración completa para una página genérica
  */
-export interface GenericPageConfig<T> {
+export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
   /** Nombre de la entidad en singular */
   entityName: string
   /** Nombre de la entidad en plural */
@@ -88,6 +85,8 @@ export interface GenericPageConfig<T> {
   idField: keyof T
   /** Configuración de las columnas de la tabla */
   columns: GenericColumn<T>[]
+  /** Clases CSS condicionales por fila */
+  rowClassName?: (item: T) => string
   /** Configuración de los campos del formulario */
   formFields: GenericField<T>[]
   /** Configuración de las acciones */
@@ -95,28 +94,20 @@ export interface GenericPageConfig<T> {
   /** Servicio para operaciones CRUD */
   service: {
     getAllPaginated: (page: number, limit: number) => Promise<PaginatedResponse<T>>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    create: (data: any) => Promise<T>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    update: (id: any, data: T) => Promise<T>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updatePartial: (id: any, data: Partial<T>) => Promise<T>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete: (id: any) => Promise<void>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getAllPaginatedFiltered?: (filters: any, page?: number, limit?: number) => Promise<PaginatedResponse<T>>
+    create: (data: CreateInput) => Promise<T>
+    update: (id: string | number, data: UpdateInput) => Promise<T>
+    updatePartial: (id: string | number, data: Partial<UpdateInput>) => Promise<T>
+    delete: (id: string | number) => Promise<void>
+    getAllPaginatedFiltered?: (filters: TFilter, page?: number, limit?: number) => Promise<PaginatedResponse<T>>
   }
 
   updatePartial?: boolean
   /** Estado inicial de los filtros */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialFilterState?: any
+  initialFilterState?: TFilter
   /** Renderizado personalizado de filtros */
   renderCustomFilters?: (props: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    filters: any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setFilters: (filters: any) => void
+    filters: TFilter
+    setFilters: (filters: TFilter) => void
     onSearch: () => void
     onClear: () => void
   }) => ReactNode

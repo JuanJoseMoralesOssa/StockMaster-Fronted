@@ -1,12 +1,12 @@
 import axios from 'axios'
 import { Config } from '../config/Config'
+import { httpClient } from './httpClient'
 import {
   DashboardSummaryResponse,
   AnalyticsFilters
 } from '../types/Analytics'
 
 const API_BASE_URL = Config.LOGIC_URL
-const defaultConfig = Config.defaultConfig
 
 export class AnalyticsService {
   private readonly endpoint = 'analytics';
@@ -52,12 +52,11 @@ export class AnalyticsService {
         startDate: filters.startDate,
         endDate: filters.endDate,
         ...(filters.type && { type: filters.type }),
-        ...(filters.limit && { limit: filters.limit.toString() })
+        ...(filters.limit && { limit: filters.limit.toString() }),
       })
 
-      const response = await axios.get(
+      const response = await httpClient.get(
         `${this.getUrl('dashboard-summary')}?${params.toString()}`,
-        defaultConfig
       )
 
       return response.data

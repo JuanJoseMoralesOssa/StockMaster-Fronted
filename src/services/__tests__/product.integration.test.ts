@@ -5,10 +5,8 @@
  * El backend se simula con axios-mock-adapter para no depender
  * de que el servidor esté corriendo.
  */
-
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import MockAdapter from 'axios-mock-adapter'
-import axios from 'axios'
+import { httpClient } from '../httpClient'
 import { productService } from '../ProductService'
 
 const BASE = 'http://127.0.0.1:3000'
@@ -24,7 +22,7 @@ function paginated<T>(data: T[], page = 1, limit = 10) {
 
 // ── Fixtures del mock ────────────────────────────────────────────────────────
 let mock: MockAdapter
-beforeEach(() => { mock = new MockAdapter(axios) })
+beforeEach(() => { mock = new MockAdapter(httpClient) })
 afterEach(() => { mock.restore() })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -180,7 +178,8 @@ describe('ProductService – updatePartial() PATCH', () => {
   it('elimina el campo id del payload antes de enviar el PATCH', async () => {
     mock.onPatch(`${BASE}/products/1`).reply(200, PRODUCT_1)
 
-    await productService.updatePartial(1, { id: 1, stock: 5 } as any)
+    type Prod = { id?: number; name?: string; stock?: number }
+    await productService.updatePartial(1, { id: 1, stock: 5 } as Prod)
 
     const payload = JSON.parse(mock.history.patch[0].data)
     expect(payload).not.toHaveProperty('id')

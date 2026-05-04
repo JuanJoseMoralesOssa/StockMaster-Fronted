@@ -24,49 +24,39 @@ export interface User {
 }
 
 class AuthService {
-    private readonly baseUrl = `${Config.LOGIC_URL}`
+    // Normalizamos la URL base para evitar dobles barras (`//`) al concatenar rutas
+    private readonly baseUrl = Config.LOGIC_URL.replace(/\/+$/, '')
 
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
         try {
-            const response = await axios.post<AuthResponse>(`${this.baseUrl}sign-in`, credentials)
+            const response = await axios.post<AuthResponse>(`${this.baseUrl}/sign-in`, credentials)
             return response.data
         } catch (error) {
             console.error('Error en login:', error)
-            throw new Error('Error al iniciar sesión. Verifica tus credenciales.')
+            throw new Error('Error al iniciar sesión. Verifica tus credenciales.', { cause: error })
         }
     }
 
     async logout(): Promise<void> {
         try {
-            await axios.post(`${this.baseUrl}/logout`, {})
+            // Frontend solo maneja borrado local (stateless JWT en backend)
+            this.clearLocalData()
         } catch (error) {
             console.error('Error en logout:', error)
-        } finally {
-            this.clearLocalData()
         }
     }
 
     async verifyToken(token: string): Promise<User> {
         try {
-            const response = await axios.get<User>(`${this.baseUrl}/verify`, {
+            const response = await axios.get<User>(`${this.baseUrl}/whoami`, {
                 headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                },
             })
             return response.data
         } catch (error) {
             console.error('Error verificando token:', error)
-            throw new Error('Token inválido')
-        }
-    }
-
-    async refreshToken(): Promise<AuthResponse> {
-        try {
-            const response = await axios.post<AuthResponse>(`${this.baseUrl}/refresh`, {})
-            return response.data
-        } catch (error) {
-            console.error('Error refrescando token:', error)
-            throw new Error('Error al refrescar el token')
+            throw new Error('Token inválido', { cause: error })
         }
     }
 

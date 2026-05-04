@@ -1,4 +1,4 @@
-import PrimaryButton from "../../../components/common/PrimaryButton"
+import { Button } from "../../../../components/ui"
 
 interface FormActionsProps {
   loading: boolean
@@ -10,22 +10,24 @@ interface FormActionsProps {
 export default function FormActions({ loading, submitLabel, cancelLabel, onCancel }: FormActionsProps) {
   return (
     <div className="flex gap-3 pt-4">
-      <PrimaryButton
+      <Button
         type="submit"
+        variant="primary"
         disabled={loading}
-        className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex-1"
       >
         {loading ? 'Procesando...' : submitLabel}
-      </PrimaryButton>
+      </Button>
       {onCancel && (
-        <PrimaryButton
+        <Button
           type="button"
+          variant="secondary"
           onClick={onCancel}
           disabled={loading}
-          className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="flex-1"
         >
           {cancelLabel}
-        </PrimaryButton>
+        </Button>
       )}
     </div>
   )

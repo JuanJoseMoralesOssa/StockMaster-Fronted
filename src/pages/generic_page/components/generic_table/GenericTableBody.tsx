@@ -1,8 +1,8 @@
 import React, { Fragment } from 'react'
-import PrimaryButton from '../../../components/common/PrimaryButton'
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { GenericColumn, GenericActions } from '../../../../types/GenericConfig'
 import { getCellValue } from './genericTableUtils'
+import { Button } from '../../../../components/ui'
 
 interface Props<T> {
   data: T[]
@@ -12,6 +12,7 @@ interface Props<T> {
   onEdit: (item: T) => void
   onDelete: (item: T) => void
   onDropdownToggle: (rowIndex: number, event: React.MouseEvent<HTMLButtonElement>) => void
+  rowClassName?: (item: T) => string
   expandableConfig?: {
     renderExpandedContent: (item: T) => React.ReactNode
     expandedTitle?: (item: T) => string
@@ -29,6 +30,7 @@ export default function GenericTableBody<T>({
   onEdit,
   onDelete,
   onDropdownToggle,
+  rowClassName,
   expandableConfig,
   expandedRows,
   toggleRowExpansion,
@@ -38,10 +40,10 @@ export default function GenericTableBody<T>({
   const totalColumns = columns.length + (showActions ? 1 : 0) + (hasExpandable ? 1 : 0)
 
   return (
-    <tbody className='bg-white divide-y divide-gray-200'>
+    <tbody className='divide-y divide-gray-200'>
       {data.length === 0 ? (
         <tr>
-          <td colSpan={totalColumns} className='px-6 py-8 text-center text-gray-500'>
+          <td colSpan={totalColumns} className='px-6 py-8 text-center text-gray-400'>
             No hay datos disponibles
           </td>
         </tr>
@@ -52,24 +54,27 @@ export default function GenericTableBody<T>({
 
           return (
             <Fragment key={rowIndex}>
-              <tr className='hover:bg-gray-50 transition-colors duration-150'>
-                {/* Columna de expansión */}
+              <tr className={`bg-white hover:bg-gray-50 transition-colors ${rowClassName ? rowClassName(item) : ''}`}>
                 {hasExpandable && (
-                  <td className='px-4 py-4 whitespace-nowrap w-12'>
-                    <button
+                  <td className='px-4 py-3 whitespace-nowrap w-12'>
+                    <Button
+                      variant='ghost'
+                      size='icon-sm'
                       onClick={() => toggleRowExpansion(itemId)}
-                      className="text-gray-400 hover:text-gray-600 transition-colors w-5 h-5 flex items-center justify-center"
-                      title="Ver detalles"
+                      aria-label={isExpanded ? 'Ocultar detalles' : 'Ver detalles'}
+                      aria-expanded={isExpanded}
                     >
-                      {isExpanded ? '▼' : '▶'}
-                    </button>
+                      {isExpanded
+                        ? <ChevronDown className='h-4 w-4' aria-hidden='true' />
+                        : <ChevronRight className='h-4 w-4' aria-hidden='true' />}
+                    </Button>
                   </td>
                 )}
 
                 {columns.map((column, colIndex) => (
                   <td
                     key={colIndex}
-                    className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${column.hideOnMobile ? 'hidden md:table-cell' : ''
+                    className={`px-6 py-3 whitespace-nowrap text-sm text-gray-900 ${column.hideOnMobile ? 'hidden md:table-cell' : ''
                       }`}
                   >
                     {getCellValue(item, column)}
@@ -77,56 +82,61 @@ export default function GenericTableBody<T>({
                 ))}
 
                 {showActions && (
-                  <td className='px-6 py-4 whitespace-nowrap text-sm text-center'>
-                    <div className='inline-flex items-center justify-center gap-1'>
+                  <td className='px-6 py-3 whitespace-nowrap text-sm text-right'>
+                    <div className='inline-flex items-center justify-end gap-1'>
                       {actions.canEdit && (
-                        <PrimaryButton
+                        <Button
+                          variant='ghost'
+                          size='icon-sm'
                           onClick={() => onEdit(item)}
-                          icon={<Pencil className='h-4 w-4' />}
+                          aria-label='Editar'
                           title='Editar'
-                          className='inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-gray-700 hover:bg-gray-100 transition-colors bg-transparent border-0'
                         >
-                          <span className='hidden lg:inline text-sm'>Editar</span>
-                        </PrimaryButton>
+                          <Pencil className='h-4 w-4' aria-hidden='true' />
+                        </Button>
                       )}
 
                       {actions.canDelete && (
-                        <PrimaryButton
+                        <Button
+                          variant='ghost'
+                          size='icon-sm'
                           onClick={() => onDelete(item)}
-                          icon={<Trash2 className='h-4 w-4' />}
+                          aria-label='Eliminar'
                           title='Eliminar'
-                          className='inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-red-600 hover:bg-red-50 transition-colors bg-transparent border-0'
+                          className='text-danger-600 hover:bg-danger-50 hover:text-danger-700'
                         >
-                          <span className='hidden lg:inline text-sm'>Eliminar</span>
-                        </PrimaryButton>
+                          <Trash2 className='h-4 w-4' aria-hidden='true' />
+                        </Button>
                       )}
 
                       {actions.customActions && actions.customActions.length > 0 && (
-                        <div className='relative'>
-                          <PrimaryButton
-                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => onDropdownToggle(rowIndex, e)}
-                            icon={<MoreVertical className='h-4 w-4' />}
-                            title='Más opciones'
-                            className='inline-flex items-center justify-center rounded-md p-1.5 text-gray-500 hover:bg-gray-100 transition-colors bg-transparent border-0'
-                          />
-                        </div>
+                        <Button
+                          variant='ghost'
+                          size='icon-sm'
+                          onClick={(e) => onDropdownToggle(rowIndex, e)}
+                          aria-label='Más opciones'
+                          title='Más opciones'
+                        >
+                          <MoreVertical className='h-4 w-4' aria-hidden='true' />
+                        </Button>
                       )}
                     </div>
                   </td>
                 )}
               </tr>
 
-              {/* Fila expandida */}
               {hasExpandable && isExpanded && (
-                <tr>
-                  <td colSpan={totalColumns} className="px-0 py-0">
-                    <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
+                <tr className='bg-gray-50 border-t border-gray-200'>
+                  <td colSpan={totalColumns} className='px-0 py-0'>
+                    <div className='px-6 py-4'>
                       {expandableConfig.expandedTitle && (
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">
+                        <h4 className='text-sm font-semibold text-gray-900 mb-4'>
                           {expandableConfig.expandedTitle(item)}
                         </h4>
                       )}
-                      {expandableConfig.renderExpandedContent(item)}
+                      <div className='text-gray-700'>
+                        {expandableConfig.renderExpandedContent(item)}
+                      </div>
                     </div>
                   </td>
                 </tr>

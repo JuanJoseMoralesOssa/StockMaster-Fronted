@@ -125,7 +125,8 @@ export class ToastService {
    */
   static async confirmDelete(
     message: string = '¿Estás seguro de que quieres eliminar este elemento?',
-    title: string = 'Confirmar eliminación'
+    title: string = 'Confirmar eliminación',
+    confirmText: string = 'Eliminar'
   ): Promise<boolean> {
     const result = await Swal.fire({
       title,
@@ -134,7 +135,7 @@ export class ToastService {
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: confirmText,
       cancelButtonText: 'Cancelar',
       reverseButtons: true
     })

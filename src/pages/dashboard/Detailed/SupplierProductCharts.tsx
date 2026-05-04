@@ -1,5 +1,5 @@
-import * as XLSX from 'xlsx'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import ExcelJS from 'exceljs'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts'
 import Person from '../../../types/Person'
 import Product from '../../../types/Product'
 import { DashboardResult } from '../../../types/DashboardResults'
@@ -30,6 +30,20 @@ interface MonthlyData {
 }
 
 const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+const formatChartValue = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).join(', ')
+  }
+  if (typeof value === 'number') {
+    return value.toLocaleString()
+  }
+  if (typeof value === 'string') {
+    return value
+  }
+  return ''
+}
+const formatChartPercent = (percent: number | undefined): string =>
+  `${((percent ?? 0) * 100).toFixed(0)}%`
 
 function SupplierProductCharts({
   results,
@@ -139,38 +153,117 @@ function SupplierProductCharts({
   const pendingAmount = totalPurchases - totalExpenses
   const paymentStatus = pendingAmount === 0 ? 'Completo' : `${((totalExpenses / totalPurchases) * 100).toFixed(2)}% Pagado`
 
-  const exportToExcel = () => {
-    const exportData = dailyData.map(day => ({
-      Fecha: day.date,
-      Día: day.day,
-      Compra: day.compra,
-      Gasto: day.gasto,
-      Pendiente: day.pendiente
-    }))
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Pagos a Proveedores')
 
-    // Agregar fila de totales
-    exportData.push({
-      Fecha: 'TOTAL',
-      Día: 0,
-      Compra: totalPurchases,
-      Gasto: totalExpenses,
-      Pendiente: pendingAmount
+    // Header
+    worksheet.addRow([`Reporte de Pagos del Proveedor: ${supplierName} y Producto: ${productName}`])
+    worksheet.addRow([`Período: ${filters.startDate} al ${filters.endDate}`])
+    worksheet.addRow([
+      `Generado el: ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`
+    ])
+    worksheet.addRow([])
+
+    // Merge headers
+    worksheet.mergeCells('A1:F1')
+    worksheet.mergeCells('A2:F2')
+    worksheet.mergeCells('A3:F3')
+
+      // Styles header
+      ;[1, 2, 3].forEach(rowNumber => {
+        const row = worksheet.getRow(rowNumber)
+        row.font = { bold: true, size: 14 }
+        row.alignment = { horizontal: 'center' }
+      })
+
+    // Table headers
+    const headerRow = worksheet.addRow([
+      'Fecha',
+      'Día',
+      'Compra',
+      'Gasto',
+      'Pendiente',
+      'Estado'
+    ])
+
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '4472C4' }
+    }
+    headerRow.alignment = { horizontal: 'center' }
+
+    // Data rows
+    dailyData.forEach(day => {
+      let status = 'Sin compras'
+
+      if (day.pendiente === 0 && day.compra > 0) {
+        status = 'Completo'
+      } else if (day.compra > 0) {
+        status = `${((day.gasto / day.compra) * 100).toFixed(1)}% Pagado`
+      }
+
+      worksheet.addRow([
+        day.date,
+        day.day,
+        day.compra,
+        day.gasto,
+        day.pendiente,
+        status
+      ])
     })
 
-    const headerData = [
-      [`Reporte de Pagos del Proveedor: ${supplierName} y Producto: ${productName}`],
-      [`Período: ${filters.startDate} al ${filters.endDate}`],
-      [`Generado el: ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`],
-      [''],
+    // Totals row
+    const totalRow = worksheet.addRow([
+      'TOTAL',
+      '-',
+      totalPurchases,
+      totalExpenses,
+      pendingAmount,
+      paymentStatus
+    ])
+
+    totalRow.font = { bold: true }
+
+    // Borders for all cells
+    worksheet.eachRow(row => {
+      row.eachCell(cell => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        }
+      })
+    })
+
+    // Auto width columns
+    worksheet.columns = [
+      { key: 'fecha', width: 15 },
+      { key: 'dia', width: 10 },
+      { key: 'compra', width: 15 },
+      { key: 'gasto', width: 15 },
+      { key: 'pendiente', width: 15 },
+      { key: 'estado', width: 18 }
     ]
 
-    const worksheet = XLSX.utils.json_to_sheet([])
-    XLSX.utils.sheet_add_aoa(worksheet, headerData)
-    XLSX.utils.sheet_add_json(worksheet, exportData, { origin: `A${headerData.length + 1}` })
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Pagos a Proveedores')
+    // Download file
+    const buffer = await workbook.xlsx.writeBuffer()
 
-    XLSX.writeFile(workbook, `Reporte_Pagos_Proveedores_${filters.startDate}_${filters.endDate}.xlsx`)
+    const blob = new Blob([buffer], {
+      type:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Reporte_Pagos_Proveedores_${filters.startDate}_${filters.endDate}.xlsx`
+    a.click()
+
+    window.URL.revokeObjectURL(url)
   }
 
   const barChartData = monthlyData.map(month => ({
@@ -179,6 +272,11 @@ function SupplierProductCharts({
     Pagado: month.pagado,
     Pendiente: month.pendiente
   }))
+
+  const pieData = [
+    { name: 'Total Pagado', value: totalExpenses, fill: '#4ade80' },
+    { name: 'Total Pendiente', value: pendingAmount, fill: '#f87171' }
+  ]
 
   return (
     <div>
@@ -238,7 +336,7 @@ function SupplierProductCharts({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value) => `${value}`} />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
               <Bar dataKey="Total" fill="#60a5fa" />
               <Bar dataKey="Pagado" fill="#4ade80" />
@@ -252,22 +350,17 @@ function SupplierProductCharts({
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={[
-                  { name: 'Total Pagado', value: totalExpenses },
-                  { name: 'Total Pendiente', value: pendingAmount }
-                ]}
+                data={pieData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name}: ${formatChartPercent(percent)}`}
               >
-                <Cell fill="#4ade80" />
-                <Cell fill="#f87171" />
               </Pie>
-              <Tooltip formatter={(value) => `${value}`} />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -293,7 +386,7 @@ function SupplierProductCharts({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="día" />
                   <YAxis />
-                  <Tooltip formatter={(value) => `${value}`} />
+                  <Tooltip formatter={(value) => formatChartValue(value)} />
                   <Legend />
                   <Bar dataKey="Compra" fill="#60a5fa" />
                   <Bar dataKey="Gasto" fill="#4ade80" />

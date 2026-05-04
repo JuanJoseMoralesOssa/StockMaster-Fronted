@@ -238,29 +238,50 @@ renderCreateButton: (onClick) => (
 )
 \`\`\`
 
+## 🏗️ Arquitectura de Composición vs Configuración
+
+La versión actual de `GenericPage` utiliza **Composition Patterns** y React Context. Un diseño típico se ve así:
+
+```tsx
+import GenericPage from '../generic_page/GenericPage'
+import { myConfig } from './myConfig'
+
+export default function MyPage() {
+  return (
+    <GenericPage config={myConfig}>
+      <GenericPage.Header config={myConfig} />
+      <GenericPage.Filters config={myConfig} />
+      <GenericPage.Table config={myConfig} />
+      <GenericPage.DetailsModal config={myConfig} />
+    </GenericPage>
+  )
+}
+```
+
+Esto permite cambiar el orden, inyectar capas intermedias (como alertas exclusivas), y evita modificar el archivo principal `GenericPage.tsx` al escalar.
+
 ## 📦 Estructura de Archivos
 
-\`\`\`
+```
 src/
-├── config/ # Configuraciones de páginas
-│ ├── userPageConfig.ts
-│ ├── productPageConfig.tsx
-│ └── ...
+├── config/             # Configuraciones de páginas
+│   ├── userPageConfig.ts
+│   ├── productPageConfig.tsx
+│   └── ...
 ├── types/
-│ └── GenericConfig.ts # Interfaces de configuración
+│   └── GenericConfig.ts # Interfaces de configuración
 ├── pages/
-│ ├── generic_page/ # Componentes genéricos
-│ │ ├── GenericPage.tsx # Página principal
-│ │ └── components/
-│ │ ├── GenericTable.tsx # Tabla genérica
-│ │ ├── GenericForm.tsx # Formulario genérico
-│ │ ├── GenericHeader.tsx # Header genérico
-│ │ └── HeaderTitle.tsx
-│ ├── user/
-│ │ └── User.tsx # Solo 7 líneas de código!
-│ └── product/
-│ └── Product.tsx # Solo 7 líneas de código!
-\`\`\`
+│   ├── generic_page/    # Componentes genéricos
+│   │   ├── GenericPage.tsx # Context Provider (Wrapper principal)
+│   │   └── components/
+│   │       ├── page/       # Compound components (PageHeader, PageTable, etc)
+│   │       ├── generic_table/
+│   │       └── generic_form/
+│   ├── user/
+│   │   └── User.tsx     # ~12 líneas usando composición
+│   └── product/
+│       └── Product.tsx  # ~12 líneas usando composición
+```
 
 ## ✨ Beneficios
 

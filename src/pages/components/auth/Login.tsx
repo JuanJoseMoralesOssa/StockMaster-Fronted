@@ -1,47 +1,52 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Eye, EyeOff, LogIn } from 'lucide-react'
 import useAuthStore from '../../../stores/useAuthStore'
 import { useToast } from '../../../hooks/useToast'
+import { Button, FieldGroup, Input, Alert } from '../../../components/ui'
+
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Ingresa tu correo electrónico.')
+    .email('El correo electrónico no es válido.'),
+  password: z.string().min(1, 'Ingresa tu contraseña.'),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 function Login() {
   const { login, isAuthenticated } = useAuthStore()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
 
   const { showSuccess, showError } = useToast()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
 
-  // Si ya está autenticado, redirigir al dashboard
   if (isAuthenticated) {
     return <Navigate to="/" replace />
   }
 
-  const handleChangeForm = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
-  }
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setIsSubmitting(true)
-
-    const { email, password } = formData
-
-    if (!email || !password) {
-      showError('Por favor completa todos los campos.', 'Campos requeridos')
-      setIsSubmitting(false)
-      return
-    }
-
+  const onSubmit = async (values: LoginFormValues) => {
     try {
-      await login({ email, password })
+      await login(values)
       showSuccess('¡Bienvenido! Has iniciado sesión correctamente.', 'Inicio de sesión exitoso')
-      // El redirect se manejará automáticamente por el Navigate en el componente
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión'
       showError(errorMessage, 'Error de autenticación')
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -55,121 +60,89 @@ function Login() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-(--color-text-primary)">
               Inicia Sesión
             </h2>
           </div>
-          <p className="text-gray-600">
+          <p className="text-(--color-text-secondary)">
             Bienvenido al Sistema de Inventario
           </p>
         </div>
 
-        {/* Form Container */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="bg-(--color-bg-surface) rounded-2xl shadow-xl border border-(--color-border) p-6">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Correo electrónico
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                    </svg>
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-                    placeholder="correo@ejemplo.com"
-                    value={formData.email}
-                    onChange={handleChangeForm}
-                  />
-                </div>
-              </div>
+              <FieldGroup
+                label="Correo electrónico"
+                error={errors.email?.message}
+                required
+              >
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="correo@ejemplo.com"
+                  {...register('email')}
+                />
+              </FieldGroup>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-(--color-text-primary) mb-(--spacing-label)"
+                >
                   Contraseña
+                  <span aria-hidden="true" className="ml-0.5 text-danger-500">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <input
+                  <Input
                     id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
-                    required
-                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                     placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChangeForm}
+                    hasError={Boolean(errors.password)}
+                    aria-describedby={errors.password ? 'password-error' : undefined}
+                    className="pr-10"
+                    {...register('password')}
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-(--color-text-muted) hover:text-(--color-text-secondary) transition-colors"
                   >
                     {showPassword ? (
-                      <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                      </svg>
+                      <EyeOff className="h-4 w-4" aria-hidden="true" />
                     ) : (
-                      <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
+                      <Eye className="h-4 w-4" aria-hidden="true" />
                     )}
                   </button>
                 </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-800 px-4 py-4 rounded-xl">
-              <div className="flex items-start">
-                <svg className="h-5 w-5 text-blue-400 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div className="text-sm">
-                  <p className="font-semibold mb-1">Credenciales de prueba:</p>
-                  <p className="text-blue-700">
-                    <span className="font-medium">Email:</span> admin@test.com<br />
-                    <span className="font-medium">Contraseña:</span> admin123
+                {errors.password && (
+                  <p id="password-error" className="mt-1 text-xs text-danger-700" role="alert">
+                    {errors.password.message}
                   </p>
-                </div>
+                )}
               </div>
             </div>
 
-            <button
+            <Alert variant="info" title="Credenciales de prueba">
+              <p>
+                <span className="font-medium">Email:</span> admin@test.com
+                <br />
+                <span className="font-medium">Contraseña:</span> admin123
+              </p>
+            </Alert>
+
+            <Button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transform transition duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+              variant="primary"
+              size="lg"
+              loading={isSubmitting}
+              leftIcon={!isSubmitting ? <LogIn className="h-4 w-4" aria-hidden="true" /> : undefined}
+              className="w-full"
             >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Iniciando sesión...
-                </>
-              ) : (
-                <>
-                  <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  Iniciar Sesión
-                </>
-              )}
-            </button>
+              {isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            </Button>
           </form>
         </div>
       </div>

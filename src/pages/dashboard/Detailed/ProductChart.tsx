@@ -1,5 +1,5 @@
 import React from 'react'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import {
   BarChart,
   Bar,
@@ -11,7 +11,6 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
 } from 'recharts'
 import { SuppliersResults } from '../../../types/DashboardResults'
 import Person from '../../../types/Person'
@@ -56,6 +55,20 @@ interface DailyData {
 const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
 const formatMonthName = (date: Date): string => `${monthNames[date.getMonth()]} ${date.getFullYear()}`
+const formatChartValue = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).join(', ')
+  }
+  if (typeof value === 'number') {
+    return value.toLocaleString()
+  }
+  if (typeof value === 'string') {
+    return value
+  }
+  return ''
+}
+const formatChartPercent = (percent: number | undefined): string =>
+  `${((percent ?? 0) * 100).toFixed(0)}%`
 
 const ProductChart: React.FC<ProductChartProps> = ({
   // selectedFilter,
@@ -190,7 +203,10 @@ const ProductChart: React.FC<ProductChartProps> = ({
     return `${((m.Pagado / m.Total) * 100).toFixed(2)}% Pagado`
   }
 
-  const exportToExcel = (): void => {
+  const exportToExcel = async (): Promise<void> => {
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Pagos Proveedores')
+
     const exportData = Object.values(monthlyData).map((m) => ({
       Mes: m.name,
       Total: m.Total,
@@ -213,26 +229,76 @@ const ProductChart: React.FC<ProductChartProps> = ({
           : `${((totals.Pagado / totals.Total) * 100).toFixed(2)}% Pagado`,
     })
 
-    const header = [
-      [`Reporte Mensual - Proveedores`],
-      [`Período: ${filters.startDate} al ${filters.endDate}`],
-      [`Generado: ${new Date().toLocaleString()}`],
-      [''],
-    ]
+    // Header superior
+    worksheet.addRow(['Reporte Mensual - Proveedores'])
+    worksheet.addRow([`Período: ${filters.startDate} al ${filters.endDate}`])
+    worksheet.addRow([`Generado: ${new Date().toLocaleString()}`])
+    worksheet.addRow([])
 
-    const ws = XLSX.utils.aoa_to_sheet(header)
-    XLSX.utils.sheet_add_json(ws, exportData, { origin: `A${header.length + 1}` })
+    // Header tabla
+    worksheet.addRow(['Mes', 'Total', 'Pagado', 'Pendiente', 'Estado'])
 
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Pagos Proveedores')
-    XLSX.writeFile(wb, `Reporte_Proveedores_${new Date().getTime()}.xlsx`)
+    // Data
+    exportData.forEach((row) => {
+      worksheet.addRow([
+        row.Mes,
+        row.Total,
+        row.Pagado,
+        row.Pendiente,
+        row.Estado,
+      ])
+    })
+
+    // Estilos header tabla
+    const headerRow = worksheet.getRow(5)
+    headerRow.font = { bold: true }
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'D9E1F2' },
+      }
+    })
+
+    // Auto width columnas
+    worksheet.columns.forEach((column) => {
+      let maxLength = 10
+
+      column.eachCell?.({ includeEmpty: true }, (cell) => {
+        const value = cell.value ? cell.value.toString() : ''
+        maxLength = Math.max(maxLength, value.length)
+      })
+
+      column.width = maxLength + 2
+    })
+
+    // Descargar archivo
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], {
+      type:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `Reporte_Proveedores_${Date.now()}.xlsx`
+    link.click()
+    window.URL.revokeObjectURL(url)
   }
 
   // Colores para gráficos
-  const COLORS = ['#0088FE', '#FF8042']
   const pieChartData = [
-    { name: 'Total Pagado', value: totals.Pagado },
-    { name: 'Total Pendiente', value: totals.Pendiente },
+    {
+      name: 'Total Pagado',
+      value: totals.Pagado,
+      fill: '#0088FE',
+    },
+    {
+      name: 'Total Pendiente',
+      value: totals.Pendiente,
+      fill: '#FF8042',
+    },
   ]
 
   return (
@@ -262,7 +328,7 @@ const ProductChart: React.FC<ProductChartProps> = ({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} />
               <YAxis />
-              <Tooltip formatter={(value) => value.toLocaleString()} />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
               <Bar dataKey="Total" name="Total Compras" fill="#8884d8" />
               <Bar dataKey="Pagado" name="Total Pagado" fill="#82ca9d" />
@@ -281,13 +347,11 @@ const ProductChart: React.FC<ProductChartProps> = ({
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              >
-                {pieChartData.map((data, index) => (
-                  <Cell key={`cell-${data.name}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => value.toLocaleString()} />
+                label={({ name, percent }) =>
+                  `${name}: ${formatChartPercent(percent)}`
+                }
+              />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -314,7 +378,7 @@ const ProductChart: React.FC<ProductChartProps> = ({
                       fontSize={12}
                     />
                     <YAxis fontSize={12} />
-                    <Tooltip formatter={(value) => value.toLocaleString()} />
+                    <Tooltip formatter={(value) => formatChartValue(value)} />
                     <Legend />
                     <Bar dataKey="Total" name="Total" fill="#8884d8" />
                     <Bar dataKey="Pagado" name="Pagado" fill="#82ca9d" />
@@ -357,7 +421,7 @@ const ProductChart: React.FC<ProductChartProps> = ({
                         />
                         <YAxis fontSize={10} />
                         <Tooltip
-                          formatter={(value) => value.toLocaleString()}
+                          formatter={(value) => formatChartValue(value)}
                           labelStyle={{ fontSize: '12px' }}
                           contentStyle={{ fontSize: '12px' }}
                         />

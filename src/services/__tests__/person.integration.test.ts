@@ -3,10 +3,8 @@
  *
  * Cubre todos los métodos del servicio: GET, DELETE, PUT, PATCH
  */
-
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import MockAdapter from 'axios-mock-adapter'
-import axios from 'axios'
+import { httpClient } from '../httpClient'
 import { personService } from '../PersonService'
 
 const BASE = 'http://127.0.0.1:3000'
@@ -21,7 +19,7 @@ function paginated<T>(data: T[], page = 1, limit = 10) {
 }
 
 let mock: MockAdapter
-beforeEach(() => { mock = new MockAdapter(axios) })
+beforeEach(() => { mock = new MockAdapter(httpClient) })
 afterEach(() => { mock.restore() })
 
 // ─────────────────────────────────────────────────────────────────────────────

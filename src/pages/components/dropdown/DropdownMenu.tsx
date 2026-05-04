@@ -5,7 +5,7 @@ import PrimaryButton from '../common/PrimaryButton'
 interface Props<T> {
   openDropdownIndex: number | null
   dropdownPosition: { top: number; left: number } | null
-  dropdownRef: React.RefObject<HTMLDivElement>
+  dropdownRef: React.RefObject<HTMLDivElement | null>
   actions: GenericActions<T>
   data: T[]
   onExecuteAction: (actionIndex: number, item: T) => void

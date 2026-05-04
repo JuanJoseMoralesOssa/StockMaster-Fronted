@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import Purchase from '../../../types/Purchase'
-import { PurchaseService } from '../../../services/PurchaseService'
+import { purchaseService } from '../../../services/PurchaseService'
 import PurchasesDetailsTable from '../../purchase_details/PurchaseDetailsTable'
 import PurchaseDetails from '../../../types/PurchaseDetails'
-import { useToast } from '../../../hooks/useToast'
-
-const purchaseService = new PurchaseService()
+import { useApiRequest } from '../../../hooks/useApiRequest'
+import { Button, Input, Label } from '../../../components/ui'
 
 interface PurchaseCreateProps {
     onPurchaseCreated: (newPurchase: Purchase) => void
@@ -13,7 +12,6 @@ interface PurchaseCreateProps {
 }
 
 const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreateProps>) => {
-    const [loading, setLoading] = useState(false)
     const [purchase, setPurchase] = useState<Purchase>({
         date: (() => {
             const d = new Date()
@@ -31,7 +29,18 @@ const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreat
     })
     const [details, setDetails] = useState<PurchaseDetails[]>([])
 
-    const { showSuccess, showError } = useToast()
+    const { loading, execute } = useApiRequest(
+        (data: Purchase) => purchaseService.createWithDetails(data),
+        {
+            successMessage: 'Compra creada exitosamente',
+            errorMessage: 'Error al crear la compra',
+            showSuccessToast: true,
+            onSuccess: (response) => {
+                onPurchaseCreated(response)
+                onSuccess()
+            }
+        }
+    )
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -46,44 +55,28 @@ const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreat
     const handleSubmit = async (e: React.FormEvent) => {
         if (loading) return
         e.preventDefault()
-        setLoading(true)
+
+        const purchaseToSubmit = { ...purchase }
         if (details && details.length > 0) {
-            purchase.purchase_details = details
+            purchaseToSubmit.purchase_details = details
         }
 
-        try {
-            const response = await purchaseService.createWithDetails(purchase)
-            onPurchaseCreated(response)
-            showSuccess('Compra creada exitosamente', 'Creación exitosa')
-            onSuccess()
-        } catch (error) {
-            showError('Error al crear la compra', 'Error')
-            console.error('Error creating purchase:', error)
-        }
-        setLoading(false)
+        await execute(purchaseToSubmit)
     }
 
     return (
-        <form onSubmit={handleSubmit} className='space-y-4 px-2 w-fit'>
-            <section className='md:flex md:items-center md:justify-between gap-1 md:space-x-4 pt-1'>
-                <button
-                    type='submit'
-                    className='inline-flex mb-3 md:mb-0 md:order-3 w-full md:w-fit md:ml-4 justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                    Guardar
-                </button>
-                <section className='flex flex-col items-center md:flex-row gap-1 md:space-x-4'>
-                    <label
-                        htmlFor='date'
-                        className='inline-flex md:order-1 text-sm font-medium text-gray-700'>
+        <form onSubmit={handleSubmit} className='mx-auto w-full max-w-3xl space-y-8 px-4 py-6' noValidate>
+            <section className='flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4'>
+                <div className='flex flex-col gap-2'>
+                    <Label htmlFor='date' required>
                         Fecha
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type='date'
                         name='date'
                         id='date'
                         value={(() => {
                             if (!purchase.date) return ''
-                            // If it's already YYYY-MM-DD, return it directly to avoid timezone shift
                             if (/^\d{4}-\d{2}-\d{2}$/.test(purchase.date)) return purchase.date
                             const d = new Date(purchase.date)
                             if (isNaN(d.getTime())) return ''
@@ -91,9 +84,16 @@ const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreat
                         })()}
                         required
                         onChange={handleChange}
-                        className='mt-1 p-1 inline-flex md:order-2 border w-fit rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm'
                     />
-                </section>
+                </div>
+                <Button
+                    type='submit'
+                    loading={loading}
+                    variant='primary'
+                    className='w-full sm:w-auto'
+                >
+                    Guardar
+                </Button>
             </section>
             <PurchasesDetailsTable
                 details={details}

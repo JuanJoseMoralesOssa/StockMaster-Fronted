@@ -58,46 +58,6 @@ export default function Pagination({
 
   const visiblePages = totalPages > 1 ? getVisiblePages() : [1]
 
-  if (totalPages <= 1) {
-    return (
-      <div className={`flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 ${className}`}>
-        <div className="flex-1 flex justify-between sm:hidden">
-          <p className="text-sm text-gray-700">
-            Mostrando {startItem} a {endItem} de {totalItems} resultados
-          </p>
-        </div>
-        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              Mostrando <span className="font-medium">{startItem}</span> a{' '}
-              <span className="font-medium">{endItem}</span> de{' '}
-              <span className="font-medium">{totalItems}</span> resultados
-            </p>
-          </div>
-          {showItemsPerPageSelector && onItemsPerPageChange && (
-            <div className="flex items-center space-x-2">
-              <label htmlFor="itemsPerPage" className="text-sm text-gray-700">
-                Items por página:
-              </label>
-              <select
-                id="itemsPerPage"
-                value={itemsPerPage}
-                onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {itemsPerPageOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className={`flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 ${className}`}>
       <div className="flex-1 flex justify-between sm:hidden">

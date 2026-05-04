@@ -5,6 +5,8 @@ import useAuthStore from './stores/useAuthStore'
 import { LoadingScreen } from './pages/components/common/LoadingSpinner'
 // Import theme store so the subscription runs before the app renders
 import './stores/useThemeStore'
+import { useNavigate } from 'react-router-dom'
+import { configureHttpClient } from './services/httpClient'
 
 // Eagerly load auth/shell components — needed before any route resolves
 import Home from './pages/home/Home'
@@ -20,8 +22,26 @@ const Purchase = lazy(() => import('./pages/purchase/Purchase'))
 const User = lazy(() => import('./pages/user/User'))
 const Person = lazy(() => import('./pages/person/Person'))
 const SupplierPaymentReport = lazy(() => import('./pages/dashboard/Dashboard'))
-// const Kardex = lazy(() => import('./pages/kardex/Kardex'))
+const Kardex = lazy(() => import('./pages/kardex/Kardex'))
 // const GenericPage = lazy(() => import('./pages/generic_page/GenericPage'))
+
+function HttpClientAuthBridge() {
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        configureHttpClient({
+            onUnauthenticated: () => {
+                void useAuthStore.getState().logout().finally(() => {
+                    navigate('/login', { replace: true })
+                })
+            },
+        })
+
+        return () => configureHttpClient({ onUnauthenticated: undefined })
+    }, [navigate])
+
+    return null
+}
 
 function App() {
     const { checkAuth, isLoading } = useAuthStore()
@@ -37,6 +57,7 @@ function App() {
 
     return (
         <BrowserRouter>
+            <HttpClientAuthBridge />
             <Suspense fallback={<LoadingScreen />}>
                 <Routes>
                     {/* Ruta pública de login */}
@@ -48,7 +69,7 @@ function App() {
                     }>
                         <Route index element={<SupplierPaymentReport />} />
                         <Route path='productos' element={<Product />} />
-                        {/* <Route path='kardex' element={<Kardex />} /> */}
+                        <Route path='kardex' element={<Kardex />} />
                         <Route path='gastos' element={<Expense />} />
                         <Route path='compras' element={<Purchase />} />
                         <Route path='personas' element={<Person />} />

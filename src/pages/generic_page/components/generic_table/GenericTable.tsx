@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Inbox } from 'lucide-react'
 import GenericTableHeader from './GenericTableHeader'
 import GenericTableBody from './GenericTableBody'
 
@@ -8,6 +9,7 @@ import { useDropdown } from '../../../components/dropdown/useDropdown'
 import DropdownMenu from '../../../components/dropdown/DropdownMenu'
 import Pagination from '../../../components/pagination/Pagination'
 import EditModal from '../EditModal'
+import { Alert, Button, EmptyState, TableSkeleton } from '../../../../components/ui'
 
 interface GenericTableProps<T> {
   data: T[]
@@ -22,9 +24,12 @@ interface GenericTableProps<T> {
   refresh: () => void
   updateItem: (updatedItem: T, idField?: keyof T) => void
   removeItem: (itemId: string | number, idField?: keyof T) => void
+  // Retry function to re-run the last paginated request
+  retry?: () => Promise<unknown>
 
   // Configuración
   columns: GenericColumn<T>[]
+  rowClassName?: (item: T) => string
   actions?: GenericActions<T>
   idField: keyof T
   entityName: string
@@ -34,7 +39,7 @@ interface GenericTableProps<T> {
   onUpdate?: (id: number | string, data: Partial<T>) => Promise<T>
 
   // Renderizado personalizado para el formulario de edición
-  renderEditForm?: (item: T, onSuccess: () => void, onCancel: () => void) => React.ReactNode
+  renderEditForm?: (item: T, onSuccess: () => void, onItemUpdated: (item: T) => void) => React.ReactNode
 
   // Campos del formulario (si se usa el formulario genérico)
   formFields?: GenericField<T>[]
@@ -60,7 +65,9 @@ export default function GenericTable<T extends Record<string, any>>({
   setItemsPerPage,
   updateItem,
   removeItem,
+  retry,
   columns,
+  rowClassName,
   actions = { canEdit: true, canDelete: true },
   idField,
   entityName,
@@ -74,6 +81,7 @@ export default function GenericTable<T extends Record<string, any>>({
   const actionsWithDefaults = actions || { canEdit: true, canDelete: true }
   const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set())
   const { openDropdownIndex, dropdownPosition, dropdownRef, handleDropdownToggle, closeDropdown } = useDropdown()
+  const showLoadingSkeleton = loading && (!data || data.length === 0)
 
   const toggleRowExpansion = (id: string | number) => {
     setExpandedRows(prev => {
@@ -101,28 +109,44 @@ export default function GenericTable<T extends Record<string, any>>({
     removeItem
   )
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    )
+  if (showLoadingSkeleton) {
+    return <TableSkeleton rows={5} cols={Math.max(columns.length, 3)} />
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-600">Error: {error}</p>
-      </div>
+      <Alert
+        variant="danger"
+        title="No se pudo cargar la información"
+        action={
+          retry && (
+            <Button variant="primary" size="sm" onClick={() => retry()}>
+              Reintentar
+            </Button>
+          )
+        }
+      >
+        {error}
+      </Alert>
     )
   }
 
   const showActions: boolean = Boolean(actionsWithDefaults.canEdit || actionsWithDefaults.canDelete || (actionsWithDefaults.customActions && actionsWithDefaults.customActions.length > 0))
 
+  if (!data || data.length === 0) {
+    return (
+      <EmptyState
+        icon={<Inbox aria-hidden="true" />}
+        title={`No hay ${entityName.toLowerCase()} para mostrar`}
+        description="Cuando se creen registros aparecerán aquí."
+      />
+    )
+  }
+
   return (
     <>
-      <div className='overflow-x-auto rounded-lg shadow-md'>
-        <table className='min-w-full divide-y divide-gray-200 '>
+      <div className='overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-xs'>
+        <table className='w-full divide-y divide-gray-200'>
           <GenericTableHeader
             columns={columns}
             showActions={showActions}
@@ -136,6 +160,7 @@ export default function GenericTable<T extends Record<string, any>>({
             onEdit={handleEdit}
             onDelete={(item) => handleDelete(item, idField)}
             onDropdownToggle={handleDropdownToggle}
+            rowClassName={rowClassName}
             expandableConfig={expandableConfig}
             expandedRows={expandedRows}
             toggleRowExpansion={toggleRowExpansion}

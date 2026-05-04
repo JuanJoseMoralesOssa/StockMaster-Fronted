@@ -1,6 +1,6 @@
-import axios from "axios"
 import { Config } from "../config/Config"
 import { DashboardResult, ProductsResults, SuppliersResults } from "../types/DashboardResults"
+import { httpClient } from "./httpClient"
 const API_BASE_URL = Config.LOGIC_URL
 
 export class DashboardService {
@@ -19,7 +19,7 @@ export class DashboardService {
     DashboardResult[]
   > {
     try {
-      const response = await axios.get(
+      const response = await httpClient.get(
         `${API_BASE_URL}person/${personId}/product/${productId}/transactions`,
         {
           params: {
@@ -41,7 +41,7 @@ export class DashboardService {
     endDate: string
   ): Promise<ProductsResults[]> {
     try {
-      const response = await axios.get(
+      const response = await httpClient.get(
         `${API_BASE_URL}person/${personId}/transactions`,
         {
           params: {
@@ -63,7 +63,7 @@ export class DashboardService {
     endDate: string
   ): Promise<SuppliersResults[]> {
     try {
-      const response = await axios.get(
+      const response = await httpClient.get(
         `${API_BASE_URL}product/${productId}/transactions`,
         {
           params: {

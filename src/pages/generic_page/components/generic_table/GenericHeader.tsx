@@ -1,6 +1,6 @@
 import React, { useState, useCallback, ReactNode } from "react"
 import { Plus } from "lucide-react"
-import PrimaryButton from "../../../components/common/PrimaryButton"
+import { Button } from "../../../../components/ui"
 import HeaderTitle from "../HeaderTitle"
 import { Modal } from "../../../components/modal/Modal"
 
@@ -49,9 +49,15 @@ function GenericHeaderInner<T>({
   const closeModal = useCallback(() => setOpen(false), [])
 
   const defaultButton = (
-    <PrimaryButton onClick={openModal} icon={buttonIcon ?? <Plus className='md:mr-2 h-4 w-4' />} className={buttonClassName} title={createButtonText}>
+    <Button
+      variant="primary"
+      onClick={openModal}
+      leftIcon={buttonIcon ?? <Plus className='h-4 w-4' />}
+      className={buttonClassName}
+      title={createButtonText}
+    >
       {createButtonText}
-    </PrimaryButton>
+    </Button>
   )
 
   return (

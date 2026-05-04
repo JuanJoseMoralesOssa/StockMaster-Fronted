@@ -1,8 +1,7 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import tsconfigPaths from 'vite-tsconfig-paths'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -12,8 +11,9 @@ const __dirname = path.dirname(__filename)
 
 // https://vite.dev/config/
 export default defineConfig({
-    plugins: [react(), tsconfigPaths(), tailwindcss()],
+    plugins: [react(), tailwindcss()],
     resolve: {
+        tsconfigPaths: true,
         alias: {
             '@': path.resolve(__dirname, './src'),
             '@app': path.resolve(__dirname, './src/app'),

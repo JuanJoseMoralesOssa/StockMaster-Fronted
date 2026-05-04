@@ -16,20 +16,22 @@ const SummaryTable: React.FC<SummaryTableProps> = ({
     const total = data.reduce((sum, item) => sum + Number(item[valueField]), 0)
 
     return (
-        <div className='w-full mx-auto bg-white shadow-sm rounded-xl p-4'>
-            <h3 className='text-lg font-medium mb-2'>{title}</h3>
-            <table className='w-full border border-gray-50 rounded-xl table-auto text-sm sm:text-base'>
+        <div className='w-full rounded-lg border border-gray-200 bg-white shadow-xs overflow-hidden'>
+            <div className='px-4 py-3 border-b border-gray-200 bg-gray-50'>
+                <h3 className='text-sm font-semibold text-gray-900'>{title}</h3>
+            </div>
+            <table className='w-full table-auto text-sm'>
                 <thead>
-                    <tr className='bg-gray-50 text-left text-gray-600 uppercase text-xs sm:text-sm'>
-                        <th className='text-left p-2'>Producto</th>
-                        <th className='text-right p-2'>{valueLabel}</th>
+                    <tr className='border-b border-gray-200 bg-gray-50'>
+                        <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600'>Producto</th>
+                        <th className='px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600'>{valueLabel}</th>
                     </tr>
                 </thead>
-                <tbody className='bg-white divide-y divide-gray-200'>
+                <tbody className='divide-y divide-gray-200'>
                     {data.map((item) => (
-                        <tr className='text-sm sm:text-base' key={item.id}>
-                            <td className='p-2 whitespace-nowrap'>{item.name}</td>
-                            <td className='p-2 whitespace-nowrap text-right'>
+                        <tr className='bg-white hover:bg-gray-50 transition-colors' key={item.id}>
+                            <td className='px-4 py-3 whitespace-nowrap text-gray-900'>{item.name}</td>
+                            <td className='px-4 py-3 whitespace-nowrap text-right text-gray-900'>
                                 {(item[valueField] as number).toLocaleString(
                                     'es-ES',
                                     {
@@ -40,9 +42,9 @@ const SummaryTable: React.FC<SummaryTableProps> = ({
                             </td>
                         </tr>
                     ))}
-                    <tr className='font-bold'>
-                        <td className='p-2 whitespace-nowrap'>Total</td>
-                        <td className='p-2 whitespace-nowrap text-right'>
+                    <tr className='bg-gray-50 font-semibold border-t border-gray-200'>
+                        <td className='px-4 py-3 whitespace-nowrap text-gray-900'>Total</td>
+                        <td className='px-4 py-3 whitespace-nowrap text-right text-gray-900'>
                             {total.toLocaleString('es-ES', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,

@@ -6,8 +6,8 @@ interface GenericTableProps<T> {
   error: string | null
   headers: string[]
   keyFn: (item: T) => string | number
-  renderMainRow: (item: T, isExpanded: boolean, toggleExpand: (id?: string | number | undefined) => void) => JSX.Element
-  renderDetailsRow?: (item: T) => JSX.Element | null
+  renderMainRow: (item: T, isExpanded: boolean, toggleExpand: (id?: string | number | undefined) => void) => React.ReactElement
+  renderDetailsRow?: (item: T) => React.ReactElement | null
   onRetry?: () => void
 }
 

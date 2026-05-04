@@ -7,12 +7,24 @@ interface EditModalProps<T> {
   isOpen: boolean
   selectedItem: T | null
   entityName: string
-  renderEditForm?: (item: T, onSuccess: () => void, onCancel: () => void) => React.ReactNode
+  renderEditForm?: (item: T, onSuccess: () => void, onItemUpdated: (item: T) => void) => React.ReactNode
   formFields?: GenericField<T>[]
   onUpdate?: (id: number | string, data: Partial<T>) => Promise<T>
   prepareDataForSubmit?: (data: Partial<T>, isEdit: boolean) => Promise<Partial<T>>
   onEditSuccess: (updatedItem: T) => void
   onClose: () => void
+}
+
+function buildEditableInitialData<T extends Record<string, any>>(item: T, fields?: GenericField<T>[]) {
+  if (!fields || fields.length === 0) {
+    return item
+  }
+
+  return fields.reduce<Partial<T>>((accumulator, field) => {
+    const fieldName = field.name as keyof T
+    accumulator[fieldName] = item[fieldName]
+    return accumulator
+  }, {})
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,12 +53,15 @@ export default function EditModal<T extends Record<string, any>>({
         renderEditForm(
           selectedItem,
           () => onClose(),
-          () => onClose()
+          (updatedItem) => {
+            onEditSuccess(updatedItem)
+            onClose()
+          }
         )
       ) : formFields && onUpdate ? (
         <GenericForm<T>
           fields={formFields}
-          initialData={selectedItem}
+          initialData={buildEditableInitialData(selectedItem, formFields)}
           onSubmit={async (formData: Partial<T>) => {
             let dataToSubmit = formData
             if (prepareDataForSubmit) {

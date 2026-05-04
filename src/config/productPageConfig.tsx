@@ -1,9 +1,7 @@
 import { GenericPageConfig } from '../types/GenericConfig'
 import Product from '../types/Product'
-import { ProductService } from '../services/ProductService'
+import { productService } from '../services/ProductService'
 import { Package } from 'lucide-react'
-
-const productService = new ProductService()
 
 export const productPageConfig: GenericPageConfig<Product> = {
   entityName: 'Producto',

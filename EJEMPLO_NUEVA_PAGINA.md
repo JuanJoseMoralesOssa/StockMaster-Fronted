@@ -187,7 +187,14 @@ import GenericPage from '../generic_page/GenericPage'
 import { categoryPageConfig } from '../../config/categoryPageConfig'
 
 function Category() {
-return <GenericPage config={categoryPageConfig} />
+return (
+<GenericPage config={categoryPageConfig}>
+<GenericPage.Header config={categoryPageConfig} />
+<GenericPage.Filters config={categoryPageConfig} />
+<GenericPage.Table config={categoryPageConfig} />
+<GenericPage.DetailsModal config={categoryPageConfig} />
+</GenericPage>
+)
 }
 
 export default Category

@@ -1,12 +1,10 @@
-import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { Config } from '../config/Config'
+import { httpClient } from './httpClient'
 import { PaginatedResponse } from '../types/PaginatedResponse'
 
 // Base URL para todas las peticiones
 const API_BASE_URL = Config.LOGIC_URL
-
-// Configuración por defecto para todas las peticiones
-const defaultConfig: AxiosRequestConfig = Config.defaultConfig
 
 // Clase base para servicios API
 export class ApiService<T> {
@@ -35,24 +33,24 @@ export class ApiService<T> {
           const errorData = axiosError.response.data as { message?: string }
           if (errorData.message) {
             console.error(`${errorMessage}: ${errorData.message}`)
-            throw new Error(`${errorMessage}: ${errorData.message}`)
+            throw new Error(`${errorMessage}: ${errorData.message}`, { cause: error as Error })
           }
         }
 
         console.error(`${errorMessage}: ${status} ${statusText}`)
-        throw new Error(`${errorMessage}: Error HTTP ${status} ${statusText}`)
+        throw new Error(`${errorMessage}: Error HTTP ${status} ${statusText}`, { cause: error as Error })
       } else if (axiosError.request) {
         console.error(`${errorMessage}: No se recibió respuesta del servidor`)
-        throw new Error(`${errorMessage}: No se recibió respuesta del servidor`)
+        throw new Error(`${errorMessage}: No se recibió respuesta del servidor`, { cause: error as Error })
       } else {
         console.error(`${errorMessage}: ${axiosError.message}`)
-        throw new Error(`${errorMessage}: ${axiosError.message}`)
+        throw new Error(`${errorMessage}: ${axiosError.message}`, { cause: error as Error })
       }
     }
 
     // Para errores que no son de Axios
     console.error(errorMessage, error)
-    throw new Error(`${errorMessage}: Error inesperado`)
+    throw new Error(`${errorMessage}: Error inesperado`, { cause: error as Error })
   }
 
   // Método genérico para procesar respuestas
@@ -66,10 +64,16 @@ export class ApiService<T> {
     }
   }
 
+  // Public helper to build URLs for external use (e.g., tests or logging)
+  // Keeps internal `getUrl` protected while exposing a safe wrapper.
+  public buildUrl(path: string = ''): string {
+    return this.getUrl(path)
+  }
+
   // Métodos CRUD genéricos
   async getAll(): Promise<T[]> {
     try {
-      return await this.handleResponse<T[]>(axios.get(`${this.getUrl()}/all`, defaultConfig))
+      return await this.handleResponse<T[]>(httpClient.get(`${this.getUrl()}/all`))
     } catch (error) {
       this.handleError(error, `Error getting all ${this.endpoint}`)
     }
@@ -83,38 +87,40 @@ export class ApiService<T> {
         limit: limit.toString()
       })
       return await this.handleResponse<PaginatedResponse<T>>(
-        axios.get(`${this.getUrl()}?${params.toString()}`, defaultConfig)
+        httpClient.get(`${this.getUrl()}?${params.toString()}`)
       )
     } catch (error) {
       this.handleError(error, `Error getting paginated ${this.endpoint}`)
     }
   }
 
-  async getById(id: number): Promise<T> {
+  async getById(id: number | string): Promise<T> {
     try {
       return await this.handleResponse<T>(
-        axios.get(this.getUrl(id.toString()), defaultConfig)
+        httpClient.get(this.getUrl(id.toString()))
       )
     } catch (error) {
       this.handleError(error, `Error getting ${this.endpoint} with id ${id}`)
     }
   }
 
-  async create(data: Omit<T, 'id'>): Promise<T> {
+  async create(data: Partial<T>): Promise<T> {
     try {
       return await this.handleResponse<T>(
-        axios.post(this.getUrl(), data, defaultConfig)
+        httpClient.post(this.getUrl(), data)
       )
     } catch (error) {
       this.handleError(error, `Error creating ${this.endpoint}`)
     }
   }
 
-  async update(id: number, data: T): Promise<T> {
+  async update(id: number | string, data: Partial<T>): Promise<T> {
     try {
-      delete (data as Partial<T> & { id?: unknown }).id
+      if ('id' in data) {
+        delete (data as Partial<T> & { id?: unknown }).id
+      }
       return await this.handleResponse<T>(
-        axios.put(this.getUrl(id.toString()), data, defaultConfig)
+        httpClient.put(this.getUrl(id.toString()), data)
       )
     } catch (error) {
       this.handleError(error, `Error updating ${this.endpoint} with id ${id}`)
@@ -122,23 +128,23 @@ export class ApiService<T> {
   }
 
 
-  async updatePartial(id: number, data: Partial<T>): Promise<T> {
+  async updatePartial(id: number | string, data: Partial<T>): Promise<T> {
     try {
       if ('id' in data) {
         delete (data as Partial<T> & { id?: unknown }).id
       }
       return await this.handleResponse<T>(
-        axios.patch(this.getUrl(id.toString()), data, defaultConfig)
+        httpClient.patch(this.getUrl(id.toString()), data)
       )
     } catch (error) {
       this.handleError(error, `Error partially updating ${this.endpoint} with id ${id}`)
     }
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: number | string): Promise<void> {
     try {
       await this.handleResponse<void>(
-        axios.delete(this.getUrl(id.toString()), defaultConfig)
+        httpClient.delete(this.getUrl(id.toString()))
       )
     } catch (error) {
       this.handleError(error, `Error deleting ${this.endpoint} with id ${id}`)

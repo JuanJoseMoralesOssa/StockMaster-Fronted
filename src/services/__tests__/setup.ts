@@ -3,7 +3,7 @@
  * Se ejecuta antes de cada archivo de prueba.
  */
 
-import { afterEach, vi } from 'vitest'
+// Using globals: true in vitest.config
 
 // Limpiar todos los mocks después de cada prueba
 afterEach(() => {

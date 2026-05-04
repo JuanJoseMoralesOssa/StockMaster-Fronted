@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import bcrypt from 'bcryptjs'
+import { Eye, EyeOff } from 'lucide-react'
 
-import { useToast } from '../../hooks/useToast'
+import { useApiRequest } from '../../hooks/useApiRequest'
 import { userService } from '../../services/User'
 import { Roles } from '../../enums/Roles'
 import User from '../../types/User'
+import { Button, FieldGroup, Input, Alert } from '../../components/ui'
 
 interface UserCreateProps {
     onSuccess?: () => void
@@ -12,14 +14,38 @@ interface UserCreateProps {
 }
 
 const UserCreate = ({ onSuccess, onUserCreated }: UserCreateProps) => {
-    const [loading, setLoading] = useState(false)
-    const { showSuccess, showError } = useToast()
     const [user, setUser] = useState<User>({
         name: '',
         password: '',
         email: '',
         role: '',
     })
+
+    const { loading, execute } = useApiRequest(
+        (data: User) => userService.create(data),
+        {
+            successMessage: 'Usuario creado exitosamente',
+            errorMessage: 'Error al crear el usuario',
+            showSuccessToast: true,
+            onSuccess: (newUser) => {
+                if (onUserCreated) {
+                    onUserCreated(newUser)
+                }
+                setUser({
+                    name: '',
+                    password: '',
+                    email: '',
+                    role: '',
+                })
+                setConfirmPassword('')
+                setPasswordError('')
+
+                if (onSuccess) {
+                    onSuccess()
+                }
+            }
+        }
+    )
 
     const [confirmPassword, setConfirmPassword] = useState('')
     const [passwordError, setPasswordError] = useState('')
@@ -30,25 +56,22 @@ const UserCreate = ({ onSuccess, onUserCreated }: UserCreateProps) => {
         const { name, value } = e.target
         setUser({ ...user, [name]: value })
 
-        // Clear password error when user starts typing again
         if (name === 'password') {
             setPasswordError('')
-
         }
     }
 
     const validatePassword = () => {
         if (!user.password) {
-            setPasswordError('La contraseña es obligatoria')
+            setPasswordError('Ingresa la contraseña.')
             return false
         }
-
         if (user.password.length < 6) {
-            setPasswordError('La contraseña debe tener al menos 6 caracteres')
+            setPasswordError('La contraseña debe tener al menos 6 caracteres.')
             return false
         }
         if (user.password !== confirmPassword) {
-            setPasswordError('Las contraseñas no coinciden')
+            setPasswordError('Las contraseñas no coinciden.')
             return false
         }
         return true
@@ -56,184 +79,133 @@ const UserCreate = ({ onSuccess, onUserCreated }: UserCreateProps) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-
         if (!validatePassword()) {
-            setLoading(false)
             return
         }
-
-        setLoading(true)
-
-        try {
-            const hashedUser = { ...user, password: bcrypt.hashSync(user.password!, 12) }
-            const newUser = await userService.create(hashedUser)
-
-            // Update local state if callback provided
-            if (onUserCreated) {
-                onUserCreated(newUser)
-            }
-
-            showSuccess('Usuario creado exitosamente', 'Creación exitosa')
-
-            // Limpiar formulario después de creación exitosa
-            setUser({
-                name: '',
-                password: '',
-                email: '',
-                role: '',
-            })
-            setConfirmPassword('')
-            setPasswordError('')
-
-            // Llamar callback si existe (para cerrar modal)
-            if (onSuccess) {
-                onSuccess()
-            }
-        } catch (error) {
-            showError('Error al crear el usuario', 'Error')
-            console.error('Error creating user:', error)
-        } finally {
-            setLoading(false)
-        }
+        const hashedUser = { ...user, password: bcrypt.hashSync(user.password!, 12) }
+        await execute(hashedUser)
     }
 
     return (
-        <form onSubmit={handleSubmit} className='space-y-4 px-2 overflow-auto'>
-            <section className='md:flex md:items-center md:justify-between md:space-x-4'>
-                <label
-                    htmlFor='name'
-                    className='block text-sm font-medium text-gray-700 md:w-1/3'>
-                    Nombre de Usuario
-                </label>
-                <input
+        <form onSubmit={handleSubmit} className='space-y-4 px-2 overflow-auto' noValidate>
+            <FieldGroup label="Nombre de usuario" required>
+                <Input
                     type='text'
                     name='name'
-                    id='name'
+                    autoComplete='username'
                     value={user.name}
-                    required
                     onChange={handleChange}
-                    className='mt-1 p-1 block border w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm md:w-full'
+                    placeholder="Ingresa el nombre del usuario"
+                    required
                 />
-            </section>
-            <section className='md:flex md:items-center md:justify-between md:space-x-4'>
-                <label
-                    htmlFor='email'
-                    className='block text-sm font-medium text-gray-700 md:w-1/3'>
-                    Correo Electrónico
-                </label>
-                <input
+            </FieldGroup>
+
+            <FieldGroup label="Correo electrónico" required>
+                <Input
                     type='email'
                     name='email'
-                    id='email'
+                    autoComplete='email'
                     value={user.email}
-                    required
                     onChange={handleChange}
-                    className='mt-1 p-1 block border w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm md:w-full'
+                    placeholder="correo@ejemplo.com"
+                    required
                 />
-            </section>
-            <section className='md:flex md:items-center md:justify-between md:space-x-4'>
+            </FieldGroup>
+
+            <div className='flex flex-col'>
                 <label
                     htmlFor='role'
-                    className='block text-sm font-medium text-gray-700 md:w-1/3'>
+                    className='block text-sm font-medium text-(--color-text-primary) mb-label'
+                >
                     Rol
+                    <span aria-hidden='true' className='ml-0.5 text-danger-500'>*</span>
                 </label>
                 <select
                     name='role'
                     id='role'
                     required
-                    className='mt-1 p-1 block border w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm md:w-full'
+                    className='w-full h-input px-3 rounded-md border border-(--color-border) bg-(--color-bg-surface) text-(--color-text-primary) text-sm hover:border-(--color-border-strong) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring) transition-colors'
                     value={user.role}
-                    onChange={(e) =>
-                        setUser({
-                            ...user,
-                            role: e.target.value,
-                        })
-                    }>
+                    onChange={(e) => setUser({ ...user, role: e.target.value })}
+                >
                     <option value=''>Selecciona un rol</option>
                     <option value={Roles.ADMIN}>Administrador</option>
                     <option value={Roles.OFFICE}>Oficina</option>
                     <option value={Roles.OPERATOR}>Operador</option>
                 </select>
-            </section>
-            <section className='md:flex md:items-center md:justify-between md:space-x-4'>
+            </div>
+
+            <div>
                 <label
                     htmlFor='password'
-                    className='block text-sm font-medium text-gray-700 md:w-1/3'>
+                    className='block text-sm font-medium text-(--color-text-primary) mb-label'
+                >
                     Contraseña
+                    <span aria-hidden='true' className='ml-0.5 text-danger-500'>*</span>
                 </label>
-                <div className="relative md:w-full">
-                    <input
-                        type={showPassword ? "text" : "password"}
+                <div className='relative'>
+                    <Input
+                        type={showPassword ? 'text' : 'password'}
                         name='password'
                         id='password'
+                        autoComplete='new-password'
                         value={user.password}
+                        onChange={handleChange}
+                        placeholder='Mínimo 6 caracteres'
+                        hasError={Boolean(passwordError)}
+                        className='pr-10'
                         required
                         minLength={6}
-                        onChange={handleChange}
-                        className='mt-1 p-1 pr-10 block border w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm'
                     />
                     <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        type='button'
                         onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        className='absolute inset-y-0 right-0 pr-3 flex items-center text-(--color-text-muted) hover:text-(--color-text-secondary) transition-colors'
                     >
-                        {showPassword ? (
-                            <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                            </svg>
-                        ) : (
-                            <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        )}
+                        {showPassword ? <EyeOff className='h-4 w-4' aria-hidden='true' /> : <Eye className='h-4 w-4' aria-hidden='true' />}
                     </button>
                 </div>
-            </section>
-            <section className='md:flex md:items-center md:justify-between md:space-x-4'>
+            </div>
+
+            <div>
                 <label
                     htmlFor='confirmPassword'
-                    className='block text-sm font-medium text-gray-700 md:w-1/3'>
-                    Confirmar Contraseña
+                    className='block text-sm font-medium text-(--color-text-primary) mb-label'
+                >
+                    Confirmar contraseña
+                    <span aria-hidden='true' className='ml-0.5 text-danger-500'>*</span>
                 </label>
-                <div className="relative md:w-full">
-                    <input
-                        type={showConfirmPassword ? "text" : "password"}
+                <div className='relative'>
+                    <Input
+                        type={showConfirmPassword ? 'text' : 'password'}
                         name='confirmPassword'
                         id='confirmPassword'
+                        autoComplete='new-password'
                         value={confirmPassword}
-                        required
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className='mt-1 p-1 pr-10 block border w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:outline-none focus:ring-indigo-500 sm:text-sm'
+                        placeholder='Repite la contraseña'
+                        hasError={Boolean(passwordError)}
+                        className='pr-10'
+                        required
                     />
                     <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        type='button'
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        className='absolute inset-y-0 right-0 pr-3 flex items-center text-(--color-text-muted) hover:text-(--color-text-secondary) transition-colors'
                     >
-                        {showConfirmPassword ? (
-                            <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                            </svg>
-                        ) : (
-                            <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        )}
+                        {showConfirmPassword ? <EyeOff className='h-4 w-4' aria-hidden='true' /> : <Eye className='h-4 w-4' aria-hidden='true' />}
                     </button>
                 </div>
-            </section>
-            {passwordError && (
-                <p className='text-red-500 text-sm'>{passwordError}</p>
-            )}
+            </div>
+
+            {passwordError && <Alert variant='danger'>{passwordError}</Alert>}
+
             <section className='flex w-full sm:justify-end'>
-                <button
-                    disabled={loading}
-                    type='submit'
-                    className='inline-flex w-full md:w-fit justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                <Button type='submit' loading={loading} variant='primary' className='w-full md:w-fit'>
                     Crear Usuario
-                </button>
+                </Button>
             </section>
         </form>
     )
