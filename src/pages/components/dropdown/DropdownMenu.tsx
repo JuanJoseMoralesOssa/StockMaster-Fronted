@@ -27,7 +27,7 @@ export default function DropdownMenu<T>({
   return (
     <div
       ref={dropdownRef}
-      className='fixed z-50 w-44 rounded-md bg-white shadow-lg ring-1 ring-black/5 animate-dropdown-in'
+      className='fixed z-50 w-44 rounded-md bg-(--color-bg-surface) shadow-lg ring-1 ring-[var(--color-border)] animate-dropdown-in'
       style={{ top: dropdownPosition.top, left: Math.max(8, dropdownPosition.left) }}
     >
       <div className='flex flex-col py-1'>
@@ -37,7 +37,7 @@ export default function DropdownMenu<T>({
             <PrimaryButton
               key={actionIndex}
               onClick={() => onExecuteAction(actionIndex, item)}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 ${action.className || 'text-gray-700'
+              className={`w-full text-left px-3 py-2 text-sm hover:bg-(--color-bg-subtle) transition-colors flex items-center gap-2 ${action.className || 'text-(--color-text-secondary)'
                 }`}
               icon={action.icon}
             >

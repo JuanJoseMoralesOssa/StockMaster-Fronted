@@ -27,26 +27,26 @@ export default function DocumentDetailsExpandedView<TDetail extends DetailLike>(
 
   return (
     <div>
-      {title && <h4 className='text-sm font-semibold text-gray-900 mb-4'>{title}</h4>}
-      <div className='rounded-lg border border-gray-200 bg-white overflow-hidden shadow-xs'>
+      {title && <h4 className='mb-4 text-sm font-semibold text-(--color-text-primary)'>{title}</h4>}
+      <div className='overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
         <table className='w-full text-sm'>
-          <thead className='border-b border-gray-200 bg-gray-50'>
+          <thead className='border-b border-(--color-border) bg-[var(--view-accent-soft,var(--color-bg-subtle))]'>
             <tr>
-              <th className='px-4 py-3 text-left font-semibold text-xs text-gray-600 uppercase tracking-wide'>Producto</th>
-              <th className='px-4 py-3 text-left font-semibold text-xs text-gray-600 uppercase tracking-wide'>Proveedor</th>
-              <th className='px-4 py-3 text-right font-semibold text-xs text-gray-600 uppercase tracking-wide'>Peso (KG)</th>
+              <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Producto</th>
+              <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Proveedor</th>
+              <th className='px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Peso (KG)</th>
             </tr>
           </thead>
-          <tbody className='divide-y divide-gray-200'>
+          <tbody className='divide-y divide-(--color-border)'>
             {details.map((detail, index) => (
-              <tr key={detail.id ?? `detail-${index}`} className='bg-white hover:bg-gray-50 transition-colors'>
-                <td className='px-4 py-3 text-gray-900'>
+              <tr key={detail.id ?? `detail-${index}`} className='bg-(--color-bg-surface) transition-colors hover:bg-(--color-bg-subtle)'>
+                <td className='px-4 py-3 text-(--color-text-primary)'>
                   {products.find((product) => product.id === detail.productId)?.name || detail.productId || '—'}
                 </td>
-                <td className='px-4 py-3 text-gray-900'>
+                <td className='px-4 py-3 text-(--color-text-primary)'>
                   {suppliers.find((supplier) => supplier.id === detail.personId)?.name || detail.personId || '—'}
                 </td>
-                <td className='px-4 py-3 text-right tabular-nums text-gray-900'>
+                <td className='px-4 py-3 text-right tabular-nums text-(--color-text-primary)'>
                   {detail.weight_kg ?? 0} kg
                 </td>
               </tr>

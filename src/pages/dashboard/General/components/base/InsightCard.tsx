@@ -13,19 +13,19 @@ function InsightCard({
   value,
   description,
   icon = "💡",
-  borderColor = "border-blue-500",
-  bgColor = "bg-white"
+  borderColor = "border-[var(--view-accent,var(--color-action-bg))]",
+  bgColor = "bg-(--color-bg-surface)"
 }: Readonly<InsightCardProps>) {
   return (
     <div className={`${bgColor} p-3 rounded border-l-4 ${borderColor}`}>
-      <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+      <h4 className="font-semibold text-(--color-text-primary) flex items-center gap-2">
         <span>{icon}</span>
         {title}
       </h4>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-(--color-text-secondary)">
         <span className="font-bold">{value}</span>
       </p>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-(--color-text-muted)">
         {description}
       </p>
     </div>

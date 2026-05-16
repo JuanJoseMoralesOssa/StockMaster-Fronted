@@ -8,7 +8,6 @@ interface PageTableProps<T, TFilter = object, CreateInput = Partial<T>, UpdateIn
   config: GenericPageConfig<T, TFilter, CreateInput, UpdateInput>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function PageTable<T extends object, TFilter = object, CreateInput = Partial<T>, UpdateInput = Partial<T>>({
   config
 }: PageTableProps<T, TFilter, CreateInput, UpdateInput>) {

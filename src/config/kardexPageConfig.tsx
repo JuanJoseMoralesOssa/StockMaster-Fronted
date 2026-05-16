@@ -1,6 +1,12 @@
+/* eslint-disable react-refresh/only-export-components */
 import { GenericPageConfig } from '../types/GenericConfig'
 import Kardex from '../types/Kardex'
 import { kardexService } from '../services/KardexService'
+import { useEffect } from 'react'
+import { Search, X } from 'lucide-react'
+import { Button } from '../components/ui'
+import Autocomplete from '../pages/components/common/Autocomplete'
+import { useProductStore } from '../stores'
 
 const operationOptions = [
   { value: 1, label: 'Entrada' },
@@ -8,28 +14,208 @@ const operationOptions = [
   { value: 3, label: 'Kardex' },
 ]
 
-export const kardexPageConfig: GenericPageConfig<Kardex> = {
+const dateToggleClasses = {
+  active: 'w-full border border-[var(--view-accent,var(--color-action-bg))] bg-[var(--view-accent,var(--color-action-bg))] text-white shadow-sm hover:bg-[var(--view-accent-hover,var(--color-action-bg-hover))] md:w-fit',
+  inactive: 'w-full border border-[var(--view-accent-border,var(--color-border-strong))] bg-(--color-bg-surface) text-[var(--view-accent-text,var(--color-text-link))] hover:bg-[var(--view-accent-soft,var(--color-bg-subtle))] md:w-fit',
+}
+
+export interface KardexFilters {
+  startDate: string
+  endDate: string
+  productId: string
+  productName: string
+  operation: string
+  balanceRecord: '' | 'yes' | 'no'
+  activeDate: boolean
+}
+
+function buildInitialKardexFilters(): KardexFilters {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+
+  return {
+    startDate: `${year}-${month}-01`,
+    endDate: `${year}-${month}-${day}`,
+    productId: '',
+    productName: '',
+    operation: '',
+    balanceRecord: '',
+    activeDate: false,
+  }
+}
+
+function KardexFiltersSection({
+  filters,
+  setFilters,
+  onSearch,
+  onClear,
+}: Readonly<{
+  filters: KardexFilters
+  setFilters: (filters: KardexFilters) => void
+  onSearch: () => void
+  onClear: () => void
+}>) {
+  const products = useProductStore((state) => state.products)
+  const fetchProducts = useProductStore((state) => state.fetchProducts)
+
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
+
+  const productOptions = products
+    .filter(product => product.id !== undefined && product.name !== undefined)
+    .map(product => ({
+      id: product.id!,
+      label: product.name,
+      name: product.name,
+    }))
+  const selectedProduct = productOptions.find(option => option.id.toString() === filters.productId)
+  const selectedProductName = selectedProduct?.label || filters.productName
+
+  return (
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(event) => {
+        event.preventDefault()
+        onSearch()
+      }}
+    >
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
+        <Autocomplete
+          key={`kardex-product-${filters.productId || 'empty'}`}
+          options={productOptions}
+          label="Producto"
+          placeholder="Buscar producto..."
+          displayKey="label"
+          initialValue={selectedProductName}
+          onSelect={(option) => setFilters({
+            ...filters,
+            productId: option ? option.id.toString() : '',
+            productName: option && typeof option.label === 'string' ? option.label : '',
+          })}
+          clearable
+          noOptionsText="No se encontraron productos"
+          labelClassName="block text-sm font-medium text-(--color-text-secondary) mb-1"
+          inputClassName="w-full h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 pr-8 text-sm text-(--color-text-primary) transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+        />
+
+        <div className="flex flex-col">
+          <label htmlFor="kardex-operation-filter" className="mb-1 text-sm font-medium text-(--color-text-secondary)">
+            Operacion
+          </label>
+          <select
+            id="kardex-operation-filter"
+            value={filters.operation}
+            onChange={(event) => setFilters({ ...filters, operation: event.target.value })}
+            className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+          >
+            <option value="">Todas</option>
+            {operationOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="kardex-balance-record-filter" className="mb-1 text-sm font-medium text-(--color-text-secondary)">
+            Ultimo registro
+          </label>
+          <select
+            id="kardex-balance-record-filter"
+            value={filters.balanceRecord}
+            onChange={(event) => setFilters({ ...filters, balanceRecord: event.target.value as KardexFilters['balanceRecord'] })}
+            className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+          >
+            <option value="">Todos</option>
+            <option value="yes">Solo ultimo registro</option>
+            <option value="no">No ultimo registro</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="rounded-md bg-[var(--view-accent-soft,var(--color-bg-subtle))] p-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end">
+          <Button
+            type="button"
+            variant={filters.activeDate ? 'primary' : 'outline'}
+            size="sm"
+            onClick={() => setFilters({ ...filters, activeDate: !filters.activeDate })}
+            className={filters.activeDate ? dateToggleClasses.active : dateToggleClasses.inactive}
+          >
+            {filters.activeDate ? 'Rango activo' : 'Filtrar por fechas'}
+          </Button>
+
+          {filters.activeDate && (
+            <div className="grid flex-1 gap-3 sm:grid-cols-2">
+              <div className="flex flex-col">
+                <label htmlFor="kardex-start-date" className="mb-1 text-sm font-medium text-(--color-text-secondary)">
+                  Fecha inicio
+                </label>
+                <input
+                  id="kardex-start-date"
+                  type="date"
+                  value={filters.startDate}
+                  onChange={(event) => setFilters({ ...filters, startDate: event.target.value })}
+                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label htmlFor="kardex-end-date" className="mb-1 text-sm font-medium text-(--color-text-secondary)">
+                  Fecha fin
+                </label>
+                <input
+                  id="kardex-end-date"
+                  type="date"
+                  value={filters.endDate}
+                  onChange={(event) => setFilters({ ...filters, endDate: event.target.value })}
+                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <Button type="submit" size="sm" className="w-full sm:w-fit" leftIcon={<Search className="h-4 w-4" />}>
+          Buscar
+        </Button>
+        <Button type="button" variant="secondary" size="sm" className="w-full sm:w-fit" leftIcon={<X className="h-4 w-4" />} onClick={onClear}>
+          Limpiar
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
   entityName: 'Registro de Kardex',
   entityNamePlural: 'Kardex',
   idField: 'id',
-  rowClassName: (entry) => (entry.balance_record ? 'bg-green-50/70' : ''),
+  rowClassName: (entry) => (entry.balance_record ? 'bg-success-50/70' : ''),
+  initialFilterState: buildInitialKardexFilters(),
+  clearFilterState: buildInitialKardexFilters(),
 
   columns: [
     {
       key: 'date',
       label: 'Fecha',
       render: (entry) => (
-        <span className='font-medium text-gray-800'>
+        <span className='font-medium text-(--color-text-primary)'>
           {new Date(entry.date).toLocaleDateString('es-ES')}
         </span>
       ),
     },
     {
       key: 'product',
-      label: 'Producto',
+      label: 'Nombre del producto',
       render: (entry) => (
-        <span className='inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700'>
-          {entry.product?.name ?? `#${entry.productId}`}
+        <span className='inline-flex items-center rounded-md border border-[var(--view-accent-border,var(--color-border-strong))] bg-(--color-bg-surface) px-2.5 py-1 text-xs font-semibold text-(--color-text-primary) shadow-xs'>
+          {entry.product?.name ?? `Producto #${entry.productId}`}
         </span>
       ),
     },
@@ -51,7 +237,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex> = {
       key: 'balance',
       label: 'Saldo',
       render: (entry) => (
-        <span className='inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700'>
+        <span className='inline-flex items-center rounded-md border border-[var(--view-accent-border,var(--color-border-strong))] bg-(--color-bg-surface) px-2 py-1 text-xs font-semibold text-[var(--view-accent-text,var(--color-text-link))] shadow-xs'>
           {entry.balance}
         </span>
       ),
@@ -60,7 +246,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex> = {
       key: 'balance_record',
       label: 'Ultimo Registro',
       render: (entry) => (
-        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${entry.balance_record ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+        <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-xs ${entry.balance_record ? 'border border-success-500/50 bg-success-50 text-success-700' : 'border border-(--color-border-strong) bg-(--color-bg-surface) text-(--color-text-primary)'}`}>
           {entry.balance_record ? 'Si' : 'No'}
         </span>
       ),
@@ -71,12 +257,12 @@ export const kardexPageConfig: GenericPageConfig<Kardex> = {
       render: (entry) => {
         const label = operationOptions.find((op) => op.value === entry.operation)?.label ?? 'N/A'
         const tone = entry.operation === 1
-          ? 'bg-emerald-100 text-emerald-700'
+          ? 'border border-emerald-600/40 bg-emerald-50 text-emerald-800'
           : entry.operation === 2
-            ? 'bg-rose-100 text-rose-700'
-            : 'bg-amber-100 text-amber-700'
+            ? 'border border-rose-600/40 bg-rose-50 text-rose-800'
+            : 'border border-amber-600/40 bg-amber-50 text-amber-800'
         return (
-          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${tone}`}>
+          <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-xs ${tone}`}>
             {label}
           </span>
         )
@@ -141,6 +327,15 @@ export const kardexPageConfig: GenericPageConfig<Kardex> = {
     canEdit: true,
     canDelete: true,
   },
+
+  renderCustomFilters: ({ filters, setFilters, onSearch, onClear }) => (
+    <KardexFiltersSection
+      filters={filters}
+      setFilters={setFilters}
+      onSearch={onSearch}
+      onClear={onClear}
+    />
+  ),
 
   service: kardexService,
 

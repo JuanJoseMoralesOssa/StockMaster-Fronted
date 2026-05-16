@@ -146,7 +146,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
                     type='button'
                     className={`inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
                         canDelete
-                            ? 'text-danger-600 hover:bg-danger-50 hover:text-danger-700'
+                            ? 'action-icon-delete'
                             : 'text-gray-300 cursor-not-allowed'
                     }`}
                     onClick={() => {

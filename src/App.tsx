@@ -3,8 +3,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { lazy, Suspense, useEffect } from 'react'
 import useAuthStore from './stores/useAuthStore'
 import { LoadingScreen } from './pages/components/common/LoadingSpinner'
-// Import theme store so the subscription runs before the app renders
-import './stores/useThemeStore'
 import { useNavigate } from 'react-router-dom'
 import { configureHttpClient } from './services/httpClient'
 

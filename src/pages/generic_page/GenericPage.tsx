@@ -17,6 +17,7 @@ interface GenericPageProps<T, TFilter extends object = object, CreateInput = Par
 
 function GenericPage<T extends object, TFilter extends object = object, CreateInput = Partial<T>, UpdateInput = Partial<T>>({ config, serviceHooksFactory, children }: GenericPageProps<T, TFilter, CreateInput, UpdateInput>) {
   const initialFilters = (config.initialFilterState || {} as TFilter)
+  const clearFilterState = (config.clearFilterState || initialFilters)
   const [filters, setFilters] = useState<TFilter>(initialFilters)
   const [appliedFilters, setAppliedFilters] = useState<TFilter>(initialFilters)
   const [selectedItemForDetail, setSelectedItemForDetail] = useState<T | null>(null)
@@ -70,6 +71,7 @@ function GenericPage<T extends object, TFilter extends object = object, CreateIn
     fetchFunction: fetchPaginated,
     fetchWithFilters: mergedService.getAllPaginatedFiltered ? fetchWithFiltersFn : undefined,
     filters: appliedFilters,
+    initialActiveFilters: Boolean(config.initialFiltersActive),
     initialPage: 1,
     initialLimit: 10,
     refreshToken: filterRefreshToken,
@@ -119,8 +121,8 @@ function GenericPage<T extends object, TFilter extends object = object, CreateIn
   }
 
   const clearFilters = () => {
-    setFilters(initialFilters)
-    setAppliedFilters(initialFilters)
+    setFilters(clearFilterState)
+    setAppliedFilters(clearFilterState)
     setActiveFilters(false)
     setFilterRefreshToken(prev => prev + 1)
     goToPage(1)
@@ -156,7 +158,7 @@ function GenericPage<T extends object, TFilter extends object = object, CreateIn
 
   return (
     <PageContextProvider value={contextValue}>
-      <section>
+      <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 py-5 sm:px-6 md:gap-6 md:px-8 md:py-6">
         {children || (
           <>
             <PageHeader config={config} />

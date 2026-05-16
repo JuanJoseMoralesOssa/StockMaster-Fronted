@@ -4,6 +4,7 @@ import navItems from '../../../../constants/NavItems'
 import useAuthStore from '../../../../stores/useAuthStore'
 import NavItem from '../../../../types/NavItem'
 import { Fragment } from 'react'
+import { getViewAccentStyle } from '../../../../constants/viewAccents'
 
 interface NavbarMobileProps {
     open: boolean
@@ -56,11 +57,12 @@ const NavbarMobile: React.FC<NavbarMobileProps> = ({ open, setOpen }) => {
                                             key={item.href}
                                             id={`nav-mobile-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
                                             to={item.href}
+                                            style={getViewAccentStyle(item.accent)}
                                             onClick={() => setOpen(false)}
                                             className={({ isActive }) =>
-                                                'flex items-center gap-3 rounded-lg px-3 py-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ' +
+                                                'flex items-center gap-3 rounded-lg px-3 py-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--view-accent)] ' +
                                                 (isActive
-                                                    ? 'bg-primary text-white'
+                                                    ? 'bg-[var(--view-accent-soft)] text-[var(--view-accent-text)] font-semibold shadow-[inset_3px_0_0_var(--view-accent)]'
                                                     : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900')
                                             }>
                                             {item.icon}

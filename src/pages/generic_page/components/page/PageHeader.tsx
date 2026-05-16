@@ -7,7 +7,6 @@ interface PageHeaderProps<T, TFilter = object, CreateInput = Partial<T>, UpdateI
   config: GenericPageConfig<T, TFilter, CreateInput, UpdateInput>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function PageHeader<T extends object, TFilter = object, CreateInput = Partial<T>, UpdateInput = Partial<T>>({
   config
 }: PageHeaderProps<T, TFilter, CreateInput, UpdateInput>) {
@@ -16,7 +15,7 @@ export default function PageHeader<T extends object, TFilter = object, CreateInp
   return (
     <GenericHeader<T>
       title={config.entityNamePlural}
-      createButtonText={`Nuevo ${config.entityName}`}
+      createButtonText="Crear"
       modalTitle={`Crear ${config.entityName}`}
       modalDescription={`Completa los detalles del ${config.entityName}. Los campos marcados con * son requeridos.`}
       onItemCreated={addItem}

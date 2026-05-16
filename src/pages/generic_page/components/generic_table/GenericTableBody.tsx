@@ -40,10 +40,10 @@ export default function GenericTableBody<T>({
   const totalColumns = columns.length + (showActions ? 1 : 0) + (hasExpandable ? 1 : 0)
 
   return (
-    <tbody className='divide-y divide-gray-200'>
+    <tbody className='divide-y divide-(--color-border)'>
       {data.length === 0 ? (
         <tr>
-          <td colSpan={totalColumns} className='px-6 py-8 text-center text-gray-400'>
+          <td colSpan={totalColumns} className='px-6 py-8 text-center text-(--color-text-muted)'>
             No hay datos disponibles
           </td>
         </tr>
@@ -54,9 +54,9 @@ export default function GenericTableBody<T>({
 
           return (
             <Fragment key={rowIndex}>
-              <tr className={`bg-white hover:bg-gray-50 transition-colors ${rowClassName ? rowClassName(item) : ''}`}>
+              <tr className={`bg-(--color-bg-surface) transition-colors hover:bg-[var(--view-accent-soft,var(--color-bg-subtle))] ${rowClassName ? rowClassName(item) : ''}`}>
                 {hasExpandable && (
-                  <td className='px-4 py-3 whitespace-nowrap w-12'>
+                  <td className='w-12 whitespace-nowrap px-4 py-3.5'>
                     <Button
                       variant='ghost'
                       size='icon-sm'
@@ -74,7 +74,7 @@ export default function GenericTableBody<T>({
                 {columns.map((column, colIndex) => (
                   <td
                     key={colIndex}
-                    className={`px-6 py-3 whitespace-nowrap text-sm text-gray-900 ${column.hideOnMobile ? 'hidden md:table-cell' : ''
+                    className={`whitespace-nowrap px-5 py-3.5 text-sm text-(--color-text-primary) ${column.hideOnMobile ? 'hidden md:table-cell' : ''
                       }`}
                   >
                     {getCellValue(item, column)}
@@ -82,7 +82,7 @@ export default function GenericTableBody<T>({
                 ))}
 
                 {showActions && (
-                  <td className='px-6 py-3 whitespace-nowrap text-sm text-right'>
+                  <td className='whitespace-nowrap px-5 py-3.5 text-right text-sm'>
                     <div className='inline-flex items-center justify-end gap-1'>
                       {actions.canEdit && (
                         <Button
@@ -91,6 +91,7 @@ export default function GenericTableBody<T>({
                           onClick={() => onEdit(item)}
                           aria-label='Editar'
                           title='Editar'
+                          className='action-icon-edit'
                         >
                           <Pencil className='h-4 w-4' aria-hidden='true' />
                         </Button>
@@ -103,7 +104,7 @@ export default function GenericTableBody<T>({
                           onClick={() => onDelete(item)}
                           aria-label='Eliminar'
                           title='Eliminar'
-                          className='text-danger-600 hover:bg-danger-50 hover:text-danger-700'
+                          className='action-icon-delete'
                         >
                           <Trash2 className='h-4 w-4' aria-hidden='true' />
                         </Button>
@@ -116,6 +117,7 @@ export default function GenericTableBody<T>({
                           onClick={(e) => onDropdownToggle(rowIndex, e)}
                           aria-label='Más opciones'
                           title='Más opciones'
+                          className='action-icon-more'
                         >
                           <MoreVertical className='h-4 w-4' aria-hidden='true' />
                         </Button>
@@ -126,15 +128,15 @@ export default function GenericTableBody<T>({
               </tr>
 
               {hasExpandable && isExpanded && (
-                <tr className='bg-gray-50 border-t border-gray-200'>
+                <tr className='border-t border-[var(--view-accent-border,var(--color-border))] bg-[var(--view-accent-soft,var(--color-bg-subtle))]'>
                   <td colSpan={totalColumns} className='px-0 py-0'>
-                    <div className='px-6 py-4'>
+                    <div className='px-5 py-4'>
                       {expandableConfig.expandedTitle && (
-                        <h4 className='text-sm font-semibold text-gray-900 mb-4'>
+                        <h4 className='mb-4 text-sm font-semibold text-(--color-text-primary)'>
                           {expandableConfig.expandedTitle(item)}
                         </h4>
                       )}
-                      <div className='text-gray-700'>
+                      <div className='text-(--color-text-secondary)'>
                         {expandableConfig.renderExpandedContent(item)}
                       </div>
                     </div>

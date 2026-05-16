@@ -33,16 +33,16 @@ function RankingList({
 
   return (
     <div className={`${colorClass} p-4 rounded-lg border`}>
-      <h3 className="font-semibold mb-3 flex items-center gap-2">
+      <h3 className="font-semibold mb-3 flex items-center gap-2 text-(--color-text-primary)">
         {icon && <span>{icon}</span>}
         {title}
       </h3>
       <div className="space-y-2">
         {displayItems.map((item, index) => (
-          <div key={item.id} className="flex justify-between items-center text-sm">
+          <div key={item.id} className="flex justify-between items-center text-sm text-(--color-text-primary)">
             <span className="font-medium flex items-center gap-2">
               {showNumbers && (
-                <span className="bg-white px-2 py-1 rounded text-xs font-bold">
+                <span className="bg-(--color-bg-surface) text-[var(--view-accent-text,var(--color-text-link))] px-2 py-1 rounded text-xs font-bold">
                   #{index + 1}
                 </span>
               )}

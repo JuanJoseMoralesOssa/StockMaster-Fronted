@@ -53,7 +53,7 @@ function GenericHeaderInner<T>({
       variant="primary"
       onClick={openModal}
       leftIcon={buttonIcon ?? <Plus className='h-4 w-4' />}
-      className={buttonClassName}
+      className={`w-full sm:w-fit ${buttonClassName ?? ''}`}
       title={createButtonText}
     >
       {createButtonText}
@@ -61,8 +61,11 @@ function GenericHeaderInner<T>({
   )
 
   return (
-    <section className='flex items-center justify-between gap-4 p-2 pl-14 md:pl-0 w-full'>
-      <HeaderTitle title={title} className={headerClassName} />
+    <section className='flex w-full flex-col gap-4 rounded-lg border border-[var(--view-accent-border,var(--color-border))] bg-[var(--view-accent-soft,var(--color-bg-surface))] px-4 py-4 shadow-xs sm:flex-row sm:items-center sm:justify-between md:px-5'>
+      <div className='flex min-w-0 items-center gap-3'>
+        <span className='h-10 w-1 rounded-full bg-[var(--view-accent,var(--color-action-bg))]' aria-hidden='true' />
+        <HeaderTitle title={title} className={headerClassName} />
+      </div>
 
       {renderCustomButton ? renderCustomButton(openModal) : defaultButton}
 

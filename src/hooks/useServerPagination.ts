@@ -7,6 +7,7 @@ interface UseServerPaginationProps<T, TFilter = object> {
     fetchWithFilters?: (filters: TFilter, page?: number, limit?: number) => Promise<PaginatedResponse<T>>
     initialPage?: number
     initialLimit?: number
+    initialActiveFilters?: boolean
     filters?: TFilter
     refreshToken?: number
 }
@@ -46,6 +47,7 @@ export function useServerPagination<T, TFilter = object>({
     filters,
     initialPage = 1,
     initialLimit = 10,
+    initialActiveFilters = false,
     refreshToken = 0,
 }: UseServerPaginationProps<T, TFilter>): UseServerPaginationReturn<T, TFilter> {
     const [data, setData] = useState<T[]>([])
@@ -55,7 +57,7 @@ export function useServerPagination<T, TFilter = object>({
     const [totalItems, setTotalItems] = useState(0)
     const [hasNext, setHasNext] = useState(false)
     const [hasPrevious, setHasPrevious] = useState(false)
-    const [activeFilters, setActiveFilters] = useState(false)
+    const [activeFilters, setActiveFilters] = useState(initialActiveFilters)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const { showError } = useToast()

@@ -75,6 +75,30 @@ describe('UserService – getPaginated()', () => {
   })
 })
 
+describe('UserService – getAllPaginatedFiltered()', () => {
+  it('envía filtros activos de usuario, email y rol', async () => {
+    mock
+      .onGet(`${BASE}/users/filtered?page=2&limit=5&name=Admin&email=admin%40test.com&role=admin`)
+      .reply(200, paginated([USER_1], 2, 5))
+
+    const result = await userService.getAllPaginatedFiltered(
+      { name: ' Admin ', email: ' admin@test.com ', role: 'admin' },
+      2,
+      5
+    )
+
+    expect(result.data).toEqual([USER_1])
+  })
+
+  it('omite filtros vacíos', async () => {
+    mock.onGet(`${BASE}/users/filtered?page=1&limit=10&role=office`).reply(200, paginated([]))
+
+    await userService.getAllPaginatedFiltered({ name: ' ', email: '', role: 'office' })
+
+    expect(mock.history.get[0].url).toBe(`${BASE}/users/filtered?page=1&limit=10&role=office`)
+  })
+})
+
 describe('UserService – getById()', () => {
   it('retorna un usuario por su id', async () => {
     mock.onGet(`${BASE}/users/1`).reply(200, USER_1)

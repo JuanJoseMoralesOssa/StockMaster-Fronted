@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { Button } from '../../../components/ui'
+import { Search, X } from 'lucide-react'
 
 interface DocumentFiltersChromeProps {
   children: ReactNode
@@ -13,31 +14,33 @@ export default function DocumentFiltersChrome({
   children,
   onSearch,
   onClear,
-  searchLabel = 'Buscar Detallado',
-  clearLabel = 'Limpiar Filtros',
+  searchLabel = 'Buscar',
+  clearLabel = 'Limpiar',
 }: Readonly<DocumentFiltersChromeProps>) {
   return (
-    <div className='bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-6 justify-between items-center'>
-      {children}
+    <div className='flex flex-col gap-4'>
+      <div className='w-full'>
+        {children}
+      </div>
 
-      <div className='flex flex-col md:flex-row gap-2 w-full md:w-fit'>
+      <div className='flex flex-col sm:flex-row gap-2 w-full sm:justify-end'>
         <Button
           variant='primary'
           onClick={onSearch}
-          className='w-full md:w-fit'
+          className='w-full sm:w-fit'
           aria-label={searchLabel}
+          leftIcon={<Search className='h-4 w-4' />}
         >
-          <span aria-hidden='true'>🔍 </span>
           {searchLabel}
         </Button>
 
         <Button
-          variant='primary'
+          variant='secondary'
           onClick={onClear}
-          className='w-full md:w-fit'
+          className='w-full sm:w-fit'
           aria-label={clearLabel}
+          leftIcon={<X className='h-4 w-4' />}
         >
-          <span aria-hidden='true'>🧹 </span>
           {clearLabel}
         </Button>
       </div>

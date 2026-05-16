@@ -1,9 +1,14 @@
 import { GenericPageConfig } from '../types/GenericConfig'
 import Product from '../types/Product'
 import { productService } from '../services/ProductService'
-import { Package } from 'lucide-react'
+import { Package, Search } from 'lucide-react'
+import { Button, Input } from '../components/ui'
 
-export const productPageConfig: GenericPageConfig<Product> = {
+export interface ProductFilters {
+  name: string
+}
+
+export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
   entityName: 'Producto',
   entityNamePlural: 'Productos',
   idField: 'id',
@@ -20,10 +25,10 @@ export const productPageConfig: GenericPageConfig<Product> = {
       render: (product) => {
         const stock = product.stock ?? 0
         const stockClass = stock < 10
-          ? 'text-red-600 font-semibold'
+          ? 'text-danger-700 font-semibold'
           : stock < 50
-            ? 'text-yellow-600'
-            : 'text-green-600'
+            ? 'text-warning-700'
+            : 'text-success-700'
         return <span className={stockClass}>{stock}</span>
       },
     },
@@ -54,6 +59,41 @@ export const productPageConfig: GenericPageConfig<Product> = {
     },
   ],
 
+  initialFilterState: {
+    name: '',
+  },
+
+  renderCustomFilters: ({ filters, setFilters, onSearch, onClear }) => (
+    <form
+      className="flex flex-col gap-3 md:flex-row md:items-end"
+      onSubmit={(event) => {
+        event.preventDefault()
+        onSearch()
+      }}
+    >
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <label htmlFor="product-name-filter" className="text-sm font-medium text-(--color-text-secondary)">
+          Buscar por nombre
+        </label>
+        <Input
+          id="product-name-filter"
+          type="search"
+          value={filters.name}
+          placeholder="Nombre del producto..."
+          onChange={(event) => setFilters({ ...filters, name: event.target.value })}
+        />
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button type="submit" size="sm" leftIcon={<Search className="h-4 w-4" />}>
+          Buscar
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={onClear}>
+          Limpiar
+        </Button>
+      </div>
+    </form>
+  ),
+
   actions: {
     canEdit: true,
     canDelete: true,
@@ -66,7 +106,7 @@ export const productPageConfig: GenericPageConfig<Product> = {
           // Aquí podrías navegar a la página de kardex
           // navigate(`/kardex?productId=${product.id}`)
         },
-        className: 'text-blue-600 focus:text-blue-700',
+        className: 'text-[var(--view-accent-text,var(--color-text-link))] focus:text-[var(--view-accent-text,var(--color-text-link))]',
         condition: (product) => product.id !== undefined,
       },
     ],

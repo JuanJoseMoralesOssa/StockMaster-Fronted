@@ -1,7 +1,8 @@
 import { GenericPageConfig } from '../types/GenericConfig'
 import User from '../types/User'
-import { userService } from '../services/User'
+import { UserFilters, userService } from '../services/User'
 import { Roles } from '../enums/Roles'
+import UserFiltersComponent from '../pages/user/components/UserFilters'
 import bcrypt from 'bcryptjs'
 
 const getRoleDisplayName = (role: string): string => {
@@ -10,10 +11,15 @@ const getRoleDisplayName = (role: string): string => {
   return 'Operador'
 }
 
-export const userPageConfig: GenericPageConfig<User> = {
+export const userPageConfig: GenericPageConfig<User, UserFilters> = {
   entityName: 'Usuario',
   entityNamePlural: 'Usuarios',
   idField: 'id',
+  initialFilterState: {
+    name: '',
+    email: '',
+    role: '',
+  },
 
   columns: [
     {
@@ -82,6 +88,8 @@ export const userPageConfig: GenericPageConfig<User> = {
   updatePartial: true,
 
   service: userService,
+
+  renderCustomFilters: UserFiltersComponent,
 
   prepareDataForSubmit: async (data: Partial<User>, isEdit) => {
     const preparedData = { ...data }

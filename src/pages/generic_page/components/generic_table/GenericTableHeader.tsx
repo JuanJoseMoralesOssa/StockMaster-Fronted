@@ -9,24 +9,24 @@ interface Props {
 
 export default function GenericTableHeader({ columns, showActions, hasExpandable }: Props) {
   return (
-    <thead className='bg-gray-50 border-b border-gray-200'>
+    <thead className='border-b border-(--color-border) bg-[var(--view-accent-soft,var(--color-bg-subtle))]'>
       <tr>
         {hasExpandable && (
-          <th className='px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide w-12'>
+          <th className='w-12 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>
             <span className='sr-only'>Ver detalles</span>
           </th>
         )}
         {columns.map((column, index) => (
           <th
             key={index}
-            className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide ${column.hideOnMobile ? 'hidden md:table-cell' : ''
+            className={`px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) ${column.hideOnMobile ? 'hidden md:table-cell' : ''
               } ${column.width || ''}`}
           >
             {column.label}
           </th>
         ))}
         {showActions && (
-          <th className='px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide'>
+          <th className='px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>
             Acciones
           </th>
         )}

@@ -1,10 +1,13 @@
 import GenericPage from '../generic_page/GenericPage'
 import Person from '../../types/Person'
 import { personPageConfig } from '../../config/personPageConfig'
-import { personService } from '../../services/PersonService'
+import { PersonFilters, personService } from '../../services/PersonService'
 import { useApiRequest } from '../../hooks/useApiRequest'
+import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 function PersonPage() {
+    const navigate = useNavigate()
     const createReq = useApiRequest<Person, [Partial<Person>]>(
         (data) => personService.create(data as Omit<Person, 'id'>),
         { successMessage: 'Proveedor creado exitosamente', showSuccessToast: true }
@@ -51,12 +54,36 @@ function PersonPage() {
         }
     }
 
+    const pageConfig = useMemo(() => ({
+        ...personPageConfig,
+        actions: {
+            ...personPageConfig.actions,
+            customActions: personPageConfig.actions?.customActions?.map((action) => {
+                if (action.label !== 'Ver Compras' && action.label !== 'Ver Gastos') {
+                    return action
+                }
+
+                return {
+                    ...action,
+                    onClick: (person: Person) => {
+                        if (!person.id) return
+                        const params = new URLSearchParams({
+                            personId: person.id.toString(),
+                            personName: person.name,
+                        })
+                        navigate(`${action.label === 'Ver Compras' ? '/compras' : '/gastos'}?${params.toString()}`)
+                    },
+                }
+            }),
+        },
+    }), [navigate])
+
     return (
-        <GenericPage<Person> config={personPageConfig} serviceHooksFactory={createServiceHooks}>
-            <GenericPage.Header config={personPageConfig} />
-            <GenericPage.Filters config={personPageConfig} />
-            <GenericPage.Table config={personPageConfig} />
-            <GenericPage.DetailsModal config={personPageConfig} />
+        <GenericPage<Person, PersonFilters> config={pageConfig} serviceHooksFactory={createServiceHooks}>
+            <GenericPage.Header config={pageConfig} />
+            <GenericPage.Filters config={pageConfig} />
+            <GenericPage.Table config={pageConfig} />
+            <GenericPage.DetailsModal config={pageConfig} />
         </GenericPage>
     )
 }

@@ -8,6 +8,7 @@ import ActionButtons from './components/ActionButtons'
 import EmptyState from './components/EmptyState'
 import { useDashboardData } from './hooks/useDashboardData'
 import { getTodayFormatted } from './utils/dateHelpers'
+import { Alert } from '../../components/ui'
 
 type DashboardMode = 'detailed' | 'general'
 
@@ -40,21 +41,21 @@ export default function SupplierPaymentReport() {
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <div className="text-xl font-semibold text-primary">Cargando datos...</div>
+      <div className="text-xl font-semibold text-[var(--view-accent-text,var(--color-text-link))]">Cargando datos...</div>
     </div>
   )
 
   if (error) return (
-    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+    <Alert variant="danger" title="No se pudo cargar el reporte">
       {error}
-    </div>
+    </Alert>
   )
 
   const showEmptyState =
     !filters.startDate && !filters.endDate && !filters.supplierId && !filters.productId && dashboardMode === 'detailed'
 
   return (
-    <div className="p-6 md:p-8 bg-slate-50 min-h-screen w-full">
+    <div className="min-h-screen w-full bg-(--color-bg-page) p-5 sm:p-6 md:p-8">
       <DashboardHeader
         title="Reporte de Operaciones"
         subtitle="Consulta y analiza resultados por período, proveedor o producto"
@@ -66,15 +67,15 @@ export default function SupplierPaymentReport() {
         previous={prevAnalytics.data?.summary}
       />
 
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-8">
-        <div className="px-5 pt-5 pb-0 border-b border-gray-100 flex items-center justify-between">
+      <div className="mb-8 overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs">
+        <div className="flex items-center justify-between border-b border-(--color-border) px-5 pt-5 pb-0">
           <ModeToggleDashboard
             dashboardMode={dashboardMode}
             handleModeChange={handleModeChange}
           />
         </div>
 
-        <div className="p-5 border-b border-gray-100 bg-[#fafbfc]">
+        <div className="border-b border-(--color-border) bg-[var(--view-accent-soft,var(--color-bg-subtle))] p-5">
           <div className="flex flex-col gap-4">
             <Filters
               filters={filters}

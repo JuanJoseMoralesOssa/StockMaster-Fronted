@@ -57,42 +57,43 @@ export default function Pagination({
   }
 
   const visiblePages = totalPages > 1 ? getVisiblePages() : [1]
+  const controlClass = "relative inline-flex h-9 min-w-9 items-center justify-center border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm font-medium text-(--color-text-secondary) transition-colors hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
 
   return (
-    <div className={`flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 ${className}`}>
+    <div className={`flex items-center justify-between border-t border-(--color-border) bg-(--color-bg-surface) px-4 py-3 sm:px-5 ${className}`}>
       <div className="flex-1 flex justify-between sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="relative inline-flex items-center rounded-md border border-(--color-border) bg-(--color-bg-surface) px-4 py-2 text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
         >
           Anterior
         </button>
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="relative ml-3 inline-flex items-center rounded-md border border-(--color-border) bg-(--color-bg-surface) px-4 py-2 text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
         >
           Siguiente
         </button>
       </div>
       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <div className="flex items-center space-x-4">
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-(--color-text-secondary)">
             Mostrando <span className="font-medium">{startItem}</span> a{' '}
             <span className="font-medium">{endItem}</span> de{' '}
             <span className="font-medium">{totalItems}</span> resultados
           </p>
           {showItemsPerPageSelector && onItemsPerPageChange && (
             <div className="flex items-center space-x-2">
-              <label htmlFor="itemsPerPage" className="text-sm text-gray-700">
+              <label htmlFor="itemsPerPage" className="text-sm text-(--color-text-secondary)">
                 Items por página:
               </label>
               <select
                 id="itemsPerPage"
                 value={itemsPerPage}
                 onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 py-1 text-sm text-(--color-text-primary) focus:outline-none focus:ring-2 focus:ring-[var(--view-accent,var(--color-focus-ring))]"
               >
                 {itemsPerPageOptions.map((option) => (
                   <option key={option} value={option}>
@@ -104,12 +105,12 @@ export default function Pagination({
           )}
         </div>
         <div>
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          <nav className="relative z-0 inline-flex -space-x-px rounded-md shadow-xs" aria-label="Pagination">
             {/* First page button */}
             <button
               onClick={() => onPageChange(1)}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`${controlClass} rounded-l-md px-2`}
             >
               <ChevronsLeft className="h-4 w-4" />
               <span className="sr-only">Primera página</span>
@@ -119,7 +120,7 @@ export default function Pagination({
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`${controlClass} px-2`}
             >
               <ChevronLeft className="h-4 w-4" />
               <span className="sr-only">Página anterior</span>
@@ -131,7 +132,7 @@ export default function Pagination({
                 return (
                   <span
                     key={`dots-${index === 1 ? 'start' : 'end'}`}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                    className={controlClass}
                   >
                     ...
                   </span>
@@ -145,9 +146,9 @@ export default function Pagination({
                 <button
                   key={pageNumber}
                   onClick={() => onPageChange(pageNumber)}
-                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${isCurrentPage
-                    ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                  className={`${controlClass} ${isCurrentPage
+                    ? 'z-10 border-[var(--view-accent,var(--color-action-bg))] bg-[var(--view-accent-soft,var(--color-bg-subtle))] text-[var(--view-accent-text,var(--color-text-link))]'
+                    : ''
                     }`}
                 >
                   {pageNumber}
@@ -159,7 +160,7 @@ export default function Pagination({
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`${controlClass} px-2`}
             >
               <ChevronRight className="h-4 w-4" />
               <span className="sr-only">Página siguiente</span>
@@ -169,7 +170,7 @@ export default function Pagination({
             <button
               onClick={() => onPageChange(totalPages)}
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`${controlClass} rounded-r-md px-2`}
             >
               <ChevronsRight className="h-4 w-4" />
               <span className="sr-only">Última página</span>

@@ -35,28 +35,24 @@ function KpiCards({ current, previous }: Readonly<KpiCardsProps>) {
       value: `${totalWeight.toLocaleString()} kg`,
       delta: pct(totalWeight, prevWeight),
       icon: <TrendingUp className="w-4 h-4" />,
-      iconBg: 'bg-blue-50 text-blue-600',
     },
     {
       label: 'Proveedores',
       value: String(totalSuppliers),
       delta: pct(totalSuppliers, prevSuppliers),
       icon: <Users className="w-4 h-4" />,
-      iconBg: 'bg-emerald-50 text-emerald-600',
     },
     {
       label: 'Órdenes',
       value: totalTransactions.toLocaleString(),
       delta: pct(totalTransactions, prevTransactions),
       icon: <BarChart3 className="w-4 h-4" />,
-      iconBg: 'bg-amber-50 text-amber-600',
     },
     {
       label: 'Prom. por Orden',
       value: `${avgPerOrder.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`,
       delta: pct(avgPerOrder, prevAvg),
       icon: <Package className="w-4 h-4" />,
-      iconBg: 'bg-violet-50 text-violet-600',
     },
   ]
 
@@ -65,17 +61,17 @@ function KpiCards({ current, previous }: Readonly<KpiCardsProps>) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow"
+          className="bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 md:p-5 shadow-xs hover:border-[var(--view-accent-border,var(--color-border-strong))] transition-colors"
         >
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wide">
+            <span className="text-[12px] font-semibold text-(--color-text-secondary) uppercase tracking-wide">
               {card.label}
             </span>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${card.iconBg}`}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--view-accent-soft,var(--color-bg-subtle))] text-[var(--view-accent-text,var(--color-text-link))]">
               {card.icon}
             </div>
           </div>
-          <div className="text-[22px] font-bold text-gray-900 tracking-tight font-mono">
+          <div className="text-[22px] font-bold text-(--color-text-primary) tracking-tight font-mono">
             {card.value}
           </div>
           <DeltaBadge delta={card.delta} show={hasPrev} />

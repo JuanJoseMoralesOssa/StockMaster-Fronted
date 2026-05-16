@@ -1,7 +1,7 @@
 import GenericPage from '../generic_page/GenericPage'
 import { userPageConfig } from '../../config/userPageConfig'
 import User from '../../types/User'
-import { userService } from '../../services/User'
+import { UserFilters, userService } from '../../services/User'
 import { useApiRequest } from '../../hooks/useApiRequest'
 
 function UserPage() {
@@ -52,7 +52,7 @@ function UserPage() {
     }
 
     return (
-        <GenericPage<User> config={userPageConfig} serviceHooksFactory={createServiceHooks}>
+        <GenericPage<User, UserFilters> config={userPageConfig} serviceHooksFactory={createServiceHooks}>
             <GenericPage.Header config={userPageConfig} />
             <GenericPage.Filters config={userPageConfig} />
             <GenericPage.Table config={userPageConfig} />

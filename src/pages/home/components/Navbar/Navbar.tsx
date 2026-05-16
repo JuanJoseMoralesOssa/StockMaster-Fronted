@@ -32,7 +32,7 @@ function Navbar() {
                             id="desktop-logout-btn"
                             aria-label="Cerrar sesión"
                             onClick={logout}
-                            className='w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500'
+                            className='w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--view-accent,var(--color-focus-ring))]'
                         >
                             <LogOut className='h-4.5 w-4.5' />
                             Cerrar Sesión

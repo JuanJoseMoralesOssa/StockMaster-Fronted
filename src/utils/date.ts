@@ -2,7 +2,9 @@ export interface DateRangeFilters {
   startDate: string
   endDate: string
   personId: string
+  personName?: string
   productId: string
+  productName?: string
   activeDate: boolean
 }
 
@@ -42,7 +44,9 @@ export function buildInitialDateRangeFilters(): DateRangeFilters {
     startDate: `${year}-${month}-01`,
     endDate: `${year}-${month}-${day}`,
     personId: '',
+    personName: '',
     productId: '',
+    productName: '',
     activeDate: false,
   }
 }

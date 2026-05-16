@@ -2,9 +2,12 @@ import GenericPage from '../generic_page/GenericPage'
 import Product from '../../types/Product'
 import { productService } from '../../services/ProductService'
 import { useApiRequest } from '../../hooks/useApiRequest'
-import { productPageConfig } from '../../config/productPageConfig'
+import { ProductFilters, productPageConfig } from '../../config/productPageConfig'
+import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 function ProductPage() {
+    const navigate = useNavigate()
     // Wrap CRUD operations with useApiRequest to get toast + error handling
     // Use flexible args typing to match ApiService signatures
     const createReq = useApiRequest<Product, [Partial<Product>]>(
@@ -53,12 +56,34 @@ function ProductPage() {
         }
     }
 
+    const pageConfig = useMemo(() => ({
+        ...productPageConfig,
+        actions: {
+            ...productPageConfig.actions,
+            customActions: productPageConfig.actions?.customActions?.map((action) => (
+                action.label === 'Ver Kardex'
+                    ? {
+                        ...action,
+                        onClick: (product: Product) => {
+                            if (!product.id) return
+                            const params = new URLSearchParams({
+                                productId: product.id.toString(),
+                                productName: product.name,
+                            })
+                            navigate(`/kardex?${params.toString()}`)
+                        },
+                    }
+                    : action
+            )),
+        },
+    }), [navigate])
+
     return (
-        <GenericPage<Product> config={productPageConfig} serviceHooksFactory={createServiceHooks}>
-            <GenericPage.Header config={productPageConfig} />
-            <GenericPage.Filters config={productPageConfig} />
-            <GenericPage.Table config={productPageConfig} />
-            <GenericPage.DetailsModal config={productPageConfig} />
+        <GenericPage<Product, ProductFilters> config={pageConfig} serviceHooksFactory={createServiceHooks}>
+            <GenericPage.Header config={pageConfig} />
+            <GenericPage.Filters config={pageConfig} />
+            <GenericPage.Table config={pageConfig} />
+            <GenericPage.DetailsModal config={pageConfig} />
         </GenericPage>
     )
 }

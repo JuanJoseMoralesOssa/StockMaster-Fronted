@@ -16,8 +16,8 @@ export default function Field<T>({ field, value, onChange, onBlur, error, showPa
   const rawValue = value ?? field.defaultValue ?? ''
   const displayValue = String(rawValue)
 
-  const commonClasses = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${error ? 'border-red-500' : 'border-gray-300'
-    } ${field.disabled ? 'bg-gray-100 cursor-not-allowed' : ''} ${field.className || ''}`
+  const commonClasses = `w-full px-4 py-2 border rounded-lg bg-(--color-bg-surface) text-(--color-text-primary) focus:outline-none focus:ring-2 focus:ring-[var(--view-accent,var(--color-focus-ring))] ${error ? 'border-danger-500' : 'border-(--color-border)'
+    } ${field.disabled ? 'bg-(--color-bg-subtle) cursor-not-allowed' : ''} ${field.className || ''}`
 
   switch (field.type) {
     case 'textarea':
@@ -68,9 +68,9 @@ export default function Field<T>({ field, value, onChange, onBlur, error, showPa
             checked={!!rawValue}
             onChange={onChange}
             disabled={field.disabled}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            className="w-4 h-4 text-[var(--view-accent,var(--color-action-bg))] border-(--color-border) rounded focus:ring-[var(--view-accent,var(--color-focus-ring))]"
           />
-          <label htmlFor={fieldName} className="ml-2 text-sm text-gray-700">
+          <label htmlFor={fieldName} className="ml-2 text-sm text-(--color-text-secondary)">
             {field.label}
           </label>
         </div>
@@ -98,7 +98,7 @@ export default function Field<T>({ field, value, onChange, onBlur, error, showPa
               onClick={onTogglePassword}
               aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               aria-pressed={showPassword}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-(--color-text-secondary) hover:text-(--color-text-primary) focus:outline-none focus:ring-2 focus:ring-[var(--view-accent,var(--color-focus-ring))] rounded"
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" />

@@ -3,11 +3,26 @@ import Product from "../../../types/Product"
 import Autocomplete from "../../components/common/Autocomplete"
 import { Button } from "../../../components/ui"
 
+const dateToggleClasses = {
+  active: 'border border-[var(--view-accent,var(--color-action-bg))] bg-[var(--view-accent,var(--color-action-bg))] text-white shadow-sm hover:bg-[var(--view-accent-hover,var(--color-action-bg-hover))]',
+  inactive: 'border border-[var(--view-accent-border,var(--color-border-strong))] bg-(--color-bg-surface) text-[var(--view-accent-text,var(--color-text-link))] hover:bg-[var(--view-accent-soft,var(--color-bg-subtle))]',
+}
+
+interface ExpenseFiltersValue {
+  startDate: string
+  endDate: string
+  personId: string
+  personName?: string
+  productId: string
+  productName?: string
+  activeDate: boolean
+}
+
 interface ExpenseFiltersProps {
   suppliers: Person[]
   products: Partial<Product>[]
-  filters: { startDate: string; endDate: string; personId: string; productId: string, activeDate: boolean }
-  setFilters: (range: { startDate: string; endDate: string; personId: string; productId: string, activeDate: boolean }) => void
+  filters: ExpenseFiltersValue
+  setFilters: (range: ExpenseFiltersValue) => void
 }
 
 function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<ExpenseFiltersProps>) {
@@ -33,8 +48,8 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
   const selectedProduct = productOptions.find(option => option.id.toString() === filters.productId)
 
   // Valores iniciales para los autocomplete - usar key para forzar re-render cuando se limpien
-  const supplierInitialValue = selectedSupplier?.label || ''
-  const productInitialValue = selectedProduct?.label || ''
+  const supplierInitialValue = selectedSupplier?.label || filters.personName || ''
+  const productInitialValue = selectedProduct?.label || filters.productName || ''
 
   // Crear una key única para forzar re-render cuando se limpien los filtros
   const supplierKey = `person-${filters.personId || 'empty'}`
@@ -45,22 +60,23 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
   }
 
   return (
-    <div className="flex flex-col gap-5 w-full md:w-fit">
-      <div className="rounded-xl border border-(--color-border) bg-(--color-bg-surface) p-4 shadow-xs">
+    <div className="flex w-full flex-col gap-5">
+      <div className="rounded-md bg-[var(--view-accent-soft,var(--color-bg-subtle))] p-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-(--color-text-primary)">Rango de fechas</p>
             <p className="text-sm text-(--color-text-secondary)">
-              Actívalo solo cuando quieras limitar la búsqueda por periodo.
+              Filtra por periodo.
             </p>
           </div>
           <Button
             type="button"
-            variant={filters.activeDate ? 'primary' : 'secondary'}
+            variant={filters.activeDate ? 'primary' : 'outline'}
             size="sm"
             onClick={toggleDateFilter}
+            className={filters.activeDate ? dateToggleClasses.active : dateToggleClasses.inactive}
           >
-            {filters.activeDate ? 'Rango activo' : 'Usar rango de fechas'}
+            {filters.activeDate ? 'Rango activo' : 'Rango de fechas'}
           </Button>
         </div>
 
@@ -92,8 +108,8 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
         )}
       </div>
 
-      <div className='flex flex-col gap-4 md:flex-row'>
-        <div className='flex flex-col w-48'>
+      <div className='grid w-full gap-4 md:grid-cols-2'>
+        <div className='flex w-full flex-col'>
           <Autocomplete
             key={supplierKey}
             options={supplierOptions}
@@ -103,13 +119,14 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
             initialValue={supplierInitialValue}
             onSelect={(option) => {
               const personId = option ? option.id.toString() : ''
-              setFilters({ ...filters, personId })
+              const personName = option && typeof option.label === 'string' ? option.label : ''
+              setFilters({ ...filters, personId, personName })
             }}
             clearable={true}
             noOptionsText="No se encontraron proveedores"
           />
         </div>
-        <div className='flex flex-col w-48'>
+        <div className='flex w-full flex-col'>
           <Autocomplete
             key={productKey}
             options={productOptions}
@@ -119,7 +136,8 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
             initialValue={productInitialValue}
             onSelect={(option) => {
               const productId = option ? option.id.toString() : ''
-              setFilters({ ...filters, productId })
+              const productName = option && typeof option.label === 'string' ? option.label : ''
+              setFilters({ ...filters, productId, productName })
             }}
             clearable={true}
             noOptionsText="No se encontraron productos"

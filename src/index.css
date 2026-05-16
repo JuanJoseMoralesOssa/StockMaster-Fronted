@@ -83,6 +83,16 @@
   --color-action-text:      var(--color-gray-0);
   --color-focus-ring:       var(--color-brand-500);
 
+  /* Vista activa: se sobrescribe desde DashboardLayout según la ruta */
+  --view-accent:        var(--color-brand-600);
+  --view-accent-hover:  var(--color-brand-700);
+  --view-accent-soft:   var(--color-brand-50);
+  --view-accent-border: var(--color-brand-200);
+  --view-accent-text:   var(--color-brand-700);
+  --nav-accent-bg:      oklch(0.44 0.20 264 / 0.18);
+  --nav-accent-dot:     var(--color-brand-400);
+  --nav-accent-ring:    oklch(0.62 0.17 264 / 0.22);
+
   /* --- Radios de borde ------------------------------------ */
   --radius-sm:   4px;
   --radius-md:   8px;
@@ -245,4 +255,32 @@
 }
 .animate-backdrop {
   animation: backdrop-fade 0.2s ease-out forwards;
+}
+
+/* Action icon colors shared by table and detail views */
+.action-icon-edit {
+  color: var(--color-brand-600);
+}
+
+.action-icon-edit:hover {
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-700);
+}
+
+.action-icon-delete {
+  color: var(--color-danger-500);
+}
+
+.action-icon-delete:hover {
+  background-color: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
+
+.action-icon-more {
+  color: var(--color-text-secondary);
+}
+
+.action-icon-more:hover {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-primary);
 }

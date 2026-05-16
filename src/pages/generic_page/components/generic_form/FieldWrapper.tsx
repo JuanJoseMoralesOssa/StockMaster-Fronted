@@ -27,7 +27,7 @@ export default function FieldWrapper<T>({ field, value, onChange, onBlur, error,
           onTogglePassword={onTogglePassword}
         />
         {error && (
-          <p className="text-red-500 text-sm flex items-center gap-1">⚠️ {error}</p>
+          <p className="text-danger-500 text-sm flex items-center gap-1">⚠️ {error}</p>
         )}
       </div>
     )
@@ -35,9 +35,9 @@ export default function FieldWrapper<T>({ field, value, onChange, onBlur, error,
 
   return (
     <div className="space-y-1">
-      <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={fieldId} className="block text-sm font-medium text-(--color-text-secondary)">
         {field.label}
-        {field.required && <span className="text-red-500 ml-1">*</span>}
+        {field.required && <span className="text-danger-500 ml-1">*</span>}
       </label>
       <Field
         field={field}
@@ -49,7 +49,7 @@ export default function FieldWrapper<T>({ field, value, onChange, onBlur, error,
         onTogglePassword={onTogglePassword}
       />
       {error && (
-        <p className="text-red-500 text-sm flex items-center gap-1">⚠️ {error}</p>
+        <p className="text-danger-500 text-sm flex items-center gap-1">⚠️ {error}</p>
       )}
     </div>
   )

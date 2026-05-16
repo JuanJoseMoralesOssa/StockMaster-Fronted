@@ -145,28 +145,39 @@ export default function GenericTable<T extends Record<string, any>>({
 
   return (
     <>
-      <div className='overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-xs'>
-        <table className='w-full divide-y divide-gray-200'>
-          <GenericTableHeader
-            columns={columns}
-            showActions={showActions}
-            hasExpandable={!!expandableConfig}
-          />
-          <GenericTableBody
-            data={data}
-            columns={columns}
-            showActions={showActions}
-            actions={actionsWithDefaults as GenericActions<T>}
-            onEdit={handleEdit}
-            onDelete={(item) => handleDelete(item, idField)}
-            onDropdownToggle={handleDropdownToggle}
-            rowClassName={rowClassName}
-            expandableConfig={expandableConfig}
-            expandedRows={expandedRows}
-            toggleRowExpansion={toggleRowExpansion}
-            idField={idField}
-          />
-        </table>
+      <div className='overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
+        <div className='overflow-x-auto'>
+          <table className='w-full min-w-[720px] divide-y divide-(--color-border)'>
+            <GenericTableHeader
+              columns={columns}
+              showActions={showActions}
+              hasExpandable={!!expandableConfig}
+            />
+            <GenericTableBody
+              data={data}
+              columns={columns}
+              showActions={showActions}
+              actions={actionsWithDefaults as GenericActions<T>}
+              onEdit={handleEdit}
+              onDelete={(item) => handleDelete(item, idField)}
+              onDropdownToggle={handleDropdownToggle}
+              rowClassName={rowClassName}
+              expandableConfig={expandableConfig}
+              expandedRows={expandedRows}
+              toggleRowExpansion={toggleRowExpansion}
+              idField={idField}
+            />
+          </table>
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={goToPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       </div>
 
       <DropdownMenu
@@ -181,15 +192,6 @@ export default function GenericTable<T extends Record<string, any>>({
           action.onClick(item)
           closeDropdown()
         }}
-      />
-
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        itemsPerPage={itemsPerPage}
-        onPageChange={goToPage}
-        onItemsPerPageChange={setItemsPerPage}
       />
 
       <EditModal

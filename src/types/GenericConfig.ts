@@ -104,6 +104,10 @@ export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>
   updatePartial?: boolean
   /** Estado inicial de los filtros */
   initialFilterState?: TFilter
+  /** Estado al limpiar filtros; si no se define usa initialFilterState */
+  clearFilterState?: TFilter
+  /** Si los filtros iniciales deben ejecutarse en la primera carga */
+  initialFiltersActive?: boolean
   /** Renderizado personalizado de filtros */
   renderCustomFilters?: (props: {
     filters: TFilter

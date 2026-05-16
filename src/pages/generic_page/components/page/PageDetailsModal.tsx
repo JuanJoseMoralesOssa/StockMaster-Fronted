@@ -1,12 +1,12 @@
 import { useGenericPageContext } from './PageContext'
 import { Modal } from '../../../components/modal/Modal'
 import { GenericPageConfig } from '../../../../types/GenericConfig'
+import { Button } from '../../../../components/ui'
 
 interface PageDetailsModalProps<T, TFilter = object, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
   config: GenericPageConfig<T, TFilter, CreateInput, UpdateInput>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function PageDetailsModal<T extends object, TFilter = object, CreateInput = Partial<T>, UpdateInput = Partial<T>>({
   config
 }: PageDetailsModalProps<T, TFilter, CreateInput, UpdateInput>) {
@@ -29,12 +29,12 @@ export default function PageDetailsModal<T extends object, TFilter = object, Cre
     >
       {selectedItemForDetail && config.detailConfig.renderContent(selectedItemForDetail)}
       <div className="mt-4 flex justify-end">
-        <button
+        <Button
+          variant="secondary"
           onClick={() => setSelectedItemForDetail(null)}
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
         >
           Cerrar
-        </button>
+        </Button>
       </div>
     </Modal>
   )

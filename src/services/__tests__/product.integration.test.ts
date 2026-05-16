@@ -90,6 +90,38 @@ describe('ProductService – getPaginated()', () => {
   })
 })
 
+describe('ProductService – getAllPaginatedFiltered()', () => {
+  it('filtra productos por coincidencia parcial de nombre sin distinguir mayúsculas', async () => {
+    mock.onGet(`${BASE}/products/all`).reply(200, PRODUCTS)
+
+    const result = await productService.getAllPaginatedFiltered({ name: 'producto a' }, 1, 10)
+
+    expect(result.count).toBe(1)
+    expect(result.data).toEqual([PRODUCT_1])
+    expect(result.totalPages).toBe(1)
+    expect(result.hasNext).toBe(false)
+  })
+
+  it('mantiene la paginación sobre los resultados filtrados', async () => {
+    mock.onGet(`${BASE}/products/all`).reply(200, PRODUCTS)
+
+    const result = await productService.getAllPaginatedFiltered({ name: 'producto' }, 2, 1)
+
+    expect(result.count).toBe(2)
+    expect(result.data).toEqual([PRODUCT_2])
+    expect(result.totalPages).toBe(2)
+    expect(result.hasPrevious).toBe(true)
+  })
+
+  it('usa el listado paginado normal cuando el nombre está vacío', async () => {
+    mock.onGet(`${BASE}/products?page=1&limit=10`).reply(200, paginated(PRODUCTS))
+
+    const result = await productService.getAllPaginatedFiltered({ name: '   ' }, 1, 10)
+
+    expect(result.data).toHaveLength(2)
+  })
+})
+
 describe('ProductService – getById()', () => {
   it('retorna un único producto por su id', async () => {
     mock.onGet(`${BASE}/products/1`).reply(200, PRODUCT_1)

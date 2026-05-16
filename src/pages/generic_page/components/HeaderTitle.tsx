@@ -9,7 +9,7 @@ function HeaderTitle({
   className
 }: Readonly<HeaderTitleProps>) {
   return (
-    <h2 className={`text-3xl font-bold tracking-tight ${className}`}>{title}</h2>
+    <h2 className={`text-2xl font-semibold tracking-tight text-(--color-text-primary) md:text-3xl ${className ?? ''}`}>{title}</h2>
   )
 }
 
