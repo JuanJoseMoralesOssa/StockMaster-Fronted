@@ -6,6 +6,7 @@ interface DocumentFiltersChromeProps {
   children: ReactNode
   onSearch: () => void
   onClear: () => void
+  loading?: boolean
   searchLabel?: string
   clearLabel?: string
 }
@@ -14,6 +15,7 @@ export default function DocumentFiltersChrome({
   children,
   onSearch,
   onClear,
+  loading = false,
   searchLabel = 'Buscar',
   clearLabel = 'Limpiar',
 }: Readonly<DocumentFiltersChromeProps>) {
@@ -29,6 +31,7 @@ export default function DocumentFiltersChrome({
           onClick={onSearch}
           className='w-full sm:w-fit'
           aria-label={searchLabel}
+          loading={loading}
           leftIcon={<Search className='h-4 w-4' />}
         >
           {searchLabel}
@@ -39,6 +42,7 @@ export default function DocumentFiltersChrome({
           onClick={onClear}
           className='w-full sm:w-fit'
           aria-label={clearLabel}
+          disabled={loading}
           leftIcon={<X className='h-4 w-4' />}
         >
           {clearLabel}

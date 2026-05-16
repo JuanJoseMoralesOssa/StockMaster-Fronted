@@ -65,7 +65,7 @@ export const personPageConfig: GenericPageConfig<Person, PersonFilters> = {
 
   service: personService,
 
-  renderCustomFilters: ({ filters, setFilters, onSearch, onClear }) => (
+  renderCustomFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
     <form
       className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
       onSubmit={(event) => {
@@ -84,10 +84,11 @@ export const personPageConfig: GenericPageConfig<Person, PersonFilters> = {
         </FieldGroup>
       </div>
 
-      <div className="flex w-full flex-col gap-2 md:w-fit md:flex-row">
+      <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:justify-end">
         <Button
           type="submit"
-          className="w-full md:w-fit"
+          className="w-full sm:w-fit"
+          loading={loading}
           leftIcon={<Search className="h-4 w-4" />}
         >
           Buscar
@@ -95,7 +96,8 @@ export const personPageConfig: GenericPageConfig<Person, PersonFilters> = {
         <Button
           type="button"
           variant="secondary"
-          className="w-full md:w-fit"
+          className="w-full sm:w-fit"
+          disabled={loading}
           leftIcon={<X className="h-4 w-4" />}
           onClick={onClear}
         >

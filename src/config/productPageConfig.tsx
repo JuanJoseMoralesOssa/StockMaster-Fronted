@@ -63,7 +63,7 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
     name: '',
   },
 
-  renderCustomFilters: ({ filters, setFilters, onSearch, onClear }) => (
+  renderCustomFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
     <form
       className="flex flex-col gap-3 md:flex-row md:items-end"
       onSubmit={(event) => {
@@ -83,11 +83,11 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
           onChange={(event) => setFilters({ ...filters, name: event.target.value })}
         />
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Button type="submit" size="sm" leftIcon={<Search className="h-4 w-4" />}>
+      <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:justify-end">
+        <Button type="submit" size="sm" className="w-full sm:w-fit" loading={loading} leftIcon={<Search className="h-4 w-4" />}>
           Buscar
         </Button>
-        <Button type="button" variant="secondary" size="sm" onClick={onClear}>
+        <Button type="button" variant="secondary" size="sm" className="w-full sm:w-fit" disabled={loading} onClick={onClear}>
           Limpiar
         </Button>
       </div>

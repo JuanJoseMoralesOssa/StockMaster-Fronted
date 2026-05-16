@@ -9,6 +9,7 @@ export function useTableActions<T>(
 ) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<T | null>(null)
+  const [deletingItemId, setDeletingItemId] = useState<string | number | null>(null)
 
   const { showSuccess, showError, confirmDelete } = useToast()
 
@@ -22,12 +23,15 @@ export function useTableActions<T>(
     if (!confirmed) return
 
     try {
+      setDeletingItemId(itemId)
       await onDelete(itemId)
       if (removeItem) removeItem(itemId, idField)
       showSuccess(`${entityName} eliminado exitosamente`, 'Eliminación exitosa')
     } catch (error) {
       showError(`Error al eliminar ${entityName}`, 'Error')
       console.error(`Error deleting ${entityName}:`, error)
+    } finally {
+      setDeletingItemId(null)
     }
   }
 
@@ -51,6 +55,7 @@ export function useTableActions<T>(
   return {
     isEditModalOpen,
     selectedItem,
+    deletingItemId,
     handleDelete,
     handleEdit,
     handleEditSuccess,

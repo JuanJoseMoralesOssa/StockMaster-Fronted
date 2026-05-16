@@ -114,6 +114,7 @@ export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>
     setFilters: (filters: TFilter) => void
     onSearch: () => void
     onClear: () => void
+    loading: boolean
   }) => ReactNode
   /** Configuración para la vista de detalles */
   detailConfig?: {

@@ -51,11 +51,13 @@ function KardexFiltersSection({
   setFilters,
   onSearch,
   onClear,
+  loading,
 }: Readonly<{
   filters: KardexFilters
   setFilters: (filters: KardexFilters) => void
   onSearch: () => void
   onClear: () => void
+  loading: boolean
 }>) {
   const products = useProductStore((state) => state.products)
   const fetchProducts = useProductStore((state) => state.fetchProducts)
@@ -145,6 +147,7 @@ function KardexFiltersSection({
             size="sm"
             onClick={() => setFilters({ ...filters, activeDate: !filters.activeDate })}
             className={filters.activeDate ? dateToggleClasses.active : dateToggleClasses.inactive}
+            disabled={loading}
           >
             {filters.activeDate ? 'Rango activo' : 'Filtrar por fechas'}
           </Button>
@@ -180,11 +183,11 @@ function KardexFiltersSection({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <Button type="submit" size="sm" className="w-full sm:w-fit" leftIcon={<Search className="h-4 w-4" />}>
+      <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
+        <Button type="submit" size="sm" className="w-full sm:w-fit" loading={loading} leftIcon={<Search className="h-4 w-4" />}>
           Buscar
         </Button>
-        <Button type="button" variant="secondary" size="sm" className="w-full sm:w-fit" leftIcon={<X className="h-4 w-4" />} onClick={onClear}>
+        <Button type="button" variant="secondary" size="sm" className="w-full sm:w-fit" disabled={loading} leftIcon={<X className="h-4 w-4" />} onClick={onClear}>
           Limpiar
         </Button>
       </div>
@@ -328,12 +331,13 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
     canDelete: true,
   },
 
-  renderCustomFilters: ({ filters, setFilters, onSearch, onClear }) => (
+  renderCustomFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
     <KardexFiltersSection
       filters={filters}
       setFilters={setFilters}
       onSearch={onSearch}
       onClear={onClear}
+      loading={loading}
     />
   ),
 

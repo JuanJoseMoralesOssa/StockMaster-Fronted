@@ -9,6 +9,7 @@ interface UserFiltersProps {
   setFilters: (filters: UserFiltersState) => void
   onSearch: () => void
   onClear: () => void
+  loading?: boolean
 }
 
 interface RoleSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -31,7 +32,7 @@ function RoleSelect({ hasError: _hasError, ...props }: Readonly<RoleSelectProps>
   )
 }
 
-export default function UserFilters({ filters, setFilters, onSearch, onClear }: Readonly<UserFiltersProps>) {
+export default function UserFilters({ filters, setFilters, onSearch, onClear, loading = false }: Readonly<UserFiltersProps>) {
   return (
     <form
       className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
@@ -75,10 +76,11 @@ export default function UserFilters({ filters, setFilters, onSearch, onClear }: 
         </FieldGroup>
       </div>
 
-      <div className="flex w-full flex-col gap-2 lg:w-fit lg:flex-row">
+      <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:justify-end">
         <Button
           type="submit"
-          className="w-full lg:w-fit"
+          className="w-full sm:w-fit"
+          loading={loading}
           leftIcon={<Search className="h-4 w-4" />}
         >
           Buscar
@@ -86,7 +88,8 @@ export default function UserFilters({ filters, setFilters, onSearch, onClear }: 
         <Button
           type="button"
           variant="secondary"
-          className="w-full lg:w-fit"
+          className="w-full sm:w-fit"
+          disabled={loading}
           leftIcon={<X className="h-4 w-4" />}
           onClick={onClear}
         >

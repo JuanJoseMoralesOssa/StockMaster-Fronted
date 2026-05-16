@@ -23,9 +23,10 @@ interface ExpenseFiltersProps {
   products: Partial<Product>[]
   filters: ExpenseFiltersValue
   setFilters: (range: ExpenseFiltersValue) => void
+  loading?: boolean
 }
 
-function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<ExpenseFiltersProps>) {
+function ExpenseFilters({ suppliers, filters, products, setFilters, loading = false }: Readonly<ExpenseFiltersProps>) {
   // Transformar datos para el autocomplete
   const supplierOptions = suppliers
     .filter(supplier => supplier.id !== undefined)
@@ -75,6 +76,7 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
             size="sm"
             onClick={toggleDateFilter}
             className={filters.activeDate ? dateToggleClasses.active : dateToggleClasses.inactive}
+            disabled={loading}
           >
             {filters.activeDate ? 'Rango activo' : 'Rango de fechas'}
           </Button>
@@ -112,6 +114,7 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
         <div className='flex w-full flex-col'>
           <Autocomplete
             key={supplierKey}
+            className="w-full"
             options={supplierOptions}
             label="Proveedor"
             placeholder="Buscar proveedor..."
@@ -124,11 +127,14 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
             }}
             clearable={true}
             noOptionsText="No se encontraron proveedores"
+            labelClassName="block text-sm font-medium text-(--color-text-secondary) mb-1"
+            inputClassName="w-full h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 pr-8 text-sm text-(--color-text-primary) transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
           />
         </div>
         <div className='flex w-full flex-col'>
           <Autocomplete
             key={productKey}
+            className="w-full"
             options={productOptions}
             label="Producto"
             placeholder="Buscar producto..."
@@ -141,6 +147,8 @@ function ExpenseFilters({ suppliers, filters, products, setFilters }: Readonly<E
             }}
             clearable={true}
             noOptionsText="No se encontraron productos"
+            labelClassName="block text-sm font-medium text-(--color-text-secondary) mb-1"
+            inputClassName="w-full h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 pr-8 text-sm text-(--color-text-primary) transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
           />
         </div>
       </div>

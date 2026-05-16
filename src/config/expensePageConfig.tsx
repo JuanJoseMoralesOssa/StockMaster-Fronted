@@ -35,11 +35,13 @@ function ExpenseFiltersSection({
   setFilters,
   onSearch,
   onClear,
+  loading,
 }: Readonly<{
   filters: DateRangeFilters
   setFilters: (filters: DateRangeFilters) => void
   onSearch: () => void
   onClear: () => void
+  loading: boolean
 }>) {
   const products = useProductStore((state) => state.products)
   const suppliers = useSupplierStore((state) => state.suppliers)
@@ -52,12 +54,13 @@ function ExpenseFiltersSection({
   }, [fetchProducts, fetchSuppliers])
 
   return (
-    <DocumentFiltersChrome onSearch={onSearch} onClear={onClear}>
+    <DocumentFiltersChrome onSearch={onSearch} onClear={onClear} loading={loading}>
       <ExpenseFilters
         filters={filters}
         setFilters={setFilters}
         products={products}
         suppliers={suppliers}
+        loading={loading}
       />
     </DocumentFiltersChrome>
   )
@@ -75,12 +78,13 @@ export const expensePageConfig = buildDocumentPageConfig<
     entityNamePlural: 'Gastos',
     detailsKey: 'expense_details',
     renderExpandedDetails: (item) => <ExpenseExpandedDetails expense={item} />,
-    renderFilters: ({ filters, setFilters, onSearch, onClear }) => (
+    renderFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
       <ExpenseFiltersSection
         filters={filters}
         setFilters={setFilters}
         onSearch={onSearch}
         onClear={onClear}
+        loading={loading}
       />
     ),
     renderCreateForm: (onSuccess, onItemCreated) => (

@@ -20,6 +20,7 @@ interface Props<T> {
   expandedRows?: Set<string | number>
   toggleRowExpansion?: (id: string | number) => void
   idField: keyof T
+  deletingItemId?: string | number | null
 }
 
 export default function GenericTableBody<T>({
@@ -34,7 +35,8 @@ export default function GenericTableBody<T>({
   expandableConfig,
   expandedRows,
   toggleRowExpansion,
-  idField
+  idField,
+  deletingItemId
 }: Props<T>) {
   const hasExpandable = !!expandableConfig && !!expandedRows && !!toggleRowExpansion
   const totalColumns = columns.length + (showActions ? 1 : 0) + (hasExpandable ? 1 : 0)
@@ -51,6 +53,7 @@ export default function GenericTableBody<T>({
         data.map((item, rowIndex) => {
           const itemId = item[idField] as string | number
           const isExpanded = hasExpandable && expandedRows.has(itemId)
+          const isDeleting = deletingItemId === itemId
 
           return (
             <Fragment key={rowIndex}>
@@ -89,6 +92,7 @@ export default function GenericTableBody<T>({
                           variant='ghost'
                           size='icon-sm'
                           onClick={() => onEdit(item)}
+                          disabled={isDeleting}
                           aria-label='Editar'
                           title='Editar'
                           className='action-icon-edit'
@@ -102,6 +106,7 @@ export default function GenericTableBody<T>({
                           variant='ghost'
                           size='icon-sm'
                           onClick={() => onDelete(item)}
+                          loading={isDeleting}
                           aria-label='Eliminar'
                           title='Eliminar'
                           className='action-icon-delete'
@@ -115,6 +120,7 @@ export default function GenericTableBody<T>({
                           variant='ghost'
                           size='icon-sm'
                           onClick={(e) => onDropdownToggle(rowIndex, e)}
+                          disabled={isDeleting}
                           aria-label='Más opciones'
                           title='Más opciones'
                           className='action-icon-more'

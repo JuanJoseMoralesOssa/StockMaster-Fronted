@@ -61,7 +61,7 @@ function GenericHeaderInner<T>({
   )
 
   return (
-    <section className='flex w-full flex-col gap-4 rounded-lg border border-[var(--view-accent-border,var(--color-border))] bg-[var(--view-accent-soft,var(--color-bg-surface))] px-4 py-4 shadow-xs sm:flex-row sm:items-center sm:justify-between md:px-5'>
+    <section className='flex w-full flex-col gap-4 rounded-lg border border-[var(--view-accent-border,var(--color-border))] bg-[var(--view-accent-soft,var(--color-bg-surface))] px-4 py-4 pl-16 shadow-xs sm:flex-row sm:items-center sm:justify-between md:px-5'>
       <div className='flex min-w-0 items-center gap-3'>
         <span className='h-10 w-1 rounded-full bg-[var(--view-accent,var(--color-action-bg))]' aria-hidden='true' />
         <HeaderTitle title={title} className={headerClassName} />

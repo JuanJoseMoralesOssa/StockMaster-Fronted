@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { createPortal } from "react-dom"
 
 interface AutocompleteOption {
   id: string | number
@@ -41,9 +42,13 @@ export default function Autocomplete({
   const [inputValue, setInputValue] = useState(initialValue)
   const [showDropdown, setShowDropdown] = useState(false)
   const [highlightIndex, setHighlightIndex] = useState(-1)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const inputId = `autocomplete-${label.replace(/\s+/g, '-').toLowerCase()}`
+  const listId = `autocomplete-list-${label.replace(/\s+/g, '-').toLowerCase()}`
 
   // Memoized filtered options with performance optimization
   const filteredOptions = useMemo(() => {
@@ -57,6 +62,18 @@ export default function Autocomplete({
 
     return filtered.slice(0, maxOptions)
   }, [inputValue, options, displayKey, maxOptions])
+
+  const updateDropdownPosition = useCallback(() => {
+    const input = inputRef.current
+    if (!input) return
+
+    const rect = input.getBoundingClientRect()
+    setDropdownPosition({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    })
+  }, [])
 
   // Handle initial value - sync inputValue with initialValue
   useEffect(() => {
@@ -77,7 +94,11 @@ export default function Autocomplete({
   // Handle click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const clickedInput = containerRef.current?.contains(target)
+      const clickedDropdown = dropdownRef.current?.contains(target)
+
+      if (!clickedInput && !clickedDropdown) {
         setShowDropdown(false)
       }
     }
@@ -87,6 +108,19 @@ export default function Autocomplete({
       return () => document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [showDropdown])
+
+  useEffect(() => {
+    if (!showDropdown) return
+
+    updateDropdownPosition()
+    window.addEventListener("resize", updateDropdownPosition)
+    window.addEventListener("scroll", updateDropdownPosition, true)
+
+    return () => {
+      window.removeEventListener("resize", updateDropdownPosition)
+      window.removeEventListener("scroll", updateDropdownPosition, true)
+    }
+  }, [showDropdown, updateDropdownPosition])
 
   // Handle option selection
   const handleSelect = useCallback((option: AutocompleteOption) => {
@@ -112,6 +146,7 @@ export default function Autocomplete({
     setInputValue(value)
 
     if (value.trim()) {
+      updateDropdownPosition()
       setShowDropdown(true)
     } else {
       setShowDropdown(false)
@@ -165,9 +200,10 @@ export default function Autocomplete({
   // Handle input focus
   const handleFocus = useCallback(() => {
     if (!disabled) {
+      updateDropdownPosition()
       setShowDropdown(true)
     }
-  }, [disabled])
+  }, [disabled, updateDropdownPosition])
 
   // Scroll highlighted option into view
   useEffect(() => {
@@ -187,7 +223,7 @@ export default function Autocomplete({
       {label && (
         <label
           className={labelClassName || "block text-sm font-medium text-gray-700 mb-1"}
-          htmlFor={`autocomplete-${label.replace(/\s+/g, '-').toLowerCase()}`}
+          htmlFor={inputId}
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
@@ -197,7 +233,7 @@ export default function Autocomplete({
       <div className="relative">
         <input
           ref={inputRef}
-          id={`autocomplete-${label.replace(/\s+/g, '-').toLowerCase()}`}
+          id={inputId}
           type="text"
           className={inputClassName || `w-full border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors
             ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
@@ -211,7 +247,7 @@ export default function Autocomplete({
           role="combobox"
           aria-expanded={showDropdown}
           aria-haspopup="true"
-          aria-controls={`autocomplete-list-${label.replace(/\s+/g, '-').toLowerCase()}`}
+          aria-controls={listId}
           aria-activedescendant={
             highlightIndex >= 0
               ? `option-${filteredOptions[highlightIndex]?.id}`
@@ -226,7 +262,7 @@ export default function Autocomplete({
         {clearable && inputValue && !disabled && (
           <button
             type="button"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
             onClick={handleClear}
             aria-label="Limpiar selección"
           >
@@ -237,16 +273,23 @@ export default function Autocomplete({
         )}
       </div>
 
-      {/* Dropdown */}
-      {showDropdown && (
-        <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-hidden">
+      {showDropdown && createPortal(
+        <div
+          ref={dropdownRef}
+          className="fixed z-[9999] max-h-60 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-lg"
+          style={{
+            top: dropdownPosition.top,
+            left: dropdownPosition.left,
+            width: dropdownPosition.width,
+          }}
+        >
           {filteredOptions.length > 0 ? (
             <div
               ref={listRef}
-              id={`autocomplete-list-${label.replace(/\s+/g, '-').toLowerCase()}`}
+              id={listId}
               className="max-h-60 overflow-y-auto flex flex-col"
               role="listbox"
-              aria-labelledby={`autocomplete-${label.replace(/\s+/g, '-').toLowerCase()}`}
+              aria-labelledby={inputId}
             >
               {filteredOptions.map((option, i) => (
                 <button
@@ -258,8 +301,8 @@ export default function Autocomplete({
                   tabIndex={-1}
                   className={`w-full text-left px-4 py-2 transition-colors border-none bg-transparent cursor-pointer
                     ${i === highlightIndex
-                      ? "bg-blue-500 text-blue-900 font-semibold shadow-sm text-lg"
-                      : "hover:bg-gray-100 text-gray-900"
+                      ? "bg-[var(--view-accent-soft,var(--color-bg-subtle))] text-[var(--view-accent-text,var(--color-text-link))] font-semibold shadow-sm"
+                      : "hover:bg-[var(--color-bg-subtle)] text-[var(--color-text-primary)]"
                     }
                   `}
                   onClick={() => handleSelect(option)}
@@ -276,11 +319,12 @@ export default function Autocomplete({
               ))}
             </div>
           ) : (
-            <div className="px-4 py-2 text-gray-500 text-sm">
+            <div className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">
               {noOptionsText}
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

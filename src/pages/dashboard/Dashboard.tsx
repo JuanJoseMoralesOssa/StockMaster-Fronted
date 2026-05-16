@@ -67,7 +67,7 @@ export default function SupplierPaymentReport() {
         previous={prevAnalytics.data?.summary}
       />
 
-      <div className="mb-8 overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs">
+      <div className="mb-8 overflow-visible rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs">
         <div className="flex items-center justify-between border-b border-(--color-border) px-5 pt-5 pb-0">
           <ModeToggleDashboard
             dashboardMode={dashboardMode}
@@ -75,7 +75,7 @@ export default function SupplierPaymentReport() {
           />
         </div>
 
-        <div className="border-b border-(--color-border) bg-[var(--view-accent-soft,var(--color-bg-subtle))] p-5">
+        <div className="relative z-20 border-b border-(--color-border) bg-[var(--view-accent-soft,var(--color-bg-subtle))] p-5">
           <div className="flex flex-col gap-4">
             <Filters
               filters={filters}
@@ -90,7 +90,7 @@ export default function SupplierPaymentReport() {
           </div>
         </div>
 
-        <div className="p-5">
+        <div className="relative z-0 p-5">
           <RenderingWithMode
             dashboardMode={dashboardMode}
             filters={filters}

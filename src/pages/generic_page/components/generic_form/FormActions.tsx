@@ -13,10 +13,10 @@ export default function FormActions({ loading, submitLabel, cancelLabel, onCance
       <Button
         type="submit"
         variant="primary"
-        disabled={loading}
+        loading={loading}
         className="flex-1"
       >
-        {loading ? 'Procesando...' : submitLabel}
+        {submitLabel}
       </Button>
       {onCancel && (
         <Button

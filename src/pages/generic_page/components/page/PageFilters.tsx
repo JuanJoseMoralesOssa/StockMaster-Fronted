@@ -8,7 +8,7 @@ interface PageFiltersProps<T, TFilter = object, CreateInput = Partial<T>, Update
 export default function PageFilters<T extends object, TFilter = object, CreateInput = Partial<T>, UpdateInput = Partial<T>>({
   config
 }: PageFiltersProps<T, TFilter, CreateInput, UpdateInput>) {
-  const { filters, setFilters, applyFilters, clearFilters } = useGenericPageContext<T, TFilter>()
+  const { filters, setFilters, applyFilters, clearFilters, loading } = useGenericPageContext<T, TFilter>()
 
   if (!config.renderCustomFilters) return null
 
@@ -19,6 +19,7 @@ export default function PageFilters<T extends object, TFilter = object, CreateIn
         setFilters,
         onSearch: applyFilters,
         onClear: clearFilters,
+        loading,
       })}
     </section>
   )

@@ -35,11 +35,13 @@ function PurchaseFiltersSection({
   setFilters,
   onSearch,
   onClear,
+  loading,
 }: Readonly<{
   filters: DateRangeFilters
   setFilters: (filters: DateRangeFilters) => void
   onSearch: () => void
   onClear: () => void
+  loading: boolean
 }>) {
   const products = useProductStore((state) => state.products)
   const suppliers = useSupplierStore((state) => state.suppliers)
@@ -52,12 +54,13 @@ function PurchaseFiltersSection({
   }, [fetchProducts, fetchSuppliers])
 
   return (
-    <DocumentFiltersChrome onSearch={onSearch} onClear={onClear}>
+    <DocumentFiltersChrome onSearch={onSearch} onClear={onClear} loading={loading}>
       <PurchaseFilters
         filters={filters}
         setFilters={setFilters}
         products={products}
         suppliers={suppliers}
+        loading={loading}
       />
     </DocumentFiltersChrome>
   )
@@ -75,12 +78,13 @@ export const purchasePageConfig = buildDocumentPageConfig<
     entityNamePlural: 'Compras',
     detailsKey: 'purchase_details',
     renderExpandedDetails: (item) => <PurchaseExpandedDetails purchase={item} />,
-    renderFilters: ({ filters, setFilters, onSearch, onClear }) => (
+    renderFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
       <PurchaseFiltersSection
         filters={filters}
         setFilters={setFilters}
         onSearch={onSearch}
         onClear={onClear}
+        loading={loading}
       />
     ),
     renderCreateForm: (onSuccess, onItemCreated) => (

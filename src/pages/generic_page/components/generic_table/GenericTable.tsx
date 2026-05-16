@@ -98,6 +98,7 @@ export default function GenericTable<T extends Record<string, any>>({
   const {
     isEditModalOpen,
     selectedItem,
+    deletingItemId,
     handleDelete,
     handleEdit,
     handleEditSuccess,
@@ -163,10 +164,11 @@ export default function GenericTable<T extends Record<string, any>>({
               onDropdownToggle={handleDropdownToggle}
               rowClassName={rowClassName}
               expandableConfig={expandableConfig}
-              expandedRows={expandedRows}
-              toggleRowExpansion={toggleRowExpansion}
-              idField={idField}
-            />
+            expandedRows={expandedRows}
+            toggleRowExpansion={toggleRowExpansion}
+            idField={idField}
+            deletingItemId={deletingItemId}
+          />
           </table>
         </div>
 
