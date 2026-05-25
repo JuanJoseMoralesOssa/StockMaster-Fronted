@@ -96,7 +96,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
         }
 
     return (
-        <tr className={`text-sm hover:bg-gray-50 transition-colors ${isNew ? 'bg-success-50' : 'bg-white'}`} key={detail.id}>
+        <tr className={`text-sm transition-colors hover:bg-(--color-bg-subtle) ${isNew ? 'bg-success-50' : 'bg-(--color-bg-surface)'}`} key={detail.id}>
             <td className='px-4 py-3 whitespace-nowrap'>
                 <div className="w-48">
                     <Autocomplete
@@ -130,7 +130,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
             <td className='px-4 py-3 whitespace-nowrap'>
                 <input
                     type='number'
-                    className='w-24 h-9 rounded-md border border-gray-200 bg-white px-2 text-sm text-center block transition-colors focus:border-gray-300 focus:ring-2 focus:ring-brand-500 focus:ring-offset-0 focus:outline-none'
+                    className='block w-24 h-9 rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 text-center text-sm text-(--color-text-primary) transition-colors hover:border-(--color-border-strong) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)'
                     name='weight_kg'
                     id={`weight_kg_${detail.id}`}
                     value={detail.weight_kg ?? ''}
@@ -147,7 +147,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
                     className={`inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
                         canDelete
                             ? 'action-icon-delete'
-                            : 'text-gray-300 cursor-not-allowed'
+                            : 'text-(--color-text-muted) cursor-not-allowed'
                     }`}
                     onClick={() => {
                         if (canDelete && detail.id !== undefined) {

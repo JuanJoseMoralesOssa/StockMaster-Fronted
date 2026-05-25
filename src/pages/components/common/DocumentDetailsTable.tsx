@@ -145,7 +145,7 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
             ) : (
                 <>
                     <section className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
-                        <h2 className='text-lg font-medium tracking-tight text-gray-900'>
+                        <h2 className='text-lg font-medium tracking-tight text-(--color-text-primary)'>
                             {title}
                         </h2>
                         <Button
@@ -161,17 +161,17 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
 
                     {hasVisibleDetails ? (
                         <>
-                            <div className='overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-xs'>
+                            <div className='overflow-x-auto rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
                                 <table className='w-full table-auto text-sm'>
                                     <thead>
-                                        <tr className='border-b border-gray-200 bg-gray-50'>
-                                            <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600'>Producto</th>
-                                            <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600'>Proveedor</th>
-                                            <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600'>kg</th>
-                                            <th className='px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600'>Acciones</th>
+                                        <tr className='border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle))'>
+                                            <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Producto</th>
+                                            <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Proveedor</th>
+                                            <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>kg</th>
+                                            <th className='px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Acciones</th>
                                         </tr>
                                     </thead>
-                                    <tbody className='divide-y divide-gray-200'>
+                                    <tbody className='divide-y divide-(--color-border)'>
                                         {details.filter(d => !d.toDelete).map((detail, index) => (
                                             <DocumentDetailRow<typeof detail>
                                                 key={detail.id ?? `temp-${index}`}
@@ -197,8 +197,8 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
                             )}
                         </>
                     ) : (
-                        <div className='rounded-lg border border-gray-200 bg-gray-50 px-6 py-8 text-center'>
-                            <p className='text-sm text-gray-500'>No hay productos agregados</p>
+                        <div className='rounded-lg border border-(--color-border) bg-(--color-bg-subtle) px-6 py-8 text-center'>
+                            <p className='text-sm text-(--color-text-muted)'>No hay productos agregados</p>
                         </div>
                     )}
                 </>

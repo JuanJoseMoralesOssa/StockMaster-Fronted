@@ -98,7 +98,7 @@ export const Modal = ({
                                 </h2>
                             )}
                             {description && (
-                                <p className='text-gray-600 dark:text-slate-400'>{description}</p>
+                                <p className='text-(--color-text-secondary)'>{description}</p>
                             )}
                         </div>
                     )}
@@ -112,7 +112,7 @@ export const Modal = ({
                     ref={closeButtonRef}
                     onClick={onClose}
                     aria-label="Cerrar diálogo"
-                    className='absolute top-2 right-2 bg-gray-200 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500 rounded-full p-1 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    className='absolute top-2 right-2 bg-(--color-bg-subtle) hover:bg-(--color-bg-hover) rounded-full p-1 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-(--color-action-focus)'
                 >
                     <X className='h-5 w-5' />
                 </button>

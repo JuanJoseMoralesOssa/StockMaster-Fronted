@@ -282,23 +282,23 @@ function SupplierProductCharts({
     <div>
       {/* Resumen general */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 justify-center items-center">
-        <div className="bg-white p-4 rounded-lg shadow flex flex-col justify-between items-center">
-          <h3 className="text-sm font-medium text-gray-500">Total Pedido</h3>
-          <p className="text-2xl font-bold text-gray-600">{totalPurchases.toLocaleString()}</p>
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
+          <h3 className="text-sm font-medium text-(--color-text-muted)">Total Pedido</h3>
+          <p className="text-2xl font-bold text-(--color-text-secondary)">{totalPurchases.toLocaleString()}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow flex flex-col justify-between items-center">
-          <h3 className="text-sm font-medium text-gray-500">Total Pagado</h3>
-          <p className="text-2xl font-bold text-green-600">{totalExpenses.toLocaleString()}</p>
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
+          <h3 className="text-sm font-medium text-(--color-text-muted)">Total Pagado</h3>
+          <p className="text-2xl font-bold text-success-600">{totalExpenses.toLocaleString()}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow flex flex-col justify-between items-center">
-          <h3 className="text-sm font-medium text-gray-500">Total Pendiente</h3>
-          <p className="text-2xl font-bold text-red-600">{pendingAmount.toLocaleString()}</p>
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
+          <h3 className="text-sm font-medium text-(--color-text-muted)">Total Pendiente</h3>
+          <p className="text-2xl font-bold text-danger-500">{pendingAmount.toLocaleString()}</p>
         </div>
-        <div className='bg-white py-3 px-4 rounded-lg shadow flex flex-col gap-1'>
+        <div className='bg-(--color-bg-surface) py-3 px-4 rounded-lg shadow flex flex-col gap-1'>
           {(selectedFilter === 'all' || selectedFilter === 'withDebt') &&
             <div className="flex gap-4 items-center justify-center md:justify-between">
-              <h3 className="text-sm font-medium text-gray-500">Con deuda</h3>
-              <p className="text-xl font-bold text-blue-600">
+              <h3 className="text-sm font-medium text-(--color-text-muted)">Con deuda</h3>
+              <p className="text-xl font-bold text-(--color-action-text)">
                 {
                   results.filter(s => {
                     const totalOwed = (s.type === PURCHASE ? s.weight_kg : 0) -
@@ -310,8 +310,8 @@ function SupplierProductCharts({
             </div>}
           {(selectedFilter === 'all' || selectedFilter === 'fullyPaid') &&
             <div className="flex gap-4 items-center justify-center md:justify-between">
-              <h3 className="text-sm font-medium text-gray-500">Pagados</h3>
-              <p className="text-xl font-bold text-blue-600">
+              <h3 className="text-sm font-medium text-(--color-text-muted)">Pagados</h3>
+              <p className="text-xl font-bold text-(--color-action-text)">
                 {
                   results.filter(s => {
                     const totalOwed = (s.type === PURCHASE ? s.weight_kg : 0) -
@@ -326,8 +326,8 @@ function SupplierProductCharts({
 
       {/* Gráficos principales */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Distribución de Pagos por Mes</h2>
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Distribución de Pagos por Mes</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={barChartData}
@@ -399,14 +399,14 @@ function SupplierProductCharts({
       </div>
 
       {/* Tabla de detalle diario */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <section className='flex flex-col md:flex-row justify-between items-center bg-gray-50 border-b border-gray-400'>
-          <h2 className="text-lg font-semibold p-4">Detalle Diario - {supplierName} / {productName}</h2>
+      <div className="bg-(--color-bg-surface) rounded-lg shadow overflow-hidden">
+        <section className='flex flex-col md:flex-row justify-between items-center bg-(--color-bg-subtle) border-b border-(--color-border)'>
+          <h2 className="text-lg font-semibold p-4 text-(--color-text-primary)">Detalle Diario - {supplierName} / {productName}</h2>
           <div className='flex items-end w-full md:w-fit gap-4 p-4'>
             <button
               disabled={!dailyData.length}
               onClick={exportToExcel}
-              className='px-4 py-2 rounded-lg text-green-700 text-[13.5px] font-semibold bg-green-50 hover:bg-green-100 border-[1.5px] border-green-200 hover:border-green-300 transition-all flex items-center justify-center gap-2 w-full md:w-auto disabled:opacity-50'
+              className='px-4 py-2 rounded-lg text-success-700 text-[13.5px] font-semibold bg-success-50 hover:bg-success-100 border-[1.5px] border-success-200 hover:border-success-300 transition-all flex items-center justify-center gap-2 w-full md:w-auto disabled:opacity-50'
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
               Exportar a Excel
@@ -414,36 +414,36 @@ function SupplierProductCharts({
           </div>
         </section>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-(--color-border)">
+            <thead className="bg-(--color-bg-subtle)">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Día</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compra</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gasto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pendiente</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Fecha</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Día</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Compra</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Gasto</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Pendiente</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Estado</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-(--color-bg-surface) divide-y divide-(--color-border)">
               {dailyData.map((day) => (
-                <tr key={day.date} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap font-medium">{day.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{day.day}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{day.compra.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-green-600">{day.gasto.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-red-600">{day.pendiente.toLocaleString()}</td>
+                <tr key={day.date} className="hover:bg-(--color-bg-subtle)">
+                  <td className="px-6 py-4 whitespace-nowrap font-medium text-(--color-text-primary)">{day.date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">{day.day}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">{day.compra.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-success-600">{day.gasto.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-danger-500">{day.pendiente.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {day.pendiente === 0 && day.compra > 0 ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-100 text-success-800">
                         Completo
                       </span>
                     ) : day.compra > 0 ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning-100 text-warning-800">
                         {((day.gasto / day.compra) * 100).toFixed(1)}% Pagado
                       </span>
                     ) : (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-(--color-bg-subtle) text-(--color-text-secondary)">
                         Sin compras
                       </span>
                     )}

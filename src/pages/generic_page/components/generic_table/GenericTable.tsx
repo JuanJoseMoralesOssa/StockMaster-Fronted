@@ -148,7 +148,7 @@ export default function GenericTable<T extends Record<string, any>>({
     <>
       <div className='overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
         <div className='overflow-x-auto'>
-          <table className='w-full min-w-[720px] divide-y divide-(--color-border)'>
+          <table className='w-full min-w-180 divide-y divide-(--color-border)'>
             <GenericTableHeader
               columns={columns}
               showActions={showActions}

@@ -57,7 +57,7 @@ export default function GenericTableBody<T>({
 
           return (
             <Fragment key={rowIndex}>
-              <tr className={`bg-(--color-bg-surface) transition-colors hover:bg-[var(--view-accent-soft,var(--color-bg-subtle))] ${rowClassName ? rowClassName(item) : ''}`}>
+              <tr className={`bg-(--color-bg-surface) transition-colors hover:bg-(--view-accent-soft,var(--color-bg-subtle)) ${rowClassName ? rowClassName(item) : ''}`}>
                 {hasExpandable && (
                   <td className='w-12 whitespace-nowrap px-4 py-3.5'>
                     <Button

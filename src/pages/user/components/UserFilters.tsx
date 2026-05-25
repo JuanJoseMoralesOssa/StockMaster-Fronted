@@ -23,10 +23,11 @@ const roleOptions = [
   { value: Roles.OPERATOR, label: 'Operador' },
 ]
 
-function RoleSelect({ hasError: _hasError, ...props }: Readonly<RoleSelectProps>) {
+function RoleSelect({ hasError, ...props }: Readonly<RoleSelectProps>) {
   return (
     <select
-      className="h-input w-full rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) transition-colors hover:border-(--color-border-strong) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+      aria-invalid={hasError || undefined}
+      className={`h-input w-full rounded-md border bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring) ${hasError ? 'border-danger-500' : 'border-(--color-border) hover:border-(--color-border-strong)'}`}
       {...props}
     />
   )

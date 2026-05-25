@@ -15,7 +15,7 @@ interface EditModalProps<T> {
   onClose: () => void
 }
 
-function buildEditableInitialData<T extends Record<string, any>>(item: T, fields?: GenericField<T>[]) {
+function buildEditableInitialData<T extends Record<string, unknown>>(item: T, fields?: GenericField<T>[]) {
   if (!fields || fields.length === 0) {
     return item
   }
