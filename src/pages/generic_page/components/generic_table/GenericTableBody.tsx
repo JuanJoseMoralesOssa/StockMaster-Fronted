@@ -134,7 +134,7 @@ export default function GenericTableBody<T>({
               </tr>
 
               {hasExpandable && isExpanded && (
-                <tr className='border-t border-[var(--view-accent-border,var(--color-border))] bg-[var(--view-accent-soft,var(--color-bg-subtle))]'>
+                <tr className='border-t border-(--view-accent-border,var(--color-border)) bg-(--view-accent-soft,var(--color-bg-subtle))'>
                   <td colSpan={totalColumns} className='px-0 py-0'>
                     <div className='px-5 py-4'>
                       {expandableConfig.expandedTitle && (

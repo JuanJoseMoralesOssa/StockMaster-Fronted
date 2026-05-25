@@ -86,14 +86,14 @@ export const Modal = ({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={title ? 'modal-title' : undefined}
-                className={`relative bg-white dark:bg-slate-800 p-6 rounded shadow-lg w-full ${className} m-auto animate-modal-in`}
+                className={`relative bg-(--color-bg-surface) p-6 rounded shadow-lg w-full ${className} m-auto animate-modal-in`}
             >
                 <div className='overflow-y-auto max-h-[95vh]'>
                     {/* Header */}
                     {(title || description) && (
                         <div className='mb-4'>
                             {title && (
-                                <h2 id="modal-title" className='text-xl font-semibold dark:text-white'>
+                                <h2 id="modal-title" className='text-xl font-semibold text-(--color-text-primary)'>
                                     {title}
                                 </h2>
                             )}
@@ -112,7 +112,7 @@ export const Modal = ({
                     ref={closeButtonRef}
                     onClick={onClose}
                     aria-label="Cerrar diálogo"
-                    className='absolute top-2 right-2 bg-(--color-bg-subtle) hover:bg-(--color-bg-hover) rounded-full p-1 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-(--color-action-focus)'
+                    className='absolute top-2 right-2 bg-(--color-bg-subtle) hover:bg-(--color-bg-muted) rounded-full p-1 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-(--color-focus-ring)'
                 >
                     <X className='h-5 w-5' />
                 </button>

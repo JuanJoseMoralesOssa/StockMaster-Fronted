@@ -262,7 +262,7 @@ export default function Autocomplete({
         {clearable && inputValue && !disabled && (
           <button
             type="button"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-(--color-text-muted) hover:text-(--color-text-secondary) transition-colors"
             onClick={handleClear}
             aria-label="Limpiar selección"
           >
@@ -276,7 +276,7 @@ export default function Autocomplete({
       {showDropdown && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed z-[9999] max-h-60 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-lg"
+          className="fixed z-[9999] max-h-60 overflow-hidden rounded-md border border-(--color-border) bg-(--color-bg-surface) shadow-lg"
           style={{
             top: dropdownPosition.top,
             left: dropdownPosition.left,
@@ -301,8 +301,8 @@ export default function Autocomplete({
                   tabIndex={-1}
                   className={`w-full text-left px-4 py-2 transition-colors border-none bg-transparent cursor-pointer
                     ${i === highlightIndex
-                      ? "bg-[var(--view-accent-soft,var(--color-bg-subtle))] text-[var(--view-accent-text,var(--color-text-link))] font-semibold shadow-sm"
-                      : "hover:bg-[var(--color-bg-subtle)] text-[var(--color-text-primary)]"
+                      ? "bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link)) font-semibold shadow-sm"
+                      : "hover:bg-(--color-bg-subtle) text-(--color-text-primary)"
                     }
                   `}
                   onClick={() => handleSelect(option)}
@@ -319,7 +319,7 @@ export default function Autocomplete({
               ))}
             </div>
           ) : (
-            <div className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">
+            <div className="px-4 py-2 text-(--color-text-secondary) text-sm">
               {noOptionsText}
             </div>
           )}

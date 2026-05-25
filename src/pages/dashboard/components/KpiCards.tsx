@@ -61,13 +61,13 @@ function KpiCards({ current, previous }: Readonly<KpiCardsProps>) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 md:p-5 shadow-xs hover:border-[var(--view-accent-border,var(--color-border-strong))] transition-colors"
+          className="bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 md:p-5 shadow-xs hover:border-(--view-accent-border,var(--color-border-strong)) transition-colors"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-[12px] font-semibold text-(--color-text-secondary) uppercase tracking-wide">
               {card.label}
             </span>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--view-accent-soft,var(--color-bg-subtle))] text-[var(--view-accent-text,var(--color-text-link))]">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link))">
               {card.icon}
             </div>
           </div>

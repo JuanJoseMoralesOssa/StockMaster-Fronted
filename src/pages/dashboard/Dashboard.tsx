@@ -41,7 +41,7 @@ export default function SupplierPaymentReport() {
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <div className="text-xl font-semibold text-[var(--view-accent-text,var(--color-text-link))]">Cargando datos...</div>
+      <div className="text-xl font-semibold text-(--view-accent-text,var(--color-text-link))">Cargando datos...</div>
     </div>
   )
 
@@ -75,7 +75,7 @@ export default function SupplierPaymentReport() {
           />
         </div>
 
-        <div className="relative z-20 border-b border-(--color-border) bg-[var(--view-accent-soft,var(--color-bg-subtle))] p-5">
+        <div className="relative z-20 border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle)) p-5">
           <div className="flex flex-col gap-4">
             <Filters
               filters={filters}

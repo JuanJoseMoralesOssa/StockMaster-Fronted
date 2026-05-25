@@ -14,7 +14,7 @@ function ModeToggleDashboard(
       <button
         onClick={() => handleModeChange('detailed')}
         className={`px-4.5 py-2 rounded-md text-[13.5px] font-semibold transition-all flex items-center gap-1.75 ${dashboardMode === 'detailed'
-          ? 'bg-(--color-bg-surface) text-[var(--view-accent-text,var(--color-text-link))] shadow-sm'
+          ? 'bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) shadow-sm'
           : 'text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-bg-muted)'
           }`}
       >
@@ -23,7 +23,7 @@ function ModeToggleDashboard(
       <button
         onClick={() => handleModeChange('general')}
         className={`px-4.5 py-2 rounded-md text-[13.5px] font-semibold transition-all flex items-center gap-1.75 ${dashboardMode === 'general'
-          ? 'bg-(--color-bg-surface) text-[var(--view-accent-text,var(--color-text-link))] shadow-sm'
+          ? 'bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) shadow-sm'
           : 'text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-bg-muted)'
           }`}
       >

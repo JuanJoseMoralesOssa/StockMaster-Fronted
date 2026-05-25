@@ -19,7 +19,7 @@ export function DashboardLayout({ children }: { readonly children: React.ReactNo
             {/* Skip-to-content link for keyboard users */}
             <a
                 href="#main-content"
-                className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded focus:shadow-lg"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-(--color-action-bg) focus:text-white focus:rounded focus:shadow-lg"
             >
                 Ir al contenido principal
             </a>

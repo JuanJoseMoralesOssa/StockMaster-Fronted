@@ -29,7 +29,7 @@ function GeneralDashboard({ filters, analyticsData: data, analyticsLoading: load
       {data && (
         <div className="bg-(--color-bg-surface) p-6 rounded-lg shadow-xs border border-(--color-border)">
           <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-(--color-text-primary)">
-            <span className="h-6 w-1 rounded-full bg-[var(--view-accent,var(--color-action-bg))]" aria-hidden="true" />
+            <span className="h-6 w-1 rounded-full bg-(--view-accent,var(--color-action-bg))" aria-hidden="true" />
             Tablero General
           </h2>
 
@@ -47,7 +47,7 @@ function GeneralDashboard({ filters, analyticsData: data, analyticsLoading: load
               suppliers={data.topSuppliersByWeight}
               title="Mejores Proveedores (Mayor Peso)"
               icon="📈"
-              colorClass="bg-[var(--view-accent-soft,var(--color-bg-subtle))] border-[var(--view-accent-border,var(--color-border))]"
+              colorClass="bg-(--view-accent-soft,var(--color-bg-subtle)) border-(--view-accent-border,var(--color-border))"
             />
 
             <ProductsCard
@@ -71,7 +71,7 @@ function GeneralDashboard({ filters, analyticsData: data, analyticsLoading: load
               products={data.mostTransactedProducts}
               title="Productos Más Comercializados"
               icon="📊"
-              colorClass="bg-[var(--view-accent-soft,var(--color-bg-subtle))] border-[var(--view-accent-border,var(--color-border))]"
+              colorClass="bg-(--view-accent-soft,var(--color-bg-subtle)) border-(--view-accent-border,var(--color-border))"
             />
           </div>
 

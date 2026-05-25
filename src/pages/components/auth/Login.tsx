@@ -51,11 +51,11 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen min-w-screen flex items-center justify-center bg-linear-to-br from-(--color-bg-default) via-(--color-bg-surface) to-(--color-bg-subtle) py-12 md:py-4 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen min-w-screen flex items-center justify-center bg-linear-to-br from-(--color-bg-page) via-(--color-bg-surface) to-(--color-bg-subtle) py-12 md:py-4 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-4">
           <div className='w-full flex items-center justify-center gap-2 mb-1'>
-            <div className="h-16 w-16 bg-linear-to-r from-(--color-action-bg) to-(--color-action-secondary) rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="h-16 w-16 bg-linear-to-br from-blue-600 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
               <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>

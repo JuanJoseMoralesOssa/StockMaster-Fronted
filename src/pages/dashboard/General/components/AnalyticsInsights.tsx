@@ -29,33 +29,33 @@ function AnalyticsInsights({ data }: Readonly<AnalyticsInsightsProps>) {
       value: `${formatWeight(insights.avgWeightPerSupplier)} kg`,
       description: `${insights.avgTransactionsPerSupplier.toFixed(1)} transacciones en promedio`,
       icon: "📊",
-      borderColor: "border-[var(--view-accent,var(--color-action-bg))]"
+      borderColor: "border-(--view-accent,var(--color-action-bg))"
     },
     ...(insights.weightGap > 0 ? [{
       title: "Brecha de Rendimiento",
       value: `${formatWeight(insights.weightGap)} kg`,
       description: "Entre el mejor y el peor proveedor",
       icon: "📈",
-      borderColor: "border-[var(--view-accent,var(--color-action-bg))]"
+      borderColor: "border-(--view-accent,var(--color-action-bg))"
     }] : []),
     ...(insights.topSupplier ? [{
       title: "Líder del Período",
       value: insights.topSupplier.personName,
       description: `${formatWeight(insights.topSupplier.totalWeight)} kg en ${insights.topSupplier.transactionCount} transacciones`,
       icon: "🏆",
-      borderColor: "border-[var(--view-accent,var(--color-action-bg))]"
+      borderColor: "border-(--view-accent,var(--color-action-bg))"
     }] : []),
     ...(insights.topProduct ? [{
       title: "Producto Estrella",
       value: insights.topProduct.productName,
       description: `${formatWeight(insights.topProduct.totalWeight)} kg comercializados`,
       icon: "⭐",
-      borderColor: "border-[var(--view-accent,var(--color-action-bg))]"
+      borderColor: "border-(--view-accent,var(--color-action-bg))"
     }] : [])
   ]
 
   return (
-    <div className="bg-[var(--view-accent-soft,var(--color-bg-subtle))] p-6 rounded-lg border border-[var(--view-accent-border,var(--color-border))]">
+    <div className="bg-(--view-accent-soft,var(--color-bg-subtle)) p-6 rounded-lg border border-(--view-accent-border,var(--color-border))">
       <h3 className="text-lg font-bold text-(--color-text-primary) mb-4 flex items-center gap-2">
         🧠 Estadísticas Inteligentes
       </h3>

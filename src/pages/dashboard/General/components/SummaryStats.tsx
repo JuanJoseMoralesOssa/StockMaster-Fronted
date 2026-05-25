@@ -13,7 +13,7 @@ function SummaryStats({ totalSuppliers, totalProducts, totalWeight, totalTransac
       title: "Proveedores Activos",
       value: totalSuppliers,
       icon: "👥",
-      colorClass: "bg-[var(--view-accent-soft,var(--color-bg-subtle))] text-[var(--view-accent-text,var(--color-text-link))] border border-[var(--view-accent-border,var(--color-border))]"
+      colorClass: "bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link)) border border-(--view-accent-border,var(--color-border))"
     },
     {
       title: "Productos Manejados",
@@ -31,7 +31,7 @@ function SummaryStats({ totalSuppliers, totalProducts, totalWeight, totalTransac
       title: "Transacciones",
       value: totalTransactions,
       icon: "📊",
-      colorClass: "bg-[var(--view-accent-soft,var(--color-bg-subtle))] text-[var(--view-accent-text,var(--color-text-link))] border border-[var(--view-accent-border,var(--color-border))]"
+      colorClass: "bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link)) border border-(--view-accent-border,var(--color-border))"
     }
   ];
 

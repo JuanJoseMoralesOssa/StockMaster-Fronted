@@ -15,8 +15,8 @@ const operationOptions = [
 ]
 
 const dateToggleClasses = {
-  active: 'w-full border border-[var(--view-accent,var(--color-action-bg))] bg-[var(--view-accent,var(--color-action-bg))] text-white shadow-sm hover:bg-[var(--view-accent-hover,var(--color-action-bg-hover))] md:w-fit',
-  inactive: 'w-full border border-[var(--view-accent-border,var(--color-border-strong))] bg-(--color-bg-surface) text-[var(--view-accent-text,var(--color-text-link))] hover:bg-[var(--view-accent-soft,var(--color-bg-subtle))] md:w-fit',
+  active: 'w-full border border-(--view-accent,var(--color-action-bg)) bg-(--view-accent,var(--color-action-bg)) text-white shadow-sm hover:bg-(--view-accent-hover,var(--color-action-bg-hover)) md:w-fit',
+  inactive: 'w-full border border-(--view-accent-border,var(--color-border-strong)) bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) hover:bg-(--view-accent-soft,var(--color-bg-subtle)) md:w-fit',
 }
 
 export interface KardexFilters {
@@ -139,7 +139,7 @@ function KardexFiltersSection({
         </div>
       </div>
 
-      <div className="rounded-md bg-[var(--view-accent-soft,var(--color-bg-subtle))] p-3">
+      <div className="rounded-md bg-(--view-accent-soft,var(--color-bg-subtle)) p-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-end">
           <Button
             type="button"
@@ -217,7 +217,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       key: 'product',
       label: 'Nombre del producto',
       render: (entry) => (
-        <span className='inline-flex items-center rounded-md border border-[var(--view-accent-border,var(--color-border-strong))] bg-(--color-bg-surface) px-2.5 py-1 text-xs font-semibold text-(--color-text-primary) shadow-xs'>
+        <span className='inline-flex items-center rounded-md border border-(--view-accent-border,var(--color-border-strong)) bg-(--color-bg-surface) px-2.5 py-1 text-xs font-semibold text-(--color-text-primary) shadow-xs'>
           {entry.product?.name ?? `Producto #${entry.productId}`}
         </span>
       ),
@@ -226,21 +226,21 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       key: 'input',
       label: 'Entrada',
       render: (entry) => (
-        <span className='font-semibold text-emerald-700'>+{entry.input}</span>
+        <span className='font-semibold text-success-700'>+{entry.input}</span>
       ),
     },
     {
       key: 'output',
       label: 'Salida',
       render: (entry) => (
-        <span className='font-semibold text-rose-700'>-{entry.output}</span>
+        <span className='font-semibold text-danger-700'>-{entry.output}</span>
       ),
     },
     {
       key: 'balance',
       label: 'Saldo',
       render: (entry) => (
-        <span className='inline-flex items-center rounded-md border border-[var(--view-accent-border,var(--color-border-strong))] bg-(--color-bg-surface) px-2 py-1 text-xs font-semibold text-[var(--view-accent-text,var(--color-text-link))] shadow-xs'>
+        <span className='inline-flex items-center rounded-md border border-(--view-accent-border,var(--color-border-strong)) bg-(--color-bg-surface) px-2 py-1 text-xs font-semibold text-(--view-accent-text,var(--color-text-link)) shadow-xs'>
           {entry.balance}
         </span>
       ),
@@ -260,10 +260,10 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       render: (entry) => {
         const label = operationOptions.find((op) => op.value === entry.operation)?.label ?? 'N/A'
         const tone = entry.operation === 1
-          ? 'border border-emerald-600/40 bg-emerald-50 text-emerald-800'
+          ? 'border border-success-500/40 bg-success-50 text-success-700'
           : entry.operation === 2
-            ? 'border border-rose-600/40 bg-rose-50 text-rose-800'
-            : 'border border-amber-600/40 bg-amber-50 text-amber-800'
+            ? 'border border-danger-500/40 bg-danger-50 text-danger-700'
+            : 'border border-warning-500/40 bg-warning-50 text-warning-700'
         return (
           <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-xs ${tone}`}>
             {label}

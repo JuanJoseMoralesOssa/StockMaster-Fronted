@@ -288,17 +288,17 @@ function SupplierProductCharts({
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-muted)">Total Pagado</h3>
-          <p className="text-2xl font-bold text-success-600">{totalExpenses.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-success-700">{totalExpenses.toLocaleString()}</p>
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-muted)">Total Pendiente</h3>
-          <p className="text-2xl font-bold text-danger-500">{pendingAmount.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-danger-700">{pendingAmount.toLocaleString()}</p>
         </div>
         <div className='bg-(--color-bg-surface) py-3 px-4 rounded-lg shadow flex flex-col gap-1'>
           {(selectedFilter === 'all' || selectedFilter === 'withDebt') &&
             <div className="flex gap-4 items-center justify-center md:justify-between">
               <h3 className="text-sm font-medium text-(--color-text-muted)">Con deuda</h3>
-              <p className="text-xl font-bold text-(--color-action-text)">
+              <p className="text-xl font-bold text-(--color-text-primary)">
                 {
                   results.filter(s => {
                     const totalOwed = (s.type === PURCHASE ? s.weight_kg : 0) -
@@ -311,7 +311,7 @@ function SupplierProductCharts({
           {(selectedFilter === 'all' || selectedFilter === 'fullyPaid') &&
             <div className="flex gap-4 items-center justify-center md:justify-between">
               <h3 className="text-sm font-medium text-(--color-text-muted)">Pagados</h3>
-              <p className="text-xl font-bold text-(--color-action-text)">
+              <p className="text-xl font-bold text-(--color-text-primary)">
                 {
                   results.filter(s => {
                     const totalOwed = (s.type === PURCHASE ? s.weight_kg : 0) -
@@ -345,8 +345,8 @@ function SupplierProductCharts({
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Panorama General</h2>
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Panorama General</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -371,8 +371,8 @@ function SupplierProductCharts({
         <h2 className="text-lg font-semibold mb-4">Distribución Diaria por Mes</h2>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {Object.entries(dailyByMonth).map(([month, days]) => (
-            <div key={month} className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-md font-medium mb-4 text-center">{month}</h3>
+            <div key={month} className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+              <h3 className="text-md font-medium mb-4 text-center text-(--color-text-primary)">{month}</h3>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart
                   data={days.map(d => ({
@@ -431,15 +431,15 @@ function SupplierProductCharts({
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-(--color-text-primary)">{day.date}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">{day.day}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">{day.compra.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-success-600">{day.gasto.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-danger-500">{day.pendiente.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-success-700">{day.gasto.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-danger-700">{day.pendiente.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {day.pendiente === 0 && day.compra > 0 ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-100 text-success-800">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-50 text-success-700">
                         Completo
                       </span>
                     ) : day.compra > 0 ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning-100 text-warning-800">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning-50 text-warning-700">
                         {((day.gasto / day.compra) * 100).toFixed(1)}% Pagado
                       </span>
                     ) : (
@@ -451,19 +451,19 @@ function SupplierProductCharts({
                 </tr>
               ))}
               {/* Fila de totales */}
-              <tr className="bg-gray-50 font-bold">
-                <td className="px-6 py-4 whitespace-nowrap">TOTAL</td>
-                <td className="px-6 py-4 whitespace-nowrap">-</td>
-                <td className="px-6 py-4 whitespace-nowrap">{totalPurchases.toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-green-600">{totalExpenses.toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-red-600">{pendingAmount.toLocaleString()}</td>
+              <tr className="bg-(--color-bg-subtle) font-bold">
+                <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">TOTAL</td>
+                <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">-</td>
+                <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">{totalPurchases.toLocaleString()}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-success-700">{totalExpenses.toLocaleString()}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-danger-700">{pendingAmount.toLocaleString()}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {paymentStatus === 'Completo' ? (
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-50 text-success-700">
                       Completo
                     </span>
                   ) : (
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning-50 text-warning-700">
                       {paymentStatus}
                     </span>
                   )}

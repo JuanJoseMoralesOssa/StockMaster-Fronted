@@ -106,7 +106,7 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
           // Aquí podrías navegar a la página de kardex
           // navigate(`/kardex?productId=${product.id}`)
         },
-        className: 'text-[var(--view-accent-text,var(--color-text-link))] focus:text-[var(--view-accent-text,var(--color-text-link))]',
+        className: 'text-(--view-accent-text,var(--color-text-link)) focus:text-(--view-accent-text,var(--color-text-link))',
         condition: (product) => product.id !== undefined,
       },
     ],

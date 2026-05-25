@@ -31,7 +31,7 @@ function MetricCard({
         <div className="text-xs opacity-70 mt-1">{subtitle}</div>
       )}
       {trend && (
-        <div className={`text-xs mt-2 flex items-center justify-center gap-1 ${trend.isPositive ? 'text-green-600' : 'text-red-600'
+        <div className={`text-xs mt-2 flex items-center justify-center gap-1 ${trend.isPositive ? 'text-success-700' : 'text-danger-700'
           }`}>
           <span>{trend.isPositive ? '↗️' : '↘️'}</span>
           <span>{trend.value}% {trend.label}</span>

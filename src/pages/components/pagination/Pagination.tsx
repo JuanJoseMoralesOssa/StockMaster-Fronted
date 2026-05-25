@@ -93,7 +93,7 @@ export default function Pagination({
                 id="itemsPerPage"
                 value={itemsPerPage}
                 onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                className="rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 py-1 text-sm text-(--color-text-primary) focus:outline-none focus:ring-2 focus:ring-[var(--view-accent,var(--color-focus-ring))]"
+                className="rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 py-1 text-sm text-(--color-text-primary) focus:outline-none focus:ring-2 focus:ring-(--view-accent,var(--color-focus-ring))"
               >
                 {itemsPerPageOptions.map((option) => (
                   <option key={option} value={option}>
@@ -147,7 +147,7 @@ export default function Pagination({
                   key={pageNumber}
                   onClick={() => onPageChange(pageNumber)}
                   className={`${controlClass} ${isCurrentPage
-                    ? 'z-10 border-[var(--view-accent,var(--color-action-bg))] bg-[var(--view-accent-soft,var(--color-bg-subtle))] text-[var(--view-accent-text,var(--color-text-link))]'
+                    ? 'z-10 border-(--view-accent,var(--color-action-bg)) bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link))'
                     : ''
                     }`}
                 >

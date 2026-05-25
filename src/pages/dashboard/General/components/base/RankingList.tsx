@@ -22,7 +22,7 @@ function RankingList({
   title,
   items,
   icon,
-  colorClass = "bg-gray-50",
+  colorClass = "bg-(--color-bg-subtle)",
   maxItems = 5,
   showNumbers = true,
   valueFormatter = (value) => value.toString()
@@ -32,7 +32,7 @@ function RankingList({
   if (displayItems.length === 0) return null;
 
   return (
-    <div className={`${colorClass} p-4 rounded-lg border`}>
+    <div className={`${colorClass} p-4 rounded-lg border border-(--color-border)`}>
       <h3 className="font-semibold mb-3 flex items-center gap-2 text-(--color-text-primary)">
         {icon && <span>{icon}</span>}
         {title}
@@ -42,7 +42,7 @@ function RankingList({
           <div key={item.id} className="flex justify-between items-center text-sm text-(--color-text-primary)">
             <span className="font-medium flex items-center gap-2">
               {showNumbers && (
-                <span className="bg-(--color-bg-surface) text-[var(--view-accent-text,var(--color-text-link))] px-2 py-1 rounded text-xs font-bold">
+                <span className="bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) px-2 py-1 rounded text-xs font-bold">
                   #{index + 1}
                 </span>
               )}

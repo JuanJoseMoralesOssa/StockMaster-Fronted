@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Maintainability Review Loop — 5 pasadas para detectar deuda técnica, smells y oportunidades de refactor antes de que el código se vuelva una jungla hostil.
 ---
 

@@ -4,8 +4,8 @@ import Autocomplete from "../../components/common/Autocomplete"
 import { Button } from "../../../components/ui"
 
 const dateToggleClasses = {
-  active: 'border border-[var(--view-accent,var(--color-action-bg))] bg-[var(--view-accent,var(--color-action-bg))] text-white shadow-sm hover:bg-[var(--view-accent-hover,var(--color-action-bg-hover))]',
-  inactive: 'border border-[var(--view-accent-border,var(--color-border-strong))] bg-(--color-bg-surface) text-[var(--view-accent-text,var(--color-text-link))] hover:bg-[var(--view-accent-soft,var(--color-bg-subtle))]',
+  active: 'border border-(--view-accent,var(--color-action-bg)) bg-(--view-accent,var(--color-action-bg)) text-white shadow-sm hover:bg-(--view-accent-hover,var(--color-action-bg-hover))',
+  inactive: 'border border-(--view-accent-border,var(--color-border-strong)) bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) hover:bg-(--view-accent-soft,var(--color-bg-subtle))',
 }
 
 interface ExpenseFiltersValue {
@@ -62,7 +62,7 @@ function ExpenseFilters({ suppliers, filters, products, setFilters, loading = fa
 
   return (
     <div className="flex w-full flex-col gap-5">
-      <div className="rounded-md bg-[var(--view-accent-soft,var(--color-bg-subtle))] p-3">
+      <div className="rounded-md bg-(--view-accent-soft,var(--color-bg-subtle)) p-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-(--color-text-primary)">Rango de fechas</p>

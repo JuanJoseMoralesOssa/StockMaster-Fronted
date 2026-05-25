@@ -30,7 +30,7 @@ export default function DocumentDetailsExpandedView<TDetail extends DetailLike>(
       {title && <h4 className='mb-4 text-sm font-semibold text-(--color-text-primary)'>{title}</h4>}
       <div className='overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
         <table className='w-full text-sm'>
-          <thead className='border-b border-(--color-border) bg-[var(--view-accent-soft,var(--color-bg-subtle))]'>
+          <thead className='border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle))'>
             <tr>
               <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Producto</th>
               <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Proveedor</th>

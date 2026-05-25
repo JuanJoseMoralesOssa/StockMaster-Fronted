@@ -13,8 +13,8 @@ interface FiltersProps {
 }
 function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, selectedFilter, dashboardMode = 'detailed' }: Readonly<FiltersProps>) {
   const showDetailedFilters = dashboardMode === 'detailed'
-  const labelClassName = "text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-widest mb-label"
-  const inputClassName = "h-input w-full rounded-lg border-[1.5px] border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 text-[13.5px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] caret-[var(--view-accent,var(--color-focus-ring))] outline-none transition-all focus:border-[var(--view-accent,var(--color-focus-ring))] focus:shadow-[0_0_0_3px_var(--nav-accent-ring)]"
+  const labelClassName = "text-xs font-semibold text-(--color-text-secondary) uppercase tracking-widest mb-label"
+  const inputClassName = "h-input w-full rounded-lg border-[1.5px] border-(--color-border) bg-(--color-bg-surface) px-3 text-[13.5px] text-(--color-text-primary) placeholder:text-(--color-text-muted) caret-(--view-accent,var(--color-focus-ring)) outline-none transition-all focus:border-(--view-accent,var(--color-focus-ring)) focus:shadow-[0_0_0_3px_var(--nav-accent-ring)]"
   // Transformar datos para el autocomplete
   const supplierOptions = suppliers
     .filter(supplier => supplier.id !== undefined)

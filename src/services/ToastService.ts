@@ -1,6 +1,16 @@
 import Swal from 'sweetalert2'
 
 /**
+ * Lee un design token del :root para mantener los botones de SweetAlert2
+ * alineados con la paleta OKLCH del proyecto (con fallback para SSR/tests).
+ */
+function token(name: string, fallback: string): string {
+  if (typeof document === 'undefined') return fallback
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return value || fallback
+}
+
+/**
  * Posiciones disponibles para los toasts
  */
 export type ToastPosition = 'top' | 'top-start' | 'top-end' | 'center' | 'center-start' | 'center-end' | 'bottom' | 'bottom-start' | 'bottom-end'
@@ -133,8 +143,8 @@ export class ToastService {
       html: message,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
+      confirmButtonColor: token('--color-danger-500', '#ef4444'),
+      cancelButtonColor: token('--color-text-secondary', '#6b7280'),
       confirmButtonText: confirmText,
       cancelButtonText: 'Cancelar',
       reverseButtons: true
@@ -157,8 +167,8 @@ export class ToastService {
       text: message,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#3b82f6',
-      cancelButtonColor: '#6b7280',
+      confirmButtonColor: token('--color-action-bg', '#3b82f6'),
+      cancelButtonColor: token('--color-text-secondary', '#6b7280'),
       confirmButtonText: confirmText,
       cancelButtonText: cancelText,
       reverseButtons: true

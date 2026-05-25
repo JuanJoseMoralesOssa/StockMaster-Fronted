@@ -13,7 +13,7 @@ function InsightCard({
   value,
   description,
   icon = "💡",
-  borderColor = "border-[var(--view-accent,var(--color-action-bg))]",
+  borderColor = "border-(--view-accent,var(--color-action-bg))",
   bgColor = "bg-(--color-bg-surface)"
 }: Readonly<InsightCardProps>) {
   return (
