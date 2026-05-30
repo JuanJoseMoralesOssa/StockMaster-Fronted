@@ -225,6 +225,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
     {
       key: 'input',
       label: 'Entrada',
+      align: 'right',
       render: (entry) => (
         <span className='font-semibold text-success-700'>+{entry.input}</span>
       ),
@@ -232,6 +233,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
     {
       key: 'output',
       label: 'Salida',
+      align: 'right',
       render: (entry) => (
         <span className='font-semibold text-danger-700'>-{entry.output}</span>
       ),
@@ -239,6 +241,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
     {
       key: 'balance',
       label: 'Saldo',
+      align: 'right',
       render: (entry) => (
         <span className='inline-flex items-center rounded-md border border-(--view-accent-border,var(--color-border-strong)) bg-(--color-bg-surface) px-2 py-1 text-xs font-semibold text-(--view-accent-text,var(--color-text-link)) shadow-xs'>
           {entry.balance}

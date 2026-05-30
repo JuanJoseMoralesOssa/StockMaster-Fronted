@@ -20,7 +20,7 @@ export class DashboardService {
   > {
     try {
       const response = await httpClient.get(
-        `${API_BASE_URL}person/${personId}/product/${productId}/transactions`,
+        `${API_BASE_URL}reports/details/person/${personId}/product/${productId}`,
         {
           params: {
             startDate,
@@ -42,7 +42,7 @@ export class DashboardService {
   ): Promise<ProductsResults[]> {
     try {
       const response = await httpClient.get(
-        `${API_BASE_URL}person/${personId}/transactions`,
+        `${API_BASE_URL}reports/details/person/${personId}`,
         {
           params: {
             startDate,
@@ -64,7 +64,7 @@ export class DashboardService {
   ): Promise<SuppliersResults[]> {
     try {
       const response = await httpClient.get(
-        `${API_BASE_URL}product/${productId}/transactions`,
+        `${API_BASE_URL}reports/details/product/${productId}`,
         {
           params: {
             startDate,
@@ -75,6 +75,24 @@ export class DashboardService {
       return response.data
     } catch (error) {
       console.error('Error fetching transactions:', error)
+      throw error
+    }
+  }
+  /** Drill-down: historial de un proveedor para un producto en un rango de fechas. */
+  async getSupplierProductDetails(
+    supplierId: number,
+    productId: number,
+    startDate: string,
+    endDate: string,
+  ): Promise<DashboardResult[]> {
+    try {
+      const response = await httpClient.get(
+        `${API_BASE_URL}reports/details/supplier/${supplierId}/product/${productId}`,
+        { params: { startDate, endDate } },
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error fetching supplier product details:', error)
       throw error
     }
   }

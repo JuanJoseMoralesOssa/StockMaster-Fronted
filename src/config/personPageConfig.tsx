@@ -65,6 +65,8 @@ export const personPageConfig: GenericPageConfig<Person, PersonFilters> = {
 
   service: personService,
 
+  updatePartial: true,
+
   renderCustomFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
     <form
       className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"

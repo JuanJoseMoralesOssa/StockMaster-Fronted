@@ -21,6 +21,7 @@ interface Props<T> {
   toggleRowExpansion?: (id: string | number) => void
   idField: keyof T
   deletingItemId?: string | number | null
+  loadingEditId?: string | number | null
 }
 
 export default function GenericTableBody<T>({
@@ -36,7 +37,8 @@ export default function GenericTableBody<T>({
   expandedRows,
   toggleRowExpansion,
   idField,
-  deletingItemId
+  deletingItemId,
+  loadingEditId,
 }: Props<T>) {
   const hasExpandable = !!expandableConfig && !!expandedRows && !!toggleRowExpansion
   const totalColumns = columns.length + (showActions ? 1 : 0) + (hasExpandable ? 1 : 0)
@@ -54,9 +56,10 @@ export default function GenericTableBody<T>({
           const itemId = item[idField] as string | number
           const isExpanded = hasExpandable && expandedRows.has(itemId)
           const isDeleting = deletingItemId === itemId
+          const isLoadingEdit = loadingEditId === itemId
 
           return (
-            <Fragment key={rowIndex}>
+            <Fragment key={itemId}>
               <tr className={`bg-(--color-bg-surface) transition-colors hover:bg-(--view-accent-soft,var(--color-bg-subtle)) ${rowClassName ? rowClassName(item) : ''}`}>
                 {hasExpandable && (
                   <td className='w-12 whitespace-nowrap px-4 py-3.5'>
@@ -77,8 +80,7 @@ export default function GenericTableBody<T>({
                 {columns.map((column, colIndex) => (
                   <td
                     key={colIndex}
-                    className={`whitespace-nowrap px-5 py-3.5 text-sm text-(--color-text-primary) ${column.hideOnMobile ? 'hidden md:table-cell' : ''
-                      }`}
+                    className={`whitespace-nowrap px-5 py-3.5 text-sm text-(--color-text-primary) ${column.align === 'right' ? 'text-right' : 'text-left'} ${column.hideOnMobile ? 'hidden md:table-cell' : ''}`}
                   >
                     {getCellValue(item, column)}
                   </td>
@@ -93,6 +95,7 @@ export default function GenericTableBody<T>({
                           size='icon-sm'
                           onClick={() => onEdit(item)}
                           disabled={isDeleting}
+                          loading={isLoadingEdit}
                           aria-label='Editar'
                           title='Editar'
                           className='action-icon-edit'

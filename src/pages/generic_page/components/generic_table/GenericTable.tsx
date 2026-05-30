@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { Inbox } from 'lucide-react'
 import GenericTableHeader from './GenericTableHeader'
 import GenericTableBody from './GenericTableBody'
+import GenericTableCards from './GenericTableCards'
+import { useMediaQuery } from '../../../../hooks/useMediaQuery'
 
 import { useTableActions } from './useTableActions'
 import { GenericActions, GenericColumn, GenericField } from '../../../../types/GenericConfig'
@@ -10,75 +12,56 @@ import DropdownMenu from '../../../components/dropdown/DropdownMenu'
 import Pagination from '../../../components/pagination/Pagination'
 import EditModal from '../EditModal'
 import { Alert, Button, EmptyState, TableSkeleton } from '../../../../components/ui'
+import { useGenericPageContext } from '../page/PageContext'
 
 interface GenericTableProps<T> {
-  data: T[]
-  loading: boolean
-  error: string | null
-  currentPage: number
-  totalPages: number
-  totalItems: number
-  itemsPerPage: number
-  goToPage: (page: number) => void
-  setItemsPerPage: (limit: number) => void
-  refresh: () => void
-  updateItem: (updatedItem: T, idField?: keyof T) => void
-  removeItem: (itemId: string | number, idField?: keyof T) => void
-  // Retry function to re-run the last paginated request
-  retry?: () => Promise<unknown>
-
-  // Configuración
   columns: GenericColumn<T>[]
   rowClassName?: (item: T) => string
   actions?: GenericActions<T>
   idField: keyof T
   entityName: string
-
-  // Callbacks para operaciones
-  onDelete: (id: number | string) => Promise<void>
-  onUpdate?: (id: number | string, data: Partial<T>) => Promise<T>
-
-  // Renderizado personalizado para el formulario de edición
-  renderEditForm?: (item: T, onSuccess: () => void, onItemUpdated: (item: T) => void) => React.ReactNode
-
-  // Campos del formulario (si se usa el formulario genérico)
   formFields?: GenericField<T>[]
   prepareDataForSubmit?: (data: Partial<T>, isEdit: boolean) => Promise<Partial<T>>
-
-  // Configuración para filas expandibles
   expandableConfig?: {
     renderExpandedContent: (item: T) => React.ReactNode
     expandedTitle?: (item: T) => string
   }
+  renderEditForm?: (item: T, onSuccess: () => void, onItemUpdated: (item: T) => void) => React.ReactNode
+  fetchForEdit?: (id: string | number) => Promise<T>
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function GenericTable<T extends Record<string, any>>({
-  data,
-  loading,
-  error,
-  currentPage,
-  totalPages,
-  totalItems,
-  itemsPerPage,
-  goToPage,
-  setItemsPerPage,
-  updateItem,
-  removeItem,
-  retry,
   columns,
   rowClassName,
   actions = { canEdit: true, canDelete: true },
   idField,
   entityName,
-  onDelete,
-  onUpdate,
   renderEditForm,
+  fetchForEdit,
   formFields,
   prepareDataForSubmit,
   expandableConfig
 }: Readonly<GenericTableProps<T>>) {
+  const {
+    data,
+    loading,
+    error,
+    retry,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+    updateItem,
+    removeItem,
+    handleDelete: serviceDelete,
+    handleUpdate: serviceUpdate,
+  } = useGenericPageContext<T>()
+
   const actionsWithDefaults = actions || { canEdit: true, canDelete: true }
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set())
   const { openDropdownIndex, dropdownPosition, dropdownRef, handleDropdownToggle, closeDropdown } = useDropdown()
   const showLoadingSkeleton = loading && (!data || data.length === 0)
@@ -99,15 +82,18 @@ export default function GenericTable<T extends Record<string, any>>({
     isEditModalOpen,
     selectedItem,
     deletingItemId,
+    loadingEditId,
     handleDelete,
     handleEdit,
     handleEditSuccess,
     closeEditModal
   } = useTableActions<T>(
     entityName,
-    onDelete,
+    serviceDelete,
     updateItem,
-    removeItem
+    removeItem,
+    fetchForEdit,
+    idField,
   )
 
   if (showLoadingSkeleton) {
@@ -144,34 +130,46 @@ export default function GenericTable<T extends Record<string, any>>({
     )
   }
 
+  const sharedBodyProps = {
+    data,
+    columns,
+    showActions,
+    actions: actionsWithDefaults as GenericActions<T>,
+    onEdit: handleEdit,
+    onDelete: (item: T) => handleDelete(item, idField),
+    onDropdownToggle: handleDropdownToggle,
+    rowClassName,
+    expandableConfig,
+    expandedRows,
+    toggleRowExpansion,
+    idField,
+    deletingItemId,
+    loadingEditId,
+  }
+
   return (
     <>
       <div className='overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
-        <div className='overflow-x-auto'>
-          <table className='w-full min-w-180 divide-y divide-(--color-border)'>
-            <GenericTableHeader
-              columns={columns}
-              showActions={showActions}
-              hasExpandable={!!expandableConfig}
-            />
-            <GenericTableBody
-              data={data}
-              columns={columns}
-              showActions={showActions}
-              actions={actionsWithDefaults as GenericActions<T>}
-              onEdit={handleEdit}
-              onDelete={(item) => handleDelete(item, idField)}
-              onDropdownToggle={handleDropdownToggle}
-              rowClassName={rowClassName}
-              expandableConfig={expandableConfig}
-            expandedRows={expandedRows}
-            toggleRowExpansion={toggleRowExpansion}
-            idField={idField}
-            deletingItemId={deletingItemId}
-          />
-          </table>
-        </div>
+        {isDesktop ? (
+          /* Tabla: tablet landscape y desktop (≥ lg = 1024px) */
+          <div className='overflow-x-auto'>
+            <table className='w-full min-w-180 divide-y divide-(--color-border)'>
+              <GenericTableHeader
+                columns={columns}
+                showActions={showActions}
+                hasExpandable={!!expandableConfig}
+              />
+              <GenericTableBody {...sharedBodyProps} />
+            </table>
+          </div>
+        ) : (
+          /* Cards: móvil y tablet portrait (< lg = 1024px) */
+          <div className='p-3'>
+            <GenericTableCards {...sharedBodyProps} />
+          </div>
+        )}
 
+        {/* Paginación compartida por ambas vistas */}
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -202,7 +200,7 @@ export default function GenericTable<T extends Record<string, any>>({
         entityName={entityName}
         renderEditForm={renderEditForm}
         formFields={formFields}
-        onUpdate={onUpdate}
+        onUpdate={serviceUpdate}
         prepareDataForSubmit={prepareDataForSubmit}
         onEditSuccess={(updatedItem) => handleEditSuccess(updatedItem, idField)}
         onClose={closeEditModal}

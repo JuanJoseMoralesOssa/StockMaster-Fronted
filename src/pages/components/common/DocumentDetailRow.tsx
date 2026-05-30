@@ -91,6 +91,8 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
                 if (value < 0) {
                     value = 0
                 }
+                // Guardamos como máximo 3 decimales (precisión de kg)
+                value = Math.round(value * 1000) / 1000
                 onUpdate(detail.id, field, (value == 0 ? '' : value))
             }
         }

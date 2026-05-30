@@ -73,10 +73,18 @@ export const expensePageConfig = buildDocumentPageConfig<
   'expense_details'
 >(
   {
-    service: expenseService,
+    service: {
+      getAllPaginated: (page: number, limit: number) => expenseService.getAllPaginatedWithDetails(page, limit),
+      create: (data) => expenseService.create(data),
+      update: (id, data) => expenseService.update(id, data),
+      updatePartial: (id, data) => expenseService.updatePartial(id, data),
+      delete: (id) => expenseService.delete(id),
+      getAllPaginatedFiltered: (filters, page, limit) => expenseService.getAllPaginatedFiltered(filters, page, limit),
+    },
     entityName: 'Gasto',
     entityNamePlural: 'Gastos',
     detailsKey: 'expense_details',
+    fetchForEdit: (id) => expenseService.getByIdWithDetails(id as number),
     renderExpandedDetails: (item) => <ExpenseExpandedDetails expense={item} />,
     renderFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
       <ExpenseFiltersSection

@@ -84,7 +84,7 @@ function SupplierProductCharts({
       }
 
       const dayData = dailyMap.get(dateKey)!
-      if (result.type === 'Compra') {
+      if (result.type === PURCHASE) {
         dayData.compra += result.weight_kg
       } else {
         dayData.gasto += result.weight_kg

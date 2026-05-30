@@ -11,21 +11,22 @@ interface RankingItem {
 interface RankingListProps {
   title: string;
   items: RankingItem[];
-  icon?: string;
   colorClass?: string;
   maxItems?: number;
   showNumbers?: boolean;
   valueFormatter?: (value: number) => string;
+  /** Si se provee, el nombre de cada item se vuelve clicable. */
+  onItemClick?: (item: RankingItem) => void;
 }
 
 function RankingList({
   title,
   items,
-  icon,
   colorClass = "bg-(--color-bg-subtle)",
   maxItems = 5,
   showNumbers = true,
-  valueFormatter = (value) => value.toString()
+  valueFormatter = (value) => value.toString(),
+  onItemClick,
 }: Readonly<RankingListProps>) {
   const displayItems = items.slice(0, maxItems);
 
@@ -34,7 +35,6 @@ function RankingList({
   return (
     <div className={`${colorClass} p-4 rounded-lg border border-(--color-border)`}>
       <h3 className="font-semibold mb-3 flex items-center gap-2 text-(--color-text-primary)">
-        {icon && <span>{icon}</span>}
         {title}
       </h3>
       <div className="space-y-2">
@@ -46,7 +46,17 @@ function RankingList({
                   #{index + 1}
                 </span>
               )}
-              {item.name}
+              {onItemClick ? (
+                <button
+                  type="button"
+                  onClick={() => onItemClick(item)}
+                  className="hover:underline text-left text-(--view-accent-text,var(--color-text-link)) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--color-focus-ring) rounded"
+                >
+                  {item.name}
+                </button>
+              ) : (
+                item.name
+              )}
             </span>
             <div className="text-right">
               <div className="font-bold">

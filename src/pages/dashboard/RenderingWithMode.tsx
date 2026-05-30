@@ -22,6 +22,7 @@ interface RenderingWithModeProps {
   analyticsData?: DashboardSummaryResponse | null
   analyticsLoading?: boolean
   analyticsError?: string | null
+  onAnalyticsRetry?: () => void
 }
 
 function RenderingWithMode(
@@ -36,7 +37,8 @@ function RenderingWithMode(
     selectedFilter,
     analyticsData,
     analyticsLoading,
-    analyticsError
+    analyticsError,
+    onAnalyticsRetry
   }: Readonly<RenderingWithModeProps>,
 ) {
   return (
@@ -55,10 +57,10 @@ function RenderingWithMode(
 
       {dashboardMode === 'general' && (
         <GeneralDashboard
-          filters={filters}
           analyticsData={analyticsData}
           analyticsLoading={analyticsLoading}
           analyticsError={analyticsError}
+          onRetry={onAnalyticsRetry}
         />
       )}
     </>

@@ -1,63 +1,110 @@
-import { BarChart3, TrendingUp, Users, Package } from 'lucide-react'
+import { BarChart3, TrendingUp, TrendingDown, Users, FileText, Scale } from 'lucide-react'
 import DeltaBadge from './DeltaBadge'
-
-interface SummaryData {
-  totalWeight: number
-  totalTransactions: number
-  totalSuppliers: number
-}
+import { Skeleton } from '../../../components/ui'
+import { AnalyticsSummary } from '../../../types/Analytics'
 
 interface KpiCardsProps {
-  current: SummaryData | undefined
-  previous: SummaryData | undefined
+  current: AnalyticsSummary | undefined
+  previous: AnalyticsSummary | undefined
+  loading?: boolean
+}
+
+const KPI_GRID = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6'
+
+function KpiCardsSkeleton() {
+  return (
+    <div className={KPI_GRID}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 md:p-5 shadow-xs"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-8 w-8 rounded-lg" />
+          </div>
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-3 w-16 mt-2" />
+        </div>
+      ))}
+    </div>
+  )
 }
 
 /** Returns percentage change or null when previous is 0. */
 const pct = (cur: number, prev: number): number | null =>
   prev === 0 ? null : ((cur - prev) / prev) * 100
 
-function KpiCards({ current, previous }: Readonly<KpiCardsProps>) {
-  const totalWeight = current?.totalWeight ?? 0
-  const totalTransactions = current?.totalTransactions ?? 0
-  const totalSuppliers = current?.totalSuppliers ?? 0
-  const avgPerOrder = totalTransactions > 0 ? totalWeight / totalTransactions : 0
+const kg = (n: number) => `${n.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`
 
-  const prevWeight = previous?.totalWeight ?? 0
-  const prevTransactions = previous?.totalTransactions ?? 0
-  const prevSuppliers = previous?.totalSuppliers ?? 0
-  const prevAvg = prevTransactions > 0 ? prevWeight / prevTransactions : 0
+function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps>) {
+  if (loading && !current) return <KpiCardsSkeleton />
 
-  const hasPrev = !!previous
+  const c = current
+  const p = previous
+  const purchaseWeight = c?.totalPurchaseWeight ?? 0
+  const expenseWeight = c?.totalExpenseWeight ?? 0
+  const balance = c?.pendingWeight ?? 0
+  const suppliers = c?.totalSuppliers ?? 0
+  const docs = (c?.purchaseCount ?? 0) + (c?.expenseCount ?? 0)
+  const lines = c?.totalTransactions ?? 0
 
-  const cards = [
+  const hasPrev = !!p
+  const prevDocs = (p?.purchaseCount ?? 0) + (p?.expenseCount ?? 0)
+  const allZero = !!c && purchaseWeight === 0 && expenseWeight === 0 && suppliers === 0 && docs === 0
+
+  const cards: Array<{
+    label: string
+    value: string
+    delta: number | null
+    icon: React.ReactNode
+    hint?: string
+    valueClass?: string
+  }> = [
     {
-      label: 'Total Actividad',
-      value: `${totalWeight.toLocaleString()} kg`,
-      delta: pct(totalWeight, prevWeight),
+      label: 'Kg Comprados',
+      value: kg(purchaseWeight),
+      delta: pct(purchaseWeight, p?.totalPurchaseWeight ?? 0),
       icon: <TrendingUp className="w-4 h-4" />,
     },
     {
+      label: 'Kg en Gastos',
+      value: kg(expenseWeight),
+      delta: pct(expenseWeight, p?.totalExpenseWeight ?? 0),
+      icon: <TrendingDown className="w-4 h-4" />,
+    },
+    {
+      label: 'Balance',
+      value: kg(balance),
+      delta: pct(balance, p?.pendingWeight ?? 0),
+      icon: <Scale className="w-4 h-4" />,
+      hint: 'Compras − Gastos',
+      valueClass: balance < 0 ? 'text-danger-700' : 'text-(--color-text-primary)',
+    },
+    {
       label: 'Proveedores',
-      value: String(totalSuppliers),
-      delta: pct(totalSuppliers, prevSuppliers),
+      value: String(suppliers),
+      delta: pct(suppliers, p?.totalSuppliers ?? 0),
       icon: <Users className="w-4 h-4" />,
     },
     {
-      label: 'Órdenes',
-      value: totalTransactions.toLocaleString(),
-      delta: pct(totalTransactions, prevTransactions),
-      icon: <BarChart3 className="w-4 h-4" />,
+      label: 'Documentos',
+      value: docs.toLocaleString(),
+      delta: pct(docs, prevDocs),
+      icon: <FileText className="w-4 h-4" />,
+      hint: `${c?.purchaseCount ?? 0} compras · ${c?.expenseCount ?? 0} gastos`,
     },
     {
-      label: 'Prom. por Orden',
-      value: `${avgPerOrder.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`,
-      delta: pct(avgPerOrder, prevAvg),
-      icon: <Package className="w-4 h-4" />,
+      label: 'Líneas',
+      value: lines.toLocaleString(),
+      delta: pct(lines, p?.totalTransactions ?? 0),
+      icon: <BarChart3 className="w-4 h-4" />,
     },
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <>
+    <div className={KPI_GRID}>
       {cards.map((card) => (
         <div
           key={card.label}
@@ -71,13 +118,22 @@ function KpiCards({ current, previous }: Readonly<KpiCardsProps>) {
               {card.icon}
             </div>
           </div>
-          <div className="text-[22px] font-bold text-(--color-text-primary) tracking-tight font-mono">
+          <div className={`text-[22px] font-bold tracking-tight font-mono ${card.valueClass ?? 'text-(--color-text-primary)'}`}>
             {card.value}
           </div>
+          {card.hint && (
+            <div className="text-[11px] text-(--color-text-secondary) mt-1">{card.hint}</div>
+          )}
           <DeltaBadge delta={card.delta} show={hasPrev} />
         </div>
       ))}
     </div>
+    {allZero && (
+      <p className="text-[12px] text-(--color-text-secondary) text-center -mt-2 mb-6">
+        Sin actividad registrada en este período
+      </p>
+    )}
+    </>
   )
 }
 

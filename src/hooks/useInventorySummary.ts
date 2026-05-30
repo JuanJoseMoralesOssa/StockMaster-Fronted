@@ -1,0 +1,44 @@
+import { useCallback, useEffect, useState } from 'react'
+import { analyticsService } from '../services/AnalyticsService'
+import { InventorySummaryResponse } from '../types/Analytics'
+
+interface UseInventorySummaryReturn {
+  data: InventorySummaryResponse | null
+  loading: boolean
+  error: string | null
+  refetch: () => void
+}
+
+/**
+ * Loads the current inventory snapshot (total stock, low/out-of-stock counts).
+ * This is a point-in-time value, independent of the dashboard date filters.
+ */
+export const useInventorySummary = (
+  lowStockThreshold?: number,
+): UseInventorySummaryReturn => {
+  const [data, setData] = useState<InventorySummaryResponse | null>(null)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchInventory = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await analyticsService.getInventorySummary(lowStockThreshold)
+      setData(response)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Error desconocido al cargar el inventario',
+      )
+      console.error('Error fetching inventory summary:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [lowStockThreshold])
+
+  useEffect(() => {
+    fetchInventory()
+  }, [fetchInventory])
+
+  return { data, loading, error, refetch: fetchInventory }
+}

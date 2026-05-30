@@ -3,7 +3,8 @@ import { Config } from '../config/Config'
 import { httpClient } from './httpClient'
 import {
   DashboardSummaryResponse,
-  AnalyticsFilters
+  AnalyticsFilters,
+  InventorySummaryResponse
 } from '../types/Analytics'
 
 const API_BASE_URL = Config.LOGIC_URL
@@ -62,6 +63,22 @@ export class AnalyticsService {
       return response.data
     } catch (error) {
       this.handleError(error, 'Error obteniendo el dashboard summary')
+    }
+  }
+
+  async getInventorySummary(lowStockThreshold?: number): Promise<InventorySummaryResponse> {
+    try {
+      const query =
+        lowStockThreshold != null
+          ? `?lowStockThreshold=${lowStockThreshold}`
+          : ''
+      const response = await httpClient.get(
+        `${this.getUrl('inventory-summary')}${query}`,
+      )
+
+      return response.data
+    } catch (error) {
+      this.handleError(error, 'Error obteniendo el resumen de inventario')
     }
   }
 }

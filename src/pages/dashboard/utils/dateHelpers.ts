@@ -12,6 +12,23 @@ export const getPrevMonthRange = (startDate: string) => {
   }
 }
 
+/**
+ * Returns the immediately-preceding period of the SAME length as [start, end].
+ * E.g. for a 10-day range it returns the 10 days right before it; for a 3-month
+ * range, the prior 3 months. Used so the KPI delta compares like-with-like.
+ */
+export const getPreviousPeriodRange = (startDate: string, endDate: string) => {
+  const start = new Date(startDate + 'T00:00:00')
+  const end = new Date(endDate + 'T00:00:00')
+  const dayMs = 24 * 60 * 60 * 1000
+  // Inclusive length in days
+  const lengthDays = Math.round((end.getTime() - start.getTime()) / dayMs) + 1
+  const prevEnd = new Date(start.getTime() - dayMs)
+  const prevStart = new Date(prevEnd.getTime() - (lengthDays - 1) * dayMs)
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  return { startDate: fmt(prevStart), endDate: fmt(prevEnd) }
+}
+
 /** Returns `{ startDate: 'YYYY-MM-01', endDate: 'YYYY-MM-DD' }` for the current month. */
 export const getCurrentMonthRange = () => {
   const now = new Date()

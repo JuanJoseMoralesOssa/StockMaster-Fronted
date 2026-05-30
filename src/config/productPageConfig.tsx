@@ -22,6 +22,7 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       key: 'stock',
       label: 'Stock',
       width: 'w-24',
+      align: 'right',
       render: (product) => {
         const stock = product.stock ?? 0
         const stockClass = stock < 10
@@ -101,11 +102,9 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       {
         icon: <Package className='mr-2 h-4 w-4' />,
         label: 'Ver Kardex',
-        onClick: (product) => {
-          console.log('Ver kardex de:', product.name)
-          // Aquí podrías navegar a la página de kardex
-          // navigate(`/kardex?productId=${product.id}`)
-        },
+        // Default no-op: ProductPage (src/pages/product/Product.tsx) overrides this
+        // onClick to navigate to /kardex?productId=... using the router's navigate.
+        onClick: () => {},
         className: 'text-(--view-accent-text,var(--color-text-link)) focus:text-(--view-accent-text,var(--color-text-link))',
         condition: (product) => product.id !== undefined,
       },
@@ -113,6 +112,8 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
   },
 
   service: productService,
+
+  updatePartial: true,
 
   prepareDataForSubmit: async (data: Partial<Product>) => {
     // Asegurar que el stock sea un número

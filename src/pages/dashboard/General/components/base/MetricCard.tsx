@@ -1,9 +1,11 @@
+import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+
 // Base component for metric cards - Single Responsibility
 interface MetricCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon?: string;
+  icon?: React.ReactNode;
   colorClass?: string;
   trend?: {
     value: number;
@@ -23,7 +25,9 @@ function MetricCard({
   return (
     <div className={`${colorClass} p-4 rounded-lg text-center relative shadow-xs`}>
       {icon && (
-        <div className="text-2xl mb-2">{icon}</div>
+        <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link))">
+          {icon}
+        </div>
       )}
       <div className="text-2xl font-bold">{value}</div>
       <div className="text-sm opacity-80">{title}</div>
@@ -33,7 +37,7 @@ function MetricCard({
       {trend && (
         <div className={`text-xs mt-2 flex items-center justify-center gap-1 ${trend.isPositive ? 'text-success-700' : 'text-danger-700'
           }`}>
-          <span>{trend.isPositive ? '↗️' : '↘️'}</span>
+          {trend.isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
           <span>{trend.value}% {trend.label}</span>
         </div>
       )}

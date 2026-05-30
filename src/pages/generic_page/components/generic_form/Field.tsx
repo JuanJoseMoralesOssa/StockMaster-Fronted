@@ -1,5 +1,6 @@
 import { Eye, EyeOff } from 'lucide-react'
 import { GenericField } from '../../../../types/GenericConfig'
+import { toDateInputValue } from '../../../../utils/date'
 
 interface FieldProps<T> {
   field: GenericField<T>
@@ -14,7 +15,9 @@ interface FieldProps<T> {
 export default function Field<T>({ field, value, onChange, onBlur, error, showPassword, onTogglePassword }: FieldProps<T>) {
   const fieldName = field.name as string
   const rawValue = value ?? field.defaultValue ?? ''
-  const displayValue = String(rawValue)
+  const displayValue = field.type === 'date'
+    ? toDateInputValue(String(rawValue))
+    : String(rawValue)
 
   const commonClasses = `w-full px-4 py-2 border rounded-lg bg-(--color-bg-surface) text-(--color-text-primary) focus:outline-none focus:ring-2 focus:ring-(--view-accent,var(--color-focus-ring)) ${error ? 'border-danger-500' : 'border-(--color-border)'
     } ${field.disabled ? 'bg-(--color-bg-subtle) cursor-not-allowed' : ''} ${field.className || ''}`

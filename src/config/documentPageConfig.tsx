@@ -30,6 +30,7 @@ export interface DocumentPageDeps<
   renderFilters: GenericPageConfig<TDocument, TFilter>['renderCustomFilters']
   renderCreateForm: GenericPageConfig<TDocument, TFilter>['renderCustomForm']
   renderEditForm: GenericPageConfig<TDocument, TFilter>['renderEditForm']
+  fetchForEdit?: GenericPageConfig<TDocument, TFilter>['fetchForEdit']
 }
 
 export function buildDocumentPageConfig<
@@ -64,6 +65,7 @@ export function buildDocumentPageConfig<
       {
         key: 'total_kg',
         label: 'Total kg',
+        align: 'right',
         render: (item) => (item.total_kg ? `${item.total_kg} kg` : '—'),
       },
       {
@@ -120,6 +122,7 @@ export function buildDocumentPageConfig<
     renderCustomFilters: deps.renderFilters,
     renderCustomForm: deps.renderCreateForm,
     renderEditForm: deps.renderEditForm,
+    fetchForEdit: deps.fetchForEdit,
     expandableConfig: {
       renderExpandedContent: deps.renderExpandedDetails,
     },

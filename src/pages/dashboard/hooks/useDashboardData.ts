@@ -4,7 +4,7 @@ import { useSupplierStore } from '../../../stores/useSupplierStore'
 import { dashboardService } from '../../../services/DashboardService'
 import { DashboardResult, ProductsResults, SuppliersResults } from '../../../types/DashboardResults'
 import { useDashboardAnalytics } from '../../../hooks/useDashboardAnalytics'
-import { getCurrentMonthRange, getPrevMonthRange } from '../utils/dateHelpers'
+import { getCurrentMonthRange, getPreviousPeriodRange } from '../utils/dateHelpers'
 
 export interface DashboardFilters {
   startDate: string
@@ -14,6 +14,7 @@ export interface DashboardFilters {
 }
 
 type SelectedFilter = 'all' | 'withDebt' | 'fullyPaid'
+export type SummaryType = 'both' | 'purchases' | 'expenses'
 
 const defaultRange = getCurrentMonthRange()
 
@@ -25,6 +26,7 @@ export function useDashboardData() {
   const [suppliersResults, setSuppliersResults] = useState<SuppliersResults[]>([])
   const [productsResults, setProductsResults] = useState<ProductsResults[]>([])
   const [selectedFilter, setSelectedFilter] = useState<SelectedFilter>('all')
+  const [summaryType, setSummaryType] = useState<SummaryType>('both')
 
   const [filters, setFilters] = useState<DashboardFilters>({
     startDate: defaultRange.startDate,
@@ -39,19 +41,19 @@ export function useDashboardData() {
   const fetchProducts = useProductStore(state => state.fetchProducts)
   const fetchSuppliers = useSupplierStore(state => state.fetchSuppliers)
 
-  // Analytics for the selected period
+  // Analytics for the selected period and type
   const analytics = useDashboardAnalytics({
     startDate: filters.startDate,
     endDate: filters.endDate,
-    type: 'both',
+    type: summaryType,
   })
 
-  // Analytics for the previous calendar month (auto-computed)
-  const prevRange = getPrevMonthRange(filters.startDate)
+  // Analytics for the immediately-preceding period of the SAME length (for deltas)
+  const prevRange = getPreviousPeriodRange(filters.startDate, filters.endDate)
   const prevAnalytics = useDashboardAnalytics({
     startDate: prevRange.startDate,
     endDate: prevRange.endDate,
-    type: 'both',
+    type: summaryType,
   })
 
   // Bootstrap: load stores + initial analytics
@@ -146,10 +148,10 @@ export function useDashboardData() {
           })
       }
 
-      // Refresh analytics (current + previous month)
-      analytics.refetch({ startDate: filters.startDate, endDate: filters.endDate, type: 'both' })
-      const prev = getPrevMonthRange(filters.startDate)
-      prevAnalytics.refetch({ startDate: prev.startDate, endDate: prev.endDate, type: 'both' })
+      // Refresh analytics (current period + previous same-length period)
+      analytics.refetch({ startDate: filters.startDate, endDate: filters.endDate, type: summaryType })
+      const prev = getPreviousPeriodRange(filters.startDate, filters.endDate)
+      prevAnalytics.refetch({ startDate: prev.startDate, endDate: prev.endDate, type: summaryType })
 
       setLoading(false)
     } catch (err) {
@@ -160,12 +162,27 @@ export function useDashboardData() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, clearResults])
 
+  // Cambiar el tipo (Compras/Gastos/Ambos) refresca los KPIs al instante.
+  const changeSummaryType = useCallback(
+    (type: SummaryType) => {
+      setSummaryType(type)
+      if (filters.startDate && filters.endDate) {
+        analytics.refetch({ startDate: filters.startDate, endDate: filters.endDate, type })
+        const prev = getPreviousPeriodRange(filters.startDate, filters.endDate)
+        prevAnalytics.refetch({ startDate: prev.startDate, endDate: prev.endDate, type })
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filters.startDate, filters.endDate],
+  )
+
   return {
     // state
     loading,
     error,
     filters,
     selectedFilter,
+    summaryType,
     products,
     suppliers,
     supplierProductResults,
@@ -177,6 +194,7 @@ export function useDashboardData() {
     // actions
     setFilters,
     setSelectedFilter: (f: string) => setSelectedFilter(f as SelectedFilter),
+    changeSummaryType,
     fetchData,
     resetFilters,
     clearResults,

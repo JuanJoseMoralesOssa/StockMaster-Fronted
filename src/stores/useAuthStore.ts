@@ -19,31 +19,17 @@ const useAuthStore = create<AuthStore>((set) => ({
         set({ isLoading: true })
         try {
             const token = authService.getToken()
-            if (!token) {
-                set({ isAuthenticated: false, isLoading: false, user: null })
-                return
-            }
-
-            // Verificar si el token ha expirado
-            if (authService.isTokenExpired(token)) {
+            if (!token || authService.isTokenExpired(token)) {
                 authService.clearLocalData()
                 set({ isAuthenticated: false, isLoading: false, user: null })
                 return
             }
 
-            // Para propósitos de demo, usar datos del localStorage
-            // En producción, aquí verificarías el token con el servidor
-            const localUser = authService.getUser()
-            if (localUser) {
-                set({
-                    isAuthenticated: true,
-                    isLoading: false,
-                    user: localUser
-                })
-            } else {
-                authService.clearLocalData()
-                set({ isAuthenticated: false, isLoading: false, user: null })
-            }
+            // Validar el token contra el servidor (/whoami) y refrescar el
+            // usuario/rol. Si el token es inválido o revocado, cerrar sesión.
+            const user = await authService.verifyToken(token)
+            authService.saveUser(user)
+            set({ isAuthenticated: true, isLoading: false, user })
         } catch (error) {
             console.error('Error checking auth:', error)
             authService.clearLocalData()
@@ -54,10 +40,6 @@ const useAuthStore = create<AuthStore>((set) => ({
     login: async (credentials: LoginCredentials) => {
         set({ isLoading: true })
         try {
-            // Opción 1: Sin hashing (RECOMENDADO con HTTPS)
-            // const response = await authService.login(credentials)
-
-            // Opción 2: Hash determinístico si es necesario
             const response = await authService.login(credentials)
 
             // Guardar datos en localStorage

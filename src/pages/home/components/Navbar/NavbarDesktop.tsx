@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom' // Ensure using react-router-dom
-import navItems from '../../../../constants/NavItems'
 import { Fragment } from 'react'
 import type NavItem from '../../../../types/NavItem'
 import { getViewAccentStyle } from '../../../../constants/viewAccents'
+import { useNavItems } from '../../../../hooks/useNavItems'
 
 function NavbarDesktop() {
+    const navItems = useNavItems()
     // Group items by category
     const groupedItems = navItems.reduce((acc, item) => {
         const category = item.category || 'General'

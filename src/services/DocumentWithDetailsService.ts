@@ -89,6 +89,15 @@ export class DocumentWithDetailsService<
     }
   }
 
+  async getByIdWithDetails(id: number | string): Promise<TParent> {
+    const params = new URLSearchParams({
+      filter: JSON.stringify({ include: [{ relation: this.cfg.entityDetailsKey }] }),
+    })
+    return this.handleResponse<TParent>(
+      httpClient.get(`${this.getUrl(id.toString())}?${params}`),
+    )
+  }
+
   async getAllPaginated(page: number = 1, limit: number = 10): Promise<PaginatedResponse<TParent>> {
     return this.getPaginated(page, limit)
   }

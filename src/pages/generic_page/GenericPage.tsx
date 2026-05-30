@@ -1,4 +1,5 @@
 import { useServerPagination } from '../../hooks/useServerPagination'
+import { useAutoRefresh } from '../../hooks/useAutoRefresh'
 import { GenericPageConfig } from '../../types/GenericConfig'
 import { useState, useMemo, useCallback } from 'react'
 import type { GenericService } from '../../types/GenericTypes'
@@ -24,12 +25,16 @@ function GenericPage<T extends object, TFilter extends object = object, CreateIn
   const [filterRefreshToken, setFilterRefreshToken] = useState(0)
 
   const mergedService = useMemo<GenericPageConfig<T, TFilter, CreateInput, UpdateInput>['service']>(() => {
-    const overrides = serviceHooksFactory ? serviceHooksFactory(config.service) : {}
-    return Object.assign(
-      Object.create(Object.getPrototypeOf(config.service)),
-      config.service,
-      overrides,
-    )
+    const base = config.service
+    const overrides = serviceHooksFactory ? serviceHooksFactory(base) : {}
+    return {
+      getAllPaginated: overrides.getAllPaginated ?? base.getAllPaginated.bind(base),
+      create: overrides.create ?? base.create.bind(base),
+      update: overrides.update ?? base.update.bind(base),
+      updatePartial: overrides.updatePartial ?? base.updatePartial.bind(base),
+      delete: overrides.delete ?? base.delete.bind(base),
+      getAllPaginatedFiltered: overrides.getAllPaginatedFiltered ?? base.getAllPaginatedFiltered?.bind(base),
+    }
   }, [config.service, serviceHooksFactory])
 
   const fetchPaginated = useCallback(
@@ -77,6 +82,10 @@ function GenericPage<T extends object, TFilter extends object = object, CreateIn
     refreshToken: filterRefreshToken,
   })
   // requestMeta/filterRequestMeta are available for telemetry if needed
+
+  // Keep the list current: re-fetch the viewed page every 5 minutes (respecting
+  // active filters/page). Data stays visible during the background refresh.
+  useAutoRefresh(refresh)
 
   const runSubmissionPipeline = async <Output, Input extends Partial<T>>(
     formData: Input,

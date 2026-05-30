@@ -55,13 +55,12 @@ describe('buildDocumentPageConfig', () => {
     )
 
     expect(config.idField).toBe('id')
-    expect(config.columns).toHaveLength(5)
+    expect(config.columns).toHaveLength(4)
     expect(config.columns.map((column) => column.label)).toEqual([
       'Fecha',
       'Total kg',
       'Productos',
       'Proveedores',
-      'Detalles',
     ])
     expect(config.expandableConfig).toBeDefined()
     expect(typeof config.expandableConfig?.renderExpandedContent).toBe('function')

@@ -5,6 +5,7 @@ import PurchasesDetailsTable from '../../purchase_details/PurchaseDetailsTable'
 import PurchaseDetails from '../../../types/PurchaseDetails'
 import { useApiRequest } from '../../../hooks/useApiRequest'
 import { Button, Input, Label } from '../../../components/ui'
+import { todayBogota } from '../../../utils/date'
 
 interface PurchaseCreateProps {
     onPurchaseCreated: (newPurchase: Purchase) => void
@@ -13,19 +14,7 @@ interface PurchaseCreateProps {
 
 const PurchaseCreate = ({ onPurchaseCreated, onSuccess }: Readonly<PurchaseCreateProps>) => {
     const [purchase, setPurchase] = useState<Purchase>({
-        date: (() => {
-            const d = new Date()
-            const parts = new Intl.DateTimeFormat('en-US', {
-                timeZone: 'America/Bogota',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            }).formatToParts(d)
-            const year = parts.find(p => p.type === 'year')?.value
-            const month = parts.find(p => p.type === 'month')?.value
-            const day = parts.find(p => p.type === 'day')?.value
-            return `${year}-${month}-${day}`
-        })(),
+        date: todayBogota(),
     })
     const [details, setDetails] = useState<PurchaseDetails[]>([])
 

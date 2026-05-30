@@ -1,4 +1,5 @@
 import NavItem from '../types/NavItem'
+import { Roles } from '../enums/Roles'
 import {
     BarChart3,
     Users,
@@ -12,6 +13,9 @@ import {
     // Truck,
 } from 'lucide-react'
 
+// Dashboard, Usuarios y Kardex: solo Oficina y Admin (Operador no los ve).
+const OFFICE_ADMIN = [Roles.OFFICE, Roles.ADMIN]
+
 const navItems: NavItem[] = [
     {
         title: 'Dashboard',
@@ -19,6 +23,7 @@ const navItems: NavItem[] = [
         icon: <BarChart3 className='h-5 w-5' />,
         category: 'Principal',
         accent: 'indigo',
+        roles: OFFICE_ADMIN,
     },
     {
         title: 'Usuarios',
@@ -26,6 +31,7 @@ const navItems: NavItem[] = [
         icon: <Users className='h-5 w-5' />,
         category: 'Principal',
         accent: 'rose',
+        roles: OFFICE_ADMIN,
     },
     {
         title: 'Kardex',
@@ -33,6 +39,7 @@ const navItems: NavItem[] = [
         icon: <ClipboardCheck className='h-5 w-5' />,
         category: 'Operaciones',
         accent: 'emerald',
+        roles: OFFICE_ADMIN,
     },
     {
         title: 'Compras',

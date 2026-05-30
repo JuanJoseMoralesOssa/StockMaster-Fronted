@@ -25,6 +25,8 @@ export interface GenericHeaderProps<T> {
   buttonClassName?: string
   /** Función personalizada para renderizar el botón completo (sobrescribe el botón por defecto) */
   renderCustomButton?: (onClick: () => void) => ReactNode
+  /** Acciones extra mostradas junto al botón de crear (ej: botón Escanear) */
+  extraActions?: ReactNode
 }
 
 const DEFAULT_CREATE_TEXT = "Nuevo"
@@ -41,7 +43,8 @@ function GenericHeaderInner<T>({
   renderCreateForm,
   buttonIcon,
   buttonClassName,
-  renderCustomButton
+  renderCustomButton,
+  extraActions
 }: GenericHeaderProps<T>) {
   const [open, setOpen] = useState(false)
 
@@ -67,7 +70,10 @@ function GenericHeaderInner<T>({
         <HeaderTitle title={title} className={headerClassName} />
       </div>
 
-      {renderCustomButton ? renderCustomButton(openModal) : defaultButton}
+      <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
+        {extraActions}
+        {renderCustomButton ? renderCustomButton(openModal) : defaultButton}
+      </div>
 
       <Modal open={open} onClose={closeModal} title={modalTitle} description={modalDescription}>
         {renderCreateForm(closeModal, onItemCreated)}

@@ -1,3 +1,5 @@
+import { RefreshCw } from "lucide-react"
+
 interface RefreshButtonProps {
   onRefresh: () => void
   loading: boolean
@@ -18,9 +20,7 @@ function RefreshButton({ onRefresh, loading }: RefreshButtonProps) {
       `}
       title={loading ? 'Actualizando...' : 'Actualizar datos'}
     >
-      <span className={`text-lg ${loading ? 'animate-spin' : ''}`}>
-        🔄
-      </span>
+      <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
       {loading ? 'Actualizando...' : 'Actualizar'}
     </button>
   )

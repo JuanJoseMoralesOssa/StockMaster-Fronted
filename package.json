@@ -16,7 +16,6 @@
     "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.2.4",
     "axios": "^1.15.2",
-    "bcryptjs": "^3.0.3",
     "exceljs": "^3.10.0",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
@@ -31,7 +30,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

@@ -52,7 +52,7 @@ describe('KardexService – getAll()', () => {
 
 describe('KardexService – getPaginated()', () => {
   it('retorna kardex paginado con estructura correcta', async () => {
-    mock.onGet(`${BASE}/kardexes?page=1&limit=10`).reply(200, paginated(KARDEXES))
+    mock.onGet(new RegExp(`${BASE}/kardexes\\?`)).reply(200, paginated(KARDEXES))
 
     const result = await kardexService.getAllPaginated(1, 10)
 
@@ -63,7 +63,7 @@ describe('KardexService – getPaginated()', () => {
   })
 
   it('lanza error si el servidor responde 500', async () => {
-    mock.onGet(`${BASE}/kardexes?page=1&limit=10`).reply(500)
+    mock.onGet(new RegExp(`${BASE}/kardexes\\?`)).reply(500)
 
     await expect(kardexService.getAllPaginated()).rejects.toThrow()
   })

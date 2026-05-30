@@ -19,6 +19,7 @@ export default function PageHeader<T extends object, TFilter = object, CreateInp
       modalTitle={`Crear ${config.entityName}`}
       modalDescription={`Completa los detalles del ${config.entityName}. Los campos marcados con * son requeridos.`}
       onItemCreated={addItem}
+      extraActions={config.renderHeaderActions?.()}
       renderCreateForm={(onSuccess: () => void, onItemCreated: (item: T) => void) => (
         config.renderCustomForm ? config.renderCustomForm(onSuccess, onItemCreated) :
           <GenericForm

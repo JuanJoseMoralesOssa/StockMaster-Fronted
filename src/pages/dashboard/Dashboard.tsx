@@ -4,15 +4,19 @@ import ModeToggleDashboard from './ModeToggle'
 import RenderingWithMode from './RenderingWithMode'
 import DashboardHeader from './components/DashboardHeader'
 import KpiCards from './components/KpiCards'
+import InventoryKpis from './components/InventoryKpis'
 import ActionButtons from './components/ActionButtons'
 import EmptyState from './components/EmptyState'
 import { useDashboardData } from './hooks/useDashboardData'
-import { getTodayFormatted } from './utils/dateHelpers'
+import { useInventorySummary } from '../../hooks/useInventorySummary'
+import { useAutoRefresh } from '../../hooks/useAutoRefresh'
+import { getTodayFormatted, getPreviousPeriodRange } from './utils/dateHelpers'
+import SummaryTypeToggle from './components/SummaryTypeToggle'
 import { Alert } from '../../components/ui'
 
 type DashboardMode = 'detailed' | 'general'
 
-export default function SupplierPaymentReport() {
+export default function Dashboard() {
   const [dashboardMode, setDashboardMode] = useState<DashboardMode>('detailed')
 
   const {
@@ -25,31 +29,39 @@ export default function SupplierPaymentReport() {
     supplierProductResults,
     suppliersResults,
     productsResults,
+    summaryType,
     analytics,
     prevAnalytics,
     setFilters,
     setSelectedFilter,
+    changeSummaryType,
     fetchData,
     resetFilters,
     clearResults,
   } = useDashboardData()
 
+  const inventory = useInventorySummary()
+
+  // Refetch current + previous-period analytics for the selected range/type.
+  const refreshAnalytics = () => {
+    if (filters.startDate && filters.endDate) {
+      analytics.refetch({ startDate: filters.startDate, endDate: filters.endDate, type: summaryType })
+      const prev = getPreviousPeriodRange(filters.startDate, filters.endDate)
+      prevAnalytics.refetch({ startDate: prev.startDate, endDate: prev.endDate, type: summaryType })
+    }
+  }
+
+  // Keep the always-visible summary current: refresh inventory + KPIs every 5
+  // minutes. Detailed search results are left untouched to avoid a flash.
+  useAutoRefresh(() => {
+    inventory.refetch()
+    refreshAnalytics()
+  })
+
   const handleModeChange = (newMode: DashboardMode) => {
     setDashboardMode(newMode)
     clearResults()
   }
-
-  if (loading) return (
-    <div className="flex justify-center items-center h-64">
-      <div className="text-xl font-semibold text-(--view-accent-text,var(--color-text-link))">Cargando datos...</div>
-    </div>
-  )
-
-  if (error) return (
-    <Alert variant="danger" title="No se pudo cargar el reporte">
-      {error}
-    </Alert>
-  )
 
   const showEmptyState =
     !filters.startDate && !filters.endDate && !filters.supplierId && !filters.productId && dashboardMode === 'detailed'
@@ -65,14 +77,20 @@ export default function SupplierPaymentReport() {
       <KpiCards
         current={analytics.data?.summary}
         previous={prevAnalytics.data?.summary}
+        loading={analytics.loading}
       />
 
+      <InventoryKpis data={inventory.data} loading={inventory.loading} />
+
+      <hr className="border-t border-(--color-border) mb-8 -mt-2" />
+
       <div className="mb-8 overflow-visible rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs">
-        <div className="flex items-center justify-between border-b border-(--color-border) px-5 pt-5 pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-(--color-border) px-5 pt-5 pb-3">
           <ModeToggleDashboard
             dashboardMode={dashboardMode}
             handleModeChange={handleModeChange}
           />
+          <SummaryTypeToggle value={summaryType} onChange={changeSummaryType} />
         </div>
 
         <div className="relative z-20 border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle)) p-5">
@@ -86,7 +104,13 @@ export default function SupplierPaymentReport() {
               setSelectedFilter={setSelectedFilter}
               dashboardMode={dashboardMode}
             />
-            <ActionButtons onSearch={fetchData} onClear={resetFilters} />
+            <ActionButtons onSearch={fetchData} onClear={resetFilters} loading={loading} />
+
+            {error && (
+              <Alert variant="danger" title="No se pudo cargar el reporte">
+                {error}
+              </Alert>
+            )}
           </div>
         </div>
 
@@ -103,6 +127,7 @@ export default function SupplierPaymentReport() {
             analyticsData={analytics.data}
             analyticsLoading={analytics.loading}
             analyticsError={analytics.error}
+            onAnalyticsRetry={refreshAnalytics}
           />
 
           {showEmptyState && <EmptyState />}

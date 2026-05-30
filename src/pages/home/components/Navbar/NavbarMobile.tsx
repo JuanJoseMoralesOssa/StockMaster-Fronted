@@ -1,10 +1,10 @@
 import { Menu, X, LogOut } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
-import navItems from '../../../../constants/NavItems'
 import useAuthStore from '../../../../stores/useAuthStore'
 import NavItem from '../../../../types/NavItem'
 import { Fragment } from 'react'
 import { getViewAccentStyle } from '../../../../constants/viewAccents'
+import { useNavItems } from '../../../../hooks/useNavItems'
 
 interface NavbarMobileProps {
     open: boolean
@@ -13,6 +13,7 @@ interface NavbarMobileProps {
 
 const NavbarMobile: React.FC<NavbarMobileProps> = ({ open, setOpen }) => {
     const { logout } = useAuthStore()
+    const navItems = useNavItems()
     return (
         <section>
             {!open && (

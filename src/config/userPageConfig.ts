@@ -3,7 +3,6 @@ import User from '../types/User'
 import { UserFilters, userService } from '../services/User'
 import { Roles } from '../enums/Roles'
 import UserFiltersComponent from '../pages/user/components/UserFilters'
-import bcrypt from 'bcryptjs'
 
 const getRoleDisplayName = (role: string): string => {
   if (role === Roles.ADMIN) return 'Admin'
@@ -94,12 +93,9 @@ export const userPageConfig: GenericPageConfig<User, UserFilters> = {
   prepareDataForSubmit: async (data: Partial<User>, isEdit) => {
     const preparedData = { ...data }
 
-    // Si hay contraseña, hashearla
-    if (preparedData.password && preparedData.password.length > 0) {
-      const salt = bcrypt.genSaltSync(10)
-      preparedData.password = bcrypt.hashSync(preparedData.password, salt)
-    } else if (isEdit) {
-      // Si es edición y no hay contraseña, no enviarla
+    // El backend (security.service) hashea la contraseña. No hashear en el cliente.
+    // En edición sin contraseña, no enviar el campo para no sobrescribirla.
+    if (isEdit && (!preparedData.password || preparedData.password.length === 0)) {
       delete preparedData.password
     }
 

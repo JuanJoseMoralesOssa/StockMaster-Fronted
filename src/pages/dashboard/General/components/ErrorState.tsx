@@ -2,7 +2,7 @@ import { Alert, Button } from '../../../../components/ui'
 
 interface ErrorStateProps {
   error: string
-  onRetry: () => void
+  onRetry?: () => void
 }
 
 function ErrorState({ error, onRetry }: ErrorStateProps) {
@@ -11,14 +11,11 @@ function ErrorState({ error, onRetry }: ErrorStateProps) {
       variant="danger"
       title="Error al cargar el análisis"
       action={
-        <div className="flex flex-wrap gap-2">
+        onRetry ? (
           <Button variant="danger" size="sm" onClick={onRetry}>
             Reintentar
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => window.location.reload()}>
-            Recargar página
-          </Button>
-        </div>
+        ) : undefined
       }
     >
       {error}

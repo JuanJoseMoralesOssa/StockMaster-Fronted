@@ -125,13 +125,15 @@ function Login() {
               </div>
             </div>
 
-            <Alert variant="info" title="Credenciales de prueba">
-              <p>
-                <span className="font-medium">Email:</span> admin@test.com
-                <br />
-                <span className="font-medium">Contraseña:</span> admin123
-              </p>
-            </Alert>
+            {import.meta.env.DEV && (
+              <Alert variant="info" title="Credenciales de prueba (solo desarrollo)">
+                <p>
+                  <span className="font-medium">Email:</span> admin@test.com
+                  <br />
+                  <span className="font-medium">Contraseña:</span> admin123
+                </p>
+              </Alert>
+            )}
 
             <Button
               type="submit"

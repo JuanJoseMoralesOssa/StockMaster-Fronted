@@ -17,6 +17,8 @@ export interface GenericColumn<T> {
   width?: string
   /** Ocultar en pantallas pequeñas */
   hideOnMobile?: boolean
+  /** Alineación del contenido. Los números van a la derecha, texto a la izquierda (default) */
+  align?: 'left' | 'right'
 }
 
 /**
@@ -134,6 +136,8 @@ export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>
   }
   /** Renderizado personalizado para el formulario de crear */
   renderCustomForm?: (onSuccess: () => void, onItemCreated: (item: T) => void) => ReactNode
+  /** Función para obtener un item completo (con relaciones) antes de abrir el modal de edición */
+  fetchForEdit?: (id: string | number) => Promise<T>
   /** Renderizado personalizado para el formulario de editar */
   renderEditForm?: (item: T, onSuccess: () => void, onItemUpdated: (item: T) => void) => ReactNode
   /** Función para preparar datos antes de enviar (ej: hash passwords) */
@@ -148,6 +152,8 @@ export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>
   deleteSuccessMessage?: string
   /** Renderizado personalizado para el botón de crear */
   renderCreateButton?: (onClick: () => void) => ReactNode
+  /** Acciones extra que se muestran junto al botón de crear en el header (ej: botón Escanear) */
+  renderHeaderActions?: () => ReactNode
   /** Filtros adicionales para la tabla */
   filters?: Array<{
     name: string

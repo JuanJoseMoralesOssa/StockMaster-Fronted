@@ -1,3 +1,5 @@
+import { LineChart, LayoutDashboard } from "lucide-react"
+
 interface ModeToggleDashboardProps {
   dashboardMode: 'detailed' | 'general'
   handleModeChange: (mode: 'detailed' | 'general') => void
@@ -18,7 +20,7 @@ function ModeToggleDashboard(
           : 'text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-bg-muted)'
           }`}
       >
-        📊 Vista Detallada (Meses)
+<LineChart className="w-4 h-4" /> Vista Detallada (Meses)
       </button>
       <button
         onClick={() => handleModeChange('general')}
@@ -27,7 +29,7 @@ function ModeToggleDashboard(
           : 'text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-bg-muted)'
           }`}
       >
-        📝 Vista General (Resumen)
+<LayoutDashboard className="w-4 h-4" /> Vista General (Resumen)
       </button>
     </div>
   )

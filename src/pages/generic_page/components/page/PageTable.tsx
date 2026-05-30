@@ -11,24 +11,7 @@ interface PageTableProps<T, TFilter = object, CreateInput = Partial<T>, UpdateIn
 export default function PageTable<T extends object, TFilter = object, CreateInput = Partial<T>, UpdateInput = Partial<T>>({
   config
 }: PageTableProps<T, TFilter, CreateInput, UpdateInput>) {
-  const {
-    data,
-    loading,
-    error,
-    currentPage,
-    totalPages,
-    totalItems,
-    itemsPerPage,
-    goToPage,
-    setItemsPerPage,
-    refresh,
-    updateItem,
-    removeItem,
-    retry,
-    handleUpdate,
-    handleDelete,
-    setSelectedItemForDetail
-  } = useGenericPageContext<T, TFilter>()
+  const { setSelectedItemForDetail } = useGenericPageContext<T, TFilter>()
 
   const actions = useMemo(() => {
     const baseActions = { ...config.actions }
@@ -47,30 +30,16 @@ export default function PageTable<T extends object, TFilter = object, CreateInpu
 
   return (
     <GenericTable<T>
-      data={data}
-      loading={loading}
-      error={error}
-      retry={retry}
-      currentPage={currentPage}
-      totalPages={totalPages}
-      totalItems={totalItems}
-      itemsPerPage={itemsPerPage}
-      goToPage={goToPage}
-      setItemsPerPage={setItemsPerPage}
-      refresh={refresh}
-      updateItem={(item: T, idField?: keyof T) => updateItem(item, idField)}
-      removeItem={(id: string | number, idField?: keyof T) => removeItem(id, idField)}
       columns={config.columns}
       rowClassName={config.rowClassName}
       actions={actions}
       idField={config.idField}
       entityName={config.entityName}
-      onDelete={handleDelete}
-      onUpdate={handleUpdate}
       formFields={config.formFields}
       prepareDataForSubmit={config.prepareDataForSubmit}
       expandableConfig={config.expandableConfig}
       renderEditForm={config.renderEditForm}
+      fetchForEdit={config.fetchForEdit}
     />
   )
 }

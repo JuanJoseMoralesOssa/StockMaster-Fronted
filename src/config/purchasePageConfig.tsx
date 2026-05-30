@@ -7,6 +7,7 @@ import { purchaseService } from '../services/PurchaseService'
 import PurchaseCreate from '../pages/purchase/components/PurchaseCreate'
 import PurchaseEditForm from '../pages/purchase/components/PurchaseEditForm'
 import PurchaseFilters from '../pages/purchase/components/PurchaseFilters'
+import ScanFormButton from '../pages/purchase/components/ScanFormButton'
 import { buildDocumentPageConfig } from './documentPageConfig'
 import { useProductStore, useSupplierStore } from '../stores'
 import DocumentFiltersChrome from '../pages/components/common/DocumentFiltersChrome'
@@ -66,17 +67,25 @@ function PurchaseFiltersSection({
   )
 }
 
-export const purchasePageConfig = buildDocumentPageConfig<
+const basePurchasePageConfig = buildDocumentPageConfig<
   Purchase,
   PurchaseDetails,
   DateRangeFilters,
   'purchase_details'
 >(
   {
-    service: purchaseService,
+    service: {
+      getAllPaginated: (page: number, limit: number) => purchaseService.getAllPaginatedWithDetails(page, limit),
+      create: (data) => purchaseService.create(data),
+      update: (id, data) => purchaseService.update(id, data),
+      updatePartial: (id, data) => purchaseService.updatePartial(id, data),
+      delete: (id) => purchaseService.delete(id),
+      getAllPaginatedFiltered: (filters, page, limit) => purchaseService.getAllPaginatedFiltered(filters, page, limit),
+    },
     entityName: 'Compra',
     entityNamePlural: 'Compras',
     detailsKey: 'purchase_details',
+    fetchForEdit: (id) => purchaseService.getByIdWithDetails(id as number),
     renderExpandedDetails: (item) => <PurchaseExpandedDetails purchase={item} />,
     renderFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
       <PurchaseFiltersSection
@@ -96,3 +105,8 @@ export const purchasePageConfig = buildDocumentPageConfig<
   },
   buildInitialDateRangeFilters(),
 )
+
+export const purchasePageConfig = {
+  ...basePurchasePageConfig,
+  renderHeaderActions: () => <ScanFormButton />,
+}

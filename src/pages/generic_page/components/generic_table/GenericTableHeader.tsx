@@ -19,8 +19,7 @@ export default function GenericTableHeader({ columns, showActions, hasExpandable
         {columns.map((column, index) => (
           <th
             key={index}
-            className={`px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) ${column.hideOnMobile ? 'hidden md:table-cell' : ''
-              } ${column.width || ''}`}
+            className={`px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) ${column.align === 'right' ? 'text-right' : 'text-left'} ${column.hideOnMobile ? 'hidden md:table-cell' : ''} ${column.width || ''}`}
           >
             {column.label}
           </th>

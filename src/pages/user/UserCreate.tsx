@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import bcrypt from 'bcryptjs'
 import { Eye, EyeOff } from 'lucide-react'
 
 import { useApiRequest } from '../../hooks/useApiRequest'
@@ -82,8 +81,8 @@ const UserCreate = ({ onSuccess, onUserCreated }: UserCreateProps) => {
         if (!validatePassword()) {
             return
         }
-        const hashedUser = { ...user, password: bcrypt.hashSync(user.password!, 12) }
-        await execute(hashedUser)
+        // El hashing ocurre en el backend (security.service). Enviar en claro sobre HTTPS.
+        await execute(user)
     }
 
     return (

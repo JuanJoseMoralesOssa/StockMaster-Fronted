@@ -1,11 +1,11 @@
 // Configuración de URLs por ambiente
 const getApiUrl = (): string => {
-    // En desarrollo usa la variable de entorno local o fallback
+    // En desarrollo usa VITE_API_URL (solo dev) o fallback a localhost
     if (import.meta.env.DEV) {
-        return import.meta.env.VITE_API_URL_PROD || 'http://127.0.0.1:3000/'
+        return import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000/'
     }
 
-    // En producción debe usar la variable de entorno configurada en Azure
+    // En producción usa VITE_API_URL_PROD configurada en Azure / Vercel
     const prodUrl = import.meta.env.VITE_API_URL_PROD
     if (!prodUrl) {
         console.error('⚠️ VITE_API_URL_PROD no está configurada para producción')
@@ -23,6 +23,7 @@ if (import.meta.env.DEV) {
     console.log('🔗 API URL:', LOGIC_URL)
     console.log('🌍 Modo:', import.meta.env.MODE)
     console.log('📊 Variables disponibles:', {
+        VITE_API_URL: import.meta.env.VITE_API_URL,
         VITE_API_URL_PROD: import.meta.env.VITE_API_URL_PROD,
         VITE_APP_TITLE: import.meta.env.VITE_APP_TITLE,
         VITE_DEBUG_MODE: import.meta.env.VITE_DEBUG_MODE,

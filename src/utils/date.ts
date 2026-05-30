@@ -34,6 +34,19 @@ export function toDateInputValue(value?: string): string {
   return `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`
 }
 
+export function todayBogota(): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date())
+  const year = parts.find((p) => p.type === 'year')?.value
+  const month = parts.find((p) => p.type === 'month')?.value
+  const day = parts.find((p) => p.type === 'day')?.value
+  return `${year}-${month}-${day}`
+}
+
 export function buildInitialDateRangeFilters(): DateRangeFilters {
   const now = new Date()
   const year = now.getFullYear()

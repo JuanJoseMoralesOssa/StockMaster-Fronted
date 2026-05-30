@@ -116,11 +116,10 @@ export class ApiService<T> {
 
   async update(id: number | string, data: Partial<T>): Promise<T> {
     try {
-      if ('id' in data) {
-        delete (data as Partial<T> & { id?: unknown }).id
-      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id: _omit, ...payload } = data as Partial<T> & { id?: unknown }
       return await this.handleResponse<T>(
-        httpClient.put(this.getUrl(id.toString()), data)
+        httpClient.put(this.getUrl(id.toString()), payload)
       )
     } catch (error) {
       this.handleError(error, `Error updating ${this.endpoint} with id ${id}`)
@@ -130,11 +129,10 @@ export class ApiService<T> {
 
   async updatePartial(id: number | string, data: Partial<T>): Promise<T> {
     try {
-      if ('id' in data) {
-        delete (data as Partial<T> & { id?: unknown }).id
-      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id: _omit, ...payload } = data as Partial<T> & { id?: unknown }
       return await this.handleResponse<T>(
-        httpClient.patch(this.getUrl(id.toString()), data)
+        httpClient.patch(this.getUrl(id.toString()), payload)
       )
     } catch (error) {
       this.handleError(error, `Error partially updating ${this.endpoint} with id ${id}`)
