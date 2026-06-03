@@ -2,7 +2,7 @@ import SupplierProductCharts from './SupplierProductCharts';
 import SupplierCharts from './SupplierCharts';
 import ProductChart from './ProductChart';
 import Person from '../../../types/Person';
-import { DashboardResult, ProductsResults, SuppliersResults } from '../../../types/DashboardResults';
+import { DashboardResult, PersonReportRow, ProductReportRow } from '../../../types/DashboardResults';
 import Product from '../../../types/Product';
 
 interface DetailedDashboardProps {
@@ -14,8 +14,8 @@ interface DetailedDashboardProps {
   };
   products: Partial<Product>[];
   suppliers: Person[];
-  suppliersResults: SuppliersResults[];
-  productsResults: ProductsResults[];
+  suppliersResults: ProductReportRow[];
+  productsResults: PersonReportRow[];
   supplierProductResults: DashboardResult[];
   selectedFilter: 'all' | 'withDebt' | 'fullyPaid';
 }

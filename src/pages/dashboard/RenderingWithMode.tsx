@@ -1,4 +1,4 @@
-import { DashboardResult, ProductsResults, SuppliersResults } from "../../types/DashboardResults"
+import { DashboardResult, PersonReportRow, ProductReportRow } from "../../types/DashboardResults"
 import Person from "../../types/Person"
 import Product from "../../types/Product"
 import { DashboardSummaryResponse } from "../../types/Analytics"
@@ -15,8 +15,8 @@ interface RenderingWithModeProps {
   }
   products: Partial<Product>[]
   suppliers: Person[]
-  suppliersResults: SuppliersResults[]
-  productsResults: ProductsResults[]
+  suppliersResults: ProductReportRow[]
+  productsResults: PersonReportRow[]
   supplierProductResults: DashboardResult[]
   selectedFilter: 'all' | 'withDebt' | 'fullyPaid'
   analyticsData?: DashboardSummaryResponse | null

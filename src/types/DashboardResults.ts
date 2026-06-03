@@ -4,10 +4,13 @@ export interface DashboardResult {
     type: "Compra" | "Gasto";
 }
 
-export interface ProductsResults extends DashboardResult {
+/** Fila del reporte de una persona: cada entrada es una transacción vinculada a un producto. */
+export interface PersonReportRow extends DashboardResult {
   productId: number;
 }
 
-export interface SuppliersResults extends DashboardResult {
+/** Fila del reporte de un producto: cada entrada es una transacción vinculada a un proveedor. */
+export interface ProductReportRow extends DashboardResult {
   personId: number;
+  personName?: string;
 }

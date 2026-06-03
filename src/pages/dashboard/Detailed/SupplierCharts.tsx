@@ -11,7 +11,7 @@ import {
   PieChart,
   Pie,
 } from 'recharts'
-import { ProductsResults } from '../../../types/DashboardResults'
+import { PersonReportRow } from '../../../types/DashboardResults'
 import Product from '../../../types/Product'
 import { EXPENSE, PURCHASE } from '../../../constants/cts'
 
@@ -19,7 +19,7 @@ interface Filters { startDate: string; endDate: string; supplierId: string; prod
 
 interface ProductReportProps {
   selectedFilter: 'all' | 'withDebt' | 'fullyPaid'
-  results: ProductsResults[]
+  results: PersonReportRow[]
   products: Partial<Product>[]
   filters: Filters
 }

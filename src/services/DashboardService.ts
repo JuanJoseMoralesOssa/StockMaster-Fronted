@@ -1,5 +1,5 @@
 import { Config } from "../config/Config"
-import { DashboardResult, ProductsResults, SuppliersResults } from "../types/DashboardResults"
+import { DashboardResult, PersonReportRow, ProductReportRow } from "../types/DashboardResults"
 import { httpClient } from "./httpClient"
 const API_BASE_URL = Config.LOGIC_URL
 
@@ -39,7 +39,7 @@ export class DashboardService {
     personId: number,
     startDate: string,
     endDate: string
-  ): Promise<ProductsResults[]> {
+  ): Promise<PersonReportRow[]> {
     try {
       const response = await httpClient.get(
         `${API_BASE_URL}reports/details/person/${personId}`,
@@ -61,7 +61,7 @@ export class DashboardService {
     productId: number,
     startDate: string,
     endDate: string
-  ): Promise<SuppliersResults[]> {
+  ): Promise<ProductReportRow[]> {
     try {
       const response = await httpClient.get(
         `${API_BASE_URL}reports/details/product/${productId}`,

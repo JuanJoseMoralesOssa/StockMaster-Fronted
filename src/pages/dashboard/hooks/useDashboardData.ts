@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useProductStore } from '../../../stores/useProductStore'
 import { useSupplierStore } from '../../../stores/useSupplierStore'
 import { dashboardService } from '../../../services/DashboardService'
-import { DashboardResult, ProductsResults, SuppliersResults } from '../../../types/DashboardResults'
+import { DashboardResult, PersonReportRow, ProductReportRow } from '../../../types/DashboardResults'
 import { useDashboardAnalytics } from '../../../hooks/useDashboardAnalytics'
 import { getCurrentMonthRange, getPreviousPeriodRange } from '../utils/dateHelpers'
 
@@ -23,8 +23,8 @@ export function useDashboardData() {
   const [error, setError] = useState<string | null>(null)
 
   const [supplierProductResults, setSupplierProductResults] = useState<DashboardResult[]>([])
-  const [suppliersResults, setSuppliersResults] = useState<SuppliersResults[]>([])
-  const [productsResults, setProductsResults] = useState<ProductsResults[]>([])
+  const [suppliersResults, setSuppliersResults] = useState<ProductReportRow[]>([])
+  const [productsResults, setProductsResults] = useState<PersonReportRow[]>([])
   const [selectedFilter, setSelectedFilter] = useState<SelectedFilter>('all')
   const [summaryType, setSummaryType] = useState<SummaryType>('both')
 

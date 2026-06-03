@@ -12,7 +12,7 @@ import {
   PieChart,
   Pie,
 } from 'recharts'
-import { SuppliersResults } from '../../../types/DashboardResults'
+import { ProductReportRow } from '../../../types/DashboardResults'
 import Person from '../../../types/Person'
 import { EXPENSE, PURCHASE } from '../../../constants/cts'
 
@@ -25,7 +25,7 @@ interface Filters {
 
 interface ProductChartProps {
   selectedFilter: 'all' | 'withDebt' | 'fullyPaid'
-  results: SuppliersResults[]
+  results: ProductReportRow[]
   suppliers: Person[]
   filters: Filters
 }

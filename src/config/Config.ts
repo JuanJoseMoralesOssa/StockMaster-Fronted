@@ -12,8 +12,9 @@ const getApiUrl = (): string => {
         throw new Error('URL del API no configurada para producción')
     }
 
-    // Asegurar que la URL tenga protocolo
-    return prodUrl.startsWith('http') ? prodUrl : `https://${prodUrl}`
+    // Asegurar que la URL tenga protocolo y trailing slash
+    const normalized = prodUrl.startsWith('http') ? prodUrl : `https://${prodUrl}`
+    return normalized.endsWith('/') ? normalized : `${normalized}/`
 }
 
 export const LOGIC_URL = getApiUrl()
