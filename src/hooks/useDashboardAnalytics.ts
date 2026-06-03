@@ -36,18 +36,12 @@ export const useDashboardAnalytics = (filters: AnalyticsFilters): UseAnalyticsRe
       setData(response)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido al cargar analytics')
-      console.error('Error fetching analytics:', err)
     } finally {
       setLoading(false)
     }
   }
 
-  // Comentado para que no se ejecute automáticamente al montar.
-  // Se ejecutará solo cuando el usuario haga clic en buscar.
-  // useEffect(() => {
-  //   fetchAnalytics()
-  // }, [filters.startDate, filters.endDate, filters.type, filters.limit])
-
+  // Fires only on manual refetch (search button click), not on mount.
   const refetch = (customFilters?: AnalyticsFilters) => {
     fetchAnalytics(customFilters)
   }

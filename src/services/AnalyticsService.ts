@@ -27,23 +27,18 @@ export class AnalyticsService {
         if (axiosError.response.data) {
           const errorData = axiosError.response.data
           if (errorData && typeof errorData === 'object' && 'message' in errorData) {
-            console.error(`${errorMessage}: ${errorData.message}`)
             throw new Error(`${errorMessage}: ${errorData.message}`)
           }
         }
 
-        console.error(`${errorMessage}: ${status} ${statusText}`)
         throw new Error(`${errorMessage}: Error HTTP ${status} ${statusText}`)
       } else if (axiosError.request) {
-        console.error(`${errorMessage}: No se recibió respuesta del servidor`)
         throw new Error(`${errorMessage}: No se recibió respuesta del servidor`)
       } else {
-        console.error(`${errorMessage}: ${axiosError.message}`)
         throw new Error(`${errorMessage}: ${axiosError.message}`)
       }
     }
 
-    console.error(errorMessage, error)
     throw new Error(`${errorMessage}: Error inesperado`)
   }
 

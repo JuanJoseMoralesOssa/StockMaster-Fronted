@@ -1,9 +1,12 @@
+import { useMemo } from 'react'
 import ExcelJS from 'exceljs'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts'
 import Person from '../../../types/Person'
 import Product from '../../../types/Product'
 import { DashboardResult } from '../../../types/DashboardResults'
 import { EXPENSE, PURCHASE } from '../../../constants/cts'
+import { formatChartValue, formatChartPercent, downloadXlsxBlob, CHART_HEIGHTS, CHART_MARGINS, CHART_COLORS } from './chart.utils'
+import { processDailyEntries, processMonthlyEntries, groupDailyEntriesByMonth } from '../../../utils/chartTransforms'
 
 
 interface SupplierAndProductProps {
@@ -13,37 +16,6 @@ interface SupplierAndProductProps {
   selectedFilter: string
   filters: { startDate: string; endDate: string; supplierId: string; productId: string }
 }
-
-interface DailyData {
-  day: number
-  date: string
-  compra: number
-  gasto: number
-  pendiente: number
-}
-
-interface MonthlyData {
-  month: string
-  total: number
-  pagado: number
-  pendiente: number
-}
-
-const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-const formatChartValue = (value: unknown): string => {
-  if (Array.isArray(value)) {
-    return value.map((item) => String(item)).join(', ')
-  }
-  if (typeof value === 'number') {
-    return value.toLocaleString()
-  }
-  if (typeof value === 'string') {
-    return value
-  }
-  return ''
-}
-const formatChartPercent = (percent: number | undefined): string =>
-  `${((percent ?? 0) * 100).toFixed(0)}%`
 
 function SupplierProductCharts({
   results,
@@ -55,96 +27,9 @@ function SupplierProductCharts({
   const supplierName = supplier?.name || 'Desconocido'
   const productName = product.name || 'Producto Seleccionado'
 
-  // Procesar datos por día
-  const processDailyData = (): DailyData[] => {
-    const dailyMap = new Map<string, DailyData>()
-
-    results.forEach(result => {
-      let dateKey = ''
-      let day = 1
-      if (result.date) {
-        if (/^\d{4}-\d{2}-\d{2}$/.test(result.date)) {
-          dateKey = result.date
-          day = parseInt(result.date.split('-')[2], 10)
-        } else {
-          const date = new Date(result.date)
-          dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-          day = date.getDate()
-        }
-      }
-
-      if (!dailyMap.has(dateKey)) {
-        dailyMap.set(dateKey, {
-          day,
-          date: dateKey,
-          compra: 0,
-          gasto: 0,
-          pendiente: 0
-        })
-      }
-
-      const dayData = dailyMap.get(dateKey)!
-      if (result.type === PURCHASE) {
-        dayData.compra += result.weight_kg
-      } else {
-        dayData.gasto += result.weight_kg
-      }
-      dayData.pendiente = dayData.compra - dayData.gasto
-    })
-
-    return Array.from(dailyMap.values()).sort((a, b) => a.date.localeCompare(b.date))
-  }
-
-  // Procesar datos por mes
-  const processMonthlyData = (): MonthlyData[] => {
-    const monthlyMap = new Map<string, MonthlyData>()
-
-    results.forEach(result => {
-      const date = new Date(result.date)
-      const monthKey = `${monthNames[date.getMonth()]} ${date.getFullYear()}`
-
-      if (!monthlyMap.has(monthKey)) {
-        monthlyMap.set(monthKey, {
-          month: monthKey,
-          total: 0,
-          pagado: 0,
-          pendiente: 0
-        })
-      }
-
-      const monthData = monthlyMap.get(monthKey)!
-      if (result.type === PURCHASE) {
-        monthData.total += result.weight_kg
-      } else {
-        monthData.pagado += result.weight_kg
-      }
-      monthData.pendiente = monthData.total - monthData.pagado
-    })
-
-    return Array.from(monthlyMap.values())
-  }
-
-  // Agrupar datos diarios por mes
-  const groupDailyDataByMonth = () => {
-    const grouped: Record<string, DailyData[]> = {}
-    const dailyData = processDailyData()
-
-    dailyData.forEach(day => {
-      const date = new Date(day.date)
-      const monthKey = `${monthNames[date.getMonth()]} ${date.getFullYear()}`
-
-      if (!grouped[monthKey]) {
-        grouped[monthKey] = []
-      }
-      grouped[monthKey].push(day)
-    })
-
-    return grouped
-  }
-
-  const dailyData = processDailyData()
-  const monthlyData = processMonthlyData()
-  const dailyByMonth = groupDailyDataByMonth()
+  const dailyData = useMemo(() => processDailyEntries(results), [results])
+  const monthlyData = useMemo(() => processMonthlyEntries(results), [results])
+  const dailyByMonth = useMemo(() => groupDailyEntriesByMonth(dailyData), [dailyData])
 
   const productPurchases = results.filter((result) => result.type === PURCHASE)
   const productExpenses = results.filter((result) => result.type === EXPENSE)
@@ -249,21 +134,11 @@ function SupplierProductCharts({
       { key: 'estado', width: 18 }
     ]
 
-    // Download file
     const buffer = await workbook.xlsx.writeBuffer()
-
-    const blob = new Blob([buffer], {
-      type:
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    })
-
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `Reporte_Pagos_Proveedores_${filters.startDate}_${filters.endDate}.xlsx`
-    a.click()
-
-    window.URL.revokeObjectURL(url)
+    await downloadXlsxBlob(
+      buffer as ArrayBuffer,
+      `Reporte_Pagos_Proveedores_${filters.startDate}_${filters.endDate}.xlsx`,
+    )
   }
 
   const barChartData = monthlyData.map(month => ({
@@ -274,8 +149,8 @@ function SupplierProductCharts({
   }))
 
   const pieData = [
-    { name: 'Total Pagado', value: totalExpenses, fill: '#4ade80' },
-    { name: 'Total Pendiente', value: pendingAmount, fill: '#f87171' }
+    { name: 'Total Pagado', value: totalExpenses, fill: CHART_COLORS.green },
+    { name: 'Total Pendiente', value: pendingAmount, fill: CHART_COLORS.red },
   ]
 
   return (
@@ -328,26 +203,26 @@ function SupplierProductCharts({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Distribución de Pagos por Mes</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
             <BarChart
               data={barChartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              margin={CHART_MARGINS.inline}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
-              <Bar dataKey="Total" fill="#60a5fa" />
-              <Bar dataKey="Pagado" fill="#4ade80" />
-              <Bar dataKey="Pendiente" fill="#f87171" />
+              <Bar dataKey="Total" fill={CHART_COLORS.blue} />
+              <Bar dataKey="Pagado" fill={CHART_COLORS.green} />
+              <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Panorama General</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
             <PieChart>
               <Pie
                 data={pieData}
@@ -355,11 +230,9 @@ function SupplierProductCharts({
                 cy="50%"
                 labelLine={false}
                 outerRadius={100}
-                fill="#8884d8"
                 dataKey="value"
                 label={({ name, percent }) => `${name}: ${formatChartPercent(percent)}`}
-              >
-              </Pie>
+              />
               <Tooltip formatter={(value) => formatChartValue(value)} />
             </PieChart>
           </ResponsiveContainer>
@@ -373,7 +246,7 @@ function SupplierProductCharts({
           {Object.entries(dailyByMonth).map(([month, days]) => (
             <div key={month} className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
               <h3 className="text-md font-medium mb-4 text-center text-(--color-text-primary)">{month}</h3>
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={CHART_HEIGHTS.medium}>
                 <BarChart
                   data={days.map(d => ({
                     día: d.day,
@@ -381,16 +254,16 @@ function SupplierProductCharts({
                     Gasto: d.gasto,
                     Pendiente: d.pendiente
                   }))}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  margin={CHART_MARGINS.inline}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="día" />
                   <YAxis />
                   <Tooltip formatter={(value) => formatChartValue(value)} />
                   <Legend />
-                  <Bar dataKey="Compra" fill="#60a5fa" />
-                  <Bar dataKey="Gasto" fill="#4ade80" />
-                  <Bar dataKey="Pendiente" fill="#f87171" />
+                  <Bar dataKey="Compra" fill={CHART_COLORS.blue} />
+                  <Bar dataKey="Gasto" fill={CHART_COLORS.green} />
+                  <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

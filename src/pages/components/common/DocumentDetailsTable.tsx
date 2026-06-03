@@ -76,20 +76,15 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
 
     const updateDetail = (id: number, field: string, value: DocumentUpdateValue) => {
         const newDetails = details.map((row) => {
-            if (row.id === id) {
-                const baseUpdated = { ...row, [field]: value } as unknown
-                if (field === 'product' && value && typeof value === 'object' && 'id' in value) {
-                    const idVal = (value as { id?: number }).id
-                    const updatedRow = { ...(baseUpdated as object), productId: idVal } as unknown as T
-                    return updatedRow
-                } else if (field === 'person' && value && typeof value === 'object' && 'id' in value) {
-                    const idVal = (value as { id?: number }).id
-                    const updatedRow = { ...(baseUpdated as object), personId: idVal } as unknown as T
-                    return updatedRow
-                }
-                return baseUpdated as T
+            if (row.id !== id) return row
+            const updated = { ...row, [field]: value }
+            if (field === 'product' && value && typeof value === 'object' && 'id' in value) {
+                return { ...updated, productId: (value as { id?: number }).id } as T
             }
-            return row
+            if (field === 'person' && value && typeof value === 'object' && 'id' in value) {
+                return { ...updated, personId: (value as { id?: number }).id } as T
+            }
+            return updated as T
         })
         setDetails(newDetails)
     }

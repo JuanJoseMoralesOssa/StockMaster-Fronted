@@ -30,7 +30,6 @@ export class DashboardService {
       )
       return response.data
     } catch (error) {
-      console.error('Error fetching transactions:', error)
       throw error
     }
   }
@@ -52,7 +51,6 @@ export class DashboardService {
       )
       return response.data
     } catch (error) {
-      console.error('Error fetching transactions:', error)
       throw error
     }
   }
@@ -74,7 +72,6 @@ export class DashboardService {
       )
       return response.data
     } catch (error) {
-      console.error('Error fetching transactions:', error)
       throw error
     }
   }
@@ -92,7 +89,6 @@ export class DashboardService {
       )
       return response.data
     } catch (error) {
-      console.error('Error fetching supplier product details:', error)
       throw error
     }
   }

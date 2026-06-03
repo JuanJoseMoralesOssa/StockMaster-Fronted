@@ -11,7 +11,7 @@ export function useGenericPageContext<T, TFilter = object>() {
   if (!context) {
     throw new Error('useGenericPageContext must be used within a PageContextProvider')
   }
-  return context as unknown as PageContextValue<T, TFilter>
+  return context as PageContextValue<T, TFilter>
 }
 
 export function PageContextProvider<T extends object, TFilter extends object = object>({

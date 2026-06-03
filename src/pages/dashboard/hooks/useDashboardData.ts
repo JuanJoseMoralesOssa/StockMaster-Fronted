@@ -124,8 +124,7 @@ export function useDashboardData() {
             filters.endDate,
           )
           .then(data => setSupplierProductResults([...data]))
-          .catch(err => {
-            console.error('Error fetching person product transactions:', err)
+          .catch(() => {
             setError('Error al cargar los datos de transacciones de proveedor y producto')
           })
       }
@@ -133,8 +132,7 @@ export function useDashboardData() {
         await dashboardService
           .getPersonTransactions(Number(filters.supplierId), filters.startDate, filters.endDate)
           .then(data => setProductsResults([...data]))
-          .catch(err => {
-            console.error('Error fetching person transactions:', err)
+          .catch(() => {
             setError('Error al cargar los datos de transacciones de proveedor')
           })
       }
@@ -142,8 +140,7 @@ export function useDashboardData() {
         await dashboardService
           .getProductTransactions(Number(filters.productId), filters.startDate, filters.endDate)
           .then(data => setSuppliersResults([...data]))
-          .catch(err => {
-            console.error('Error fetching product transactions:', err)
+          .catch(() => {
             setError('Error al cargar los datos de transacciones de producto')
           })
       }
@@ -154,8 +151,7 @@ export function useDashboardData() {
       prevAnalytics.refetch({ startDate: prev.startDate, endDate: prev.endDate, type: summaryType })
 
       setLoading(false)
-    } catch (err) {
-      console.error('Error fetching supplier payment data:', err)
+    } catch {
       setError('Error al cargar los datos de pagos')
       setLoading(false)
     }
