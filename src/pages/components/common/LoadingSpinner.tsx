@@ -11,16 +11,16 @@ const LoadingSpinner = ({ size = 'md', className = '' }: LoadingSpinnerProps) =>
   }
 
   return (
-    <div className={`animate-spin rounded-full border-b-2 border-blue-500 ${sizeClasses[size]} ${className}`} />
+    <div className={`animate-spin rounded-full border-b-2 border-(--view-accent,var(--color-action-bg)) ${sizeClasses[size]} ${className}`} />
   )
 }
 
 const LoadingScreen = () => {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen bg-(--color-bg-page)">
       <div className="text-center">
         <LoadingSpinner size="lg" className="mx-auto mb-4" />
-        <p className="text-gray-600 text-lg">Cargando...</p>
+        <p className="text-(--color-text-secondary) text-lg">Cargando...</p>
       </div>
     </div>
   )

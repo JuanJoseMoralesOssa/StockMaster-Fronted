@@ -127,8 +127,6 @@ function ExpenseFilters({ suppliers, filters, products, setFilters, loading = fa
             }}
             clearable={true}
             noOptionsText="No se encontraron proveedores"
-            labelClassName="block text-sm font-medium text-(--color-text-secondary) mb-1"
-            inputClassName="w-full h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 pr-8 text-sm text-(--color-text-primary) transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
           />
         </div>
         <div className='flex w-full flex-col'>
@@ -147,8 +145,6 @@ function ExpenseFilters({ suppliers, filters, products, setFilters, loading = fa
             }}
             clearable={true}
             noOptionsText="No se encontraron productos"
-            labelClassName="block text-sm font-medium text-(--color-text-secondary) mb-1"
-            inputClassName="w-full h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 pr-8 text-sm text-(--color-text-primary) transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
           />
         </div>
       </div>

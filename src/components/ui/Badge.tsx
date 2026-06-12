@@ -12,13 +12,13 @@ const variantClasses: Record<Variant, string> = {
   default:
     "bg-(--color-bg-subtle) text-(--color-text-secondary) border border-(--color-border)",
   success:
-    "bg-success-50 text-success-700 border border-success-500/30",
+    "bg-success-50 text-success-700 border border-success-200",
   warning:
-    "bg-warning-50 text-warning-700 border border-warning-500/30",
+    "bg-warning-50 text-warning-700 border border-warning-200",
   danger:
-    "bg-danger-50 text-danger-700 border border-danger-500/30",
+    "bg-danger-50 text-danger-700 border border-danger-200",
   brand:
-    "bg-brand-50 text-brand-700 border border-brand-500/30",
+    "bg-brand-50 text-brand-700 border border-brand-200",
   outline:
     "bg-transparent text-(--color-text-secondary) border border-(--color-border-strong)",
 }

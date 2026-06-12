@@ -23,6 +23,34 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Design-system guard: keep Tailwind classes on the shared type scale and
+      // color tokens. Bans arbitrary `text-[…px]` sizes and raw color escapes
+      // (`text-[#…]`, `bg-[#…]`, …) in both string and template-literal classNames.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Literal[value=/text-\\[[\\d.]+px\\]/]',
+          message:
+            'Use a Tailwind type-scale token (text-xs/sm/base/lg/xl/2xl…) instead of an arbitrary text-[…px] size.',
+        },
+        {
+          selector: 'TemplateElement[value.raw=/text-\\[[\\d.]+px\\]/]',
+          message:
+            'Use a Tailwind type-scale token (text-xs/sm/base/lg/xl/2xl…) instead of an arbitrary text-[…px] size.',
+        },
+        {
+          selector:
+            'Literal[value=/(?:text|bg|border|ring|fill|stroke|from|via|to)-\\[#/]',
+          message:
+            'Use a design-system color token (e.g. text-(--color-…) or a palette class) instead of a raw color escape.',
+        },
+        {
+          selector:
+            'TemplateElement[value.raw=/(?:text|bg|border|ring|fill|stroke|from|via|to)-\\[#/]',
+          message:
+            'Use a design-system color token (e.g. text-(--color-…) or a palette class) instead of a raw color escape.',
+        },
+      ],
     },
   },
 )

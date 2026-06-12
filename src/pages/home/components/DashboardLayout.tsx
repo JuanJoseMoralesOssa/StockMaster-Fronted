@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import Navbar from './Navbar/Navbar'
+import MobileTopBar from './Navbar/MobileTopBar'
 import { useLocation } from 'react-router-dom'
 import navItems from '../../../constants/NavItems'
 import { getViewAccentStyle } from '../../../constants/viewAccents'
@@ -13,9 +15,10 @@ export function DashboardLayout({ children }: { readonly children: React.ReactNo
     const { pathname } = useLocation()
     const activeItem = getActiveNavItem(pathname)
     const viewStyle = getViewAccentStyle(activeItem?.accent)
+    const [navOpen, setNavOpen] = useState(false)
 
     return (
-        <section className='flex justify-between min-h-screen bg-(--color-bg-page) text-(--color-text-primary) transition-colors duration-200'>
+        <section className='flex justify-between min-h-dvh bg-(--color-bg-page) text-(--color-text-primary) transition-colors duration-200'>
             {/* Skip-to-content link for keyboard users */}
             <a
                 href="#main-content"
@@ -23,8 +26,11 @@ export function DashboardLayout({ children }: { readonly children: React.ReactNo
             >
                 Ir al contenido principal
             </a>
-            <Navbar />
-            <main id="main-content" className='min-w-0 flex-1' style={viewStyle}>{children}</main>
+            <Navbar open={navOpen} setOpen={setNavOpen} />
+            <main id="main-content" className='min-w-0 flex-1' style={viewStyle}>
+                <MobileTopBar open={navOpen} onOpenNav={() => setNavOpen(true)} title={activeItem?.title} />
+                {children}
+            </main>
         </section>
     )
 }

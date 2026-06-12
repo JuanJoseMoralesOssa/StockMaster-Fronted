@@ -18,20 +18,16 @@ export class DashboardService {
   ): Promise<
     DashboardResult[]
   > {
-    try {
-      const response = await httpClient.get(
-        `${API_BASE_URL}reports/details/person/${personId}/product/${productId}`,
-        {
-          params: {
-            startDate,
-            endDate
-          }
+    const response = await httpClient.get(
+      `${API_BASE_URL}reports/details/person/${personId}/product/${productId}`,
+      {
+        params: {
+          startDate,
+          endDate
         }
-      )
-      return response.data
-    } catch (error) {
-      throw error
-    }
+      }
+    )
+    return response.data
   }
 
   async getPersonTransactions(
@@ -39,20 +35,16 @@ export class DashboardService {
     startDate: string,
     endDate: string
   ): Promise<PersonReportRow[]> {
-    try {
-      const response = await httpClient.get(
-        `${API_BASE_URL}reports/details/person/${personId}`,
-        {
-          params: {
-            startDate,
-            endDate
-          }
+    const response = await httpClient.get(
+      `${API_BASE_URL}reports/details/person/${personId}`,
+      {
+        params: {
+          startDate,
+          endDate
         }
-      )
-      return response.data
-    } catch (error) {
-      throw error
-    }
+      }
+    )
+    return response.data
   }
 
   async getProductTransactions(
@@ -60,20 +52,16 @@ export class DashboardService {
     startDate: string,
     endDate: string
   ): Promise<ProductReportRow[]> {
-    try {
-      const response = await httpClient.get(
-        `${API_BASE_URL}reports/details/product/${productId}`,
-        {
-          params: {
-            startDate,
-            endDate
-          }
+    const response = await httpClient.get(
+      `${API_BASE_URL}reports/details/product/${productId}`,
+      {
+        params: {
+          startDate,
+          endDate
         }
-      )
-      return response.data
-    } catch (error) {
-      throw error
-    }
+      }
+    )
+    return response.data
   }
   /** Drill-down: historial de un proveedor para un producto en un rango de fechas. */
   async getSupplierProductDetails(
@@ -82,15 +70,11 @@ export class DashboardService {
     startDate: string,
     endDate: string,
   ): Promise<DashboardResult[]> {
-    try {
-      const response = await httpClient.get(
-        `${API_BASE_URL}reports/details/supplier/${supplierId}/product/${productId}`,
-        { params: { startDate, endDate } },
-      )
-      return response.data
-    } catch (error) {
-      throw error
-    }
+    const response = await httpClient.get(
+      `${API_BASE_URL}reports/details/supplier/${supplierId}/product/${productId}`,
+      { params: { startDate, endDate } },
+    )
+    return response.data
   }
 }
 export const dashboardService = new DashboardService()

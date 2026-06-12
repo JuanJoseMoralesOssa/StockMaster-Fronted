@@ -75,9 +75,11 @@ export const expensePageConfig = buildDocumentPageConfig<
   {
     service: {
       getAllPaginated: (page: number, limit: number) => expenseService.getAllPaginatedWithDetails(page, limit),
-      create: (data) => expenseService.create(data),
-      update: (id, data) => expenseService.update(id, data),
-      updatePartial: (id, data) => expenseService.updatePartial(id, data),
+      create: (data) => expenseService.createWithDetails(data as Expense),
+      // El backend deshabilitó PATCH/PUT /expenses/{id} (405): toda edición
+      // debe ir por PUT /expenses/with-details con version (optimistic locking).
+      update: (id, data) => expenseService.updateWithDetails({ ...(data as Expense), id: Number(id) }),
+      updatePartial: (id, data) => expenseService.updateWithDetails({ ...(data as Expense), id: Number(id) }),
       delete: (id) => expenseService.delete(id),
       getAllPaginatedFiltered: (filters, page, limit) => expenseService.getAllPaginatedFiltered(filters, page, limit),
     },

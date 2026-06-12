@@ -60,8 +60,11 @@ export default function EditModal<T extends Record<string, any>>({
         )
       ) : formFields && onUpdate ? (
         <GenericForm<T>
-          fields={formFields}
-          initialData={buildEditableInitialData(selectedItem, formFields)}
+          fields={formFields.filter((field) => !field.hideOnEdit)}
+          initialData={buildEditableInitialData(
+            selectedItem,
+            formFields.filter((field) => !field.hideOnEdit),
+          )}
           onSubmit={async (formData: Partial<T>) => {
             let dataToSubmit = formData
             if (prepareDataForSubmit) {

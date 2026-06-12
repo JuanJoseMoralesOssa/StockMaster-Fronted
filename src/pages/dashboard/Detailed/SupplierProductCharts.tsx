@@ -1,13 +1,18 @@
 import { useMemo } from 'react'
-import ExcelJS from 'exceljs'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts'
 import Person from '../../../types/Person'
 import Product from '../../../types/Product'
 import { DashboardResult } from '../../../types/DashboardResults'
 import { EXPENSE, PURCHASE } from '../../../constants/cts'
+import { FileSpreadsheet, ChevronDown } from 'lucide-react'
 import { formatChartValue, formatChartPercent, downloadXlsxBlob, CHART_HEIGHTS, CHART_MARGINS, CHART_COLORS } from './chart.utils'
 import { processDailyEntries, processMonthlyEntries, groupDailyEntriesByMonth } from '../../../utils/chartTransforms'
+import { Button } from '../../../components/ui'
 
+const TH = 'px-3 sm:px-6 py-3 text-left text-xs font-medium text-(--color-text-secondary) uppercase tracking-wider'
+const TH_NUMERIC = 'px-3 sm:px-6 py-3 text-right text-xs font-medium text-(--color-text-secondary) uppercase tracking-wider tabular-nums'
+const TD = 'px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap'
+const TD_NUMERIC = 'px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right tabular-nums'
 
 interface SupplierAndProductProps {
   results: DashboardResult[]
@@ -39,6 +44,7 @@ function SupplierProductCharts({
   const paymentStatus = pendingAmount === 0 ? 'Completo' : `${((totalExpenses / totalPurchases) * 100).toFixed(2)}% Pagado`
 
   const exportToExcel = async () => {
+    const ExcelJS = (await import('exceljs')).default
     const workbook = new ExcelJS.Workbook()
     const worksheet = workbook.addWorksheet('Pagos a Proveedores')
 
@@ -148,31 +154,32 @@ function SupplierProductCharts({
     Pendiente: month.pendiente
   }))
 
+  const pieTotal = totalExpenses + pendingAmount
   const pieData = [
-    { name: 'Total Pagado', value: totalExpenses, fill: CHART_COLORS.green },
-    { name: 'Total Pendiente', value: pendingAmount, fill: CHART_COLORS.red },
+    { name: `Total Pagado (${formatChartPercent(pieTotal ? totalExpenses / pieTotal : 0)})`, value: totalExpenses, fill: CHART_COLORS.green },
+    { name: `Total Pendiente (${formatChartPercent(pieTotal ? pendingAmount / pieTotal : 0)})`, value: pendingAmount, fill: CHART_COLORS.red },
   ]
 
   return (
     <div>
       {/* Resumen general */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 justify-center items-center">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6 justify-center items-center">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
-          <h3 className="text-sm font-medium text-(--color-text-muted)">Total Pedido</h3>
-          <p className="text-2xl font-bold text-(--color-text-secondary)">{totalPurchases.toLocaleString()}</p>
+          <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pedido</h3>
+          <p className="text-xl sm:text-2xl font-bold text-(--color-text-secondary)">{totalPurchases.toLocaleString()}</p>
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
-          <h3 className="text-sm font-medium text-(--color-text-muted)">Total Pagado</h3>
-          <p className="text-2xl font-bold text-success-700">{totalExpenses.toLocaleString()}</p>
+          <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pagado</h3>
+          <p className="text-xl sm:text-2xl font-bold text-success-700">{totalExpenses.toLocaleString()}</p>
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
-          <h3 className="text-sm font-medium text-(--color-text-muted)">Total Pendiente</h3>
-          <p className="text-2xl font-bold text-danger-700">{pendingAmount.toLocaleString()}</p>
+          <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pendiente</h3>
+          <p className="text-xl sm:text-2xl font-bold text-danger-700">{pendingAmount.toLocaleString()}</p>
         </div>
         <div className='bg-(--color-bg-surface) py-3 px-4 rounded-lg shadow flex flex-col gap-1'>
           {(selectedFilter === 'all' || selectedFilter === 'withDebt') &&
             <div className="flex gap-4 items-center justify-center md:justify-between">
-              <h3 className="text-sm font-medium text-(--color-text-muted)">Con deuda</h3>
+              <h3 className="text-sm font-medium text-(--color-text-secondary)">Con deuda</h3>
               <p className="text-xl font-bold text-(--color-text-primary)">
                 {
                   results.filter(s => {
@@ -185,7 +192,7 @@ function SupplierProductCharts({
             </div>}
           {(selectedFilter === 'all' || selectedFilter === 'fullyPaid') &&
             <div className="flex gap-4 items-center justify-center md:justify-between">
-              <h3 className="text-sm font-medium text-(--color-text-muted)">Pagados</h3>
+              <h3 className="text-sm font-medium text-(--color-text-secondary)">Pagados</h3>
               <p className="text-xl font-bold text-(--color-text-primary)">
                 {
                   results.filter(s => {
@@ -203,110 +210,121 @@ function SupplierProductCharts({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Distribución de Pagos por Mes</h2>
-          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
-            <BarChart
-              data={barChartData}
-              margin={CHART_MARGINS.inline}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value) => formatChartValue(value)} />
-              <Legend />
-              <Bar dataKey="Total" fill={CHART_COLORS.blue} />
-              <Bar dataKey="Pagado" fill={CHART_COLORS.green} />
-              <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className={CHART_HEIGHTS.large}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={barChartData}
+                margin={CHART_MARGINS.inline}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" fontSize={10} />
+                <YAxis fontSize={10} />
+                <Tooltip formatter={(value) => formatChartValue(value)} />
+                <Legend />
+                <Bar dataKey="Total" fill={CHART_COLORS.blue} />
+                <Bar dataKey="Pagado" fill={CHART_COLORS.green} />
+                <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Panorama General</h2>
-          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={100}
-                dataKey="value"
-                label={({ name, percent }) => `${name}: ${formatChartPercent(percent)}`}
-              />
-              <Tooltip formatter={(value) => formatChartValue(value)} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className={CHART_HEIGHTS.large}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  nameKey="name"
+                  outerRadius="70%"
+                  dataKey="value"
+                />
+                <Tooltip formatter={(value) => formatChartValue(value)} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
-      {/* Gráfica diaria por mes */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-4">Distribución Diaria por Mes</h2>
+      {/* Gráfica diaria por mes — collapsible (reduces scroll on mobile) */}
+      <details className="group mb-6" open>
+        <summary className="mb-4 flex cursor-pointer list-none items-center justify-between gap-2 text-lg font-semibold [&::-webkit-details-marker]:hidden">
+          <span>Distribución Diaria por Mes</span>
+          <ChevronDown className="h-5 w-5 text-(--color-text-secondary) transition-transform group-open:rotate-180" aria-hidden="true" />
+        </summary>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {Object.entries(dailyByMonth).map(([month, days]) => (
             <div key={month} className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
               <h3 className="text-md font-medium mb-4 text-center text-(--color-text-primary)">{month}</h3>
-              <ResponsiveContainer width="100%" height={CHART_HEIGHTS.medium}>
-                <BarChart
-                  data={days.map(d => ({
-                    día: d.day,
-                    Compra: d.compra,
-                    Gasto: d.gasto,
-                    Pendiente: d.pendiente
-                  }))}
-                  margin={CHART_MARGINS.inline}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="día" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => formatChartValue(value)} />
-                  <Legend />
-                  <Bar dataKey="Compra" fill={CHART_COLORS.blue} />
-                  <Bar dataKey="Gasto" fill={CHART_COLORS.green} />
-                  <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className={CHART_HEIGHTS.medium}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={days.map(d => ({
+                      día: d.day,
+                      Compra: d.compra,
+                      Gasto: d.gasto,
+                      Pendiente: d.pendiente
+                    }))}
+                    margin={CHART_MARGINS.inline}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="día" fontSize={10} />
+                    <YAxis fontSize={10} />
+                    <Tooltip formatter={(value) => formatChartValue(value)} />
+                    <Legend />
+                    <Bar dataKey="Compra" fill={CHART_COLORS.blue} />
+                    <Bar dataKey="Gasto" fill={CHART_COLORS.green} />
+                    <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           ))}
         </div>
-      </div>
+      </details>
 
       {/* Tabla de detalle diario */}
       <div className="bg-(--color-bg-surface) rounded-lg shadow overflow-hidden">
         <section className='flex flex-col md:flex-row justify-between items-center bg-(--color-bg-subtle) border-b border-(--color-border)'>
           <h2 className="text-lg font-semibold p-4 text-(--color-text-primary)">Detalle Diario - {supplierName} / {productName}</h2>
           <div className='flex items-end w-full md:w-fit gap-4 p-4'>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               disabled={!dailyData.length}
               onClick={exportToExcel}
-              className='px-4 py-2 rounded-lg text-success-700 text-[13.5px] font-semibold bg-success-50 hover:bg-success-100 border-[1.5px] border-success-200 hover:border-success-300 transition-all flex items-center justify-center gap-2 w-full md:w-auto disabled:opacity-50'
+              leftIcon={<FileSpreadsheet className="h-4 w-4" aria-hidden="true" />}
+              className="w-full md:w-auto text-success-700 bg-success-50 border-[1.5px] border-success-200 hover:bg-success-100 hover:border-success-300"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
               Exportar a Excel
-            </button>
+            </Button>
           </div>
         </section>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-(--color-border)">
             <thead className="bg-(--color-bg-subtle)">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Fecha</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Día</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Compra</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Gasto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Pendiente</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase tracking-wider">Estado</th>
+                <th className={TH}>Fecha</th>
+                <th className={TH}>Día</th>
+                <th className={TH_NUMERIC}>Compra</th>
+                <th className={TH_NUMERIC}>Gasto</th>
+                <th className={TH_NUMERIC}>Pendiente</th>
+                <th className={TH}>Estado</th>
               </tr>
             </thead>
             <tbody className="bg-(--color-bg-surface) divide-y divide-(--color-border)">
               {dailyData.map((day) => (
                 <tr key={day.date} className="hover:bg-(--color-bg-subtle)">
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-(--color-text-primary)">{day.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">{day.day}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">{day.compra.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-success-700">{day.gasto.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-danger-700">{day.pendiente.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className={`${TD} font-medium text-(--color-text-primary)`}>{day.date}</td>
+                  <td className={`${TD} text-(--color-text-primary)`}>{day.day}</td>
+                  <td className={`${TD_NUMERIC} text-(--color-text-primary)`}>{day.compra.toLocaleString()}</td>
+                  <td className={`${TD_NUMERIC} text-success-700`}>{day.gasto.toLocaleString()}</td>
+                  <td className={`${TD_NUMERIC} text-danger-700`}>{day.pendiente.toLocaleString()}</td>
+                  <td className={TD}>
                     {day.pendiente === 0 && day.compra > 0 ? (
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-50 text-success-700">
                         Completo
@@ -325,12 +343,12 @@ function SupplierProductCharts({
               ))}
               {/* Fila de totales */}
               <tr className="bg-(--color-bg-subtle) font-bold">
-                <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">TOTAL</td>
-                <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">-</td>
-                <td className="px-6 py-4 whitespace-nowrap text-(--color-text-primary)">{totalPurchases.toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-success-700">{totalExpenses.toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-danger-700">{pendingAmount.toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className={`${TD} text-(--color-text-primary)`}>TOTAL</td>
+                <td className={`${TD} text-(--color-text-primary)`}>-</td>
+                <td className={`${TD_NUMERIC} text-(--color-text-primary)`}>{totalPurchases.toLocaleString()}</td>
+                <td className={`${TD_NUMERIC} text-success-700`}>{totalExpenses.toLocaleString()}</td>
+                <td className={`${TD_NUMERIC} text-danger-700`}>{pendingAmount.toLocaleString()}</td>
+                <td className={TD}>
                   {paymentStatus === 'Completo' ? (
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-50 text-success-700">
                       Completo

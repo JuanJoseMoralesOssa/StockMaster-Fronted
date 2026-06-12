@@ -14,10 +14,10 @@ interface AlertProps {
 }
 
 const variantClasses: Record<Variant, string> = {
-  info: "bg-brand-50 border-brand-500/30 text-brand-700",
-  success: "bg-success-50 border-success-500/30 text-success-700",
-  warning: "bg-warning-50 border-warning-500/30 text-warning-700",
-  danger: "bg-danger-50 border-danger-500/30 text-danger-700",
+  info: "bg-brand-50 border-brand-200 text-brand-700",
+  success: "bg-success-50 border-success-200 text-success-700",
+  warning: "bg-warning-50 border-warning-200 text-warning-700",
+  danger: "bg-danger-50 border-danger-200 text-danger-700",
 }
 
 const variantIcon: Record<Variant, typeof Info> = {

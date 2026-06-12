@@ -9,7 +9,7 @@ interface Props {
 
 export default function GenericTableHeader({ columns, showActions, hasExpandable }: Props) {
   return (
-    <thead className='border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle))'>
+    <thead className='sticky top-0 z-10 border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle))'>
       <tr>
         {hasExpandable && (
           <th className='w-12 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>

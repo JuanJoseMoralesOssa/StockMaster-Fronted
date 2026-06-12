@@ -54,7 +54,7 @@ const ExpenseCreate = ({ onExpenseCreated, onSuccess }: Readonly<ExpenseCreatePr
     }
 
     return (
-        <form onSubmit={handleSubmit} className='mx-auto w-full max-w-3xl space-y-8 px-4 py-6' noValidate>
+        <form onSubmit={handleSubmit} className='mx-auto w-full max-w-3xl space-y-8 py-2' noValidate>
             <section className='flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4'>
                 <div className='flex flex-col gap-2'>
                     <Label htmlFor='date' required>

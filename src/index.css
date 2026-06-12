@@ -45,17 +45,31 @@
   --color-brand-800: oklch(0.28 0.14  264);
   --color-brand-900: oklch(0.22 0.10  264);
 
-  /* Estado: semánticos — usa con moderación */
+  /* Estado: semánticos — usa con moderación.
+     Rampa simétrica: 50 (fondo) · 100 (hover fill) · 200 (borde) ·
+     300 (borde fuerte/hover) · 500 (sólido) · 600 (texto/icono fuerte) · 700 (texto). */
   --color-success-50:  oklch(0.97 0.03 155);
+  --color-success-100: oklch(0.94 0.06 155);
+  --color-success-200: oklch(0.85 0.11 155);
+  --color-success-300: oklch(0.78 0.15 155);
   --color-success-500: oklch(0.55 0.18 155);
+  --color-success-600: oklch(0.46 0.17 155);
   --color-success-700: oklch(0.38 0.15 155);
 
   --color-warning-50:  oklch(0.98 0.04 85);
+  --color-warning-100: oklch(0.96 0.07 85);
+  --color-warning-200: oklch(0.87 0.13 85);
+  --color-warning-300: oklch(0.81 0.17 85);
   --color-warning-500: oklch(0.75 0.18 85);
+  --color-warning-600: oklch(0.63 0.17 85);
   --color-warning-700: oklch(0.52 0.16 85);
 
   --color-danger-50:  oklch(0.97 0.03 25);
+  --color-danger-100: oklch(0.94 0.05 25);
+  --color-danger-200: oklch(0.87 0.10 25);
+  --color-danger-300: oklch(0.79 0.15 25);
   --color-danger-500: oklch(0.56 0.22 25);
+  --color-danger-600: oklch(0.47 0.21 25);
   --color-danger-700: oklch(0.40 0.18 25);
 
   /* --- Tokens semánticos (consumidos por componentes) ---- */
@@ -92,6 +106,10 @@
   --nav-accent-bg:      oklch(0.44 0.20 264 / 0.18);
   --nav-accent-dot:     var(--color-brand-400);
   --nav-accent-ring:    oklch(0.62 0.17 264 / 0.22);
+
+  /* Marca: degradado del logo (dos tonos, azul → púrpura) */
+  --color-logo-from: oklch(0.55 0.20 264);
+  --color-logo-to:   oklch(0.62 0.22 300);
 
   /* Sidebar: chrome oscuro fijo (no responde al view-accent) */
   --color-sidebar-bg:          oklch(0.21 0.04 264);
@@ -131,8 +149,15 @@
   --z-tooltip: 500;
 
   /* --- Design tokens: input sizing (legacy, kept for compatibility) */
-  --height-input: 2.375rem; /* 38px */
+  --height-input: 2.375rem; /* 38px — fine pointer (mouse) */
   --spacing-label: 0.3125rem; /* 5px */
+}
+
+/* Grow interactive control height to a 44px touch target on coarse pointers */
+@media (pointer: coarse) {
+  :root {
+    --height-input: 2.75rem; /* 44px */
+  }
 }
 
 /* ============================================================
@@ -170,7 +195,7 @@
   }
 
   #root {
-    min-height: 100vh;
+    min-height: 100dvh;
     width: 100%;
   }
 
@@ -248,12 +273,31 @@
     opacity: 0;
   }
   to {
-    opacity: 0.5;
+    opacity: 1;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .animate-modal-in {
   animation: modal-in 0.15s ease-out forwards;
+}
+
+/* On phones the modal renders as a bottom sheet — slide it up from the edge. */
+@media (max-width: 639px) {
+  .animate-modal-in {
+    animation-name: sheet-up;
+    animation-duration: 0.2s;
+  }
 }
 .animate-slide-left {
   animation: slide-in-left 0.2s ease-out forwards;

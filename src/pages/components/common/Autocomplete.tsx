@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { createPortal } from "react-dom"
+import { cn } from "../../../lib/utils"
+import { Input } from "../../../components/ui"
 
 interface AutocompleteOption {
   id: string | number
@@ -151,7 +153,9 @@ export default function Autocomplete({
     } else {
       setShowDropdown(false)
     }
-  }, [])  // Handle keyboard navigation
+  }, [updateDropdownPosition])
+
+  // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showDropdown) {
       if (e.key === 'ArrowDown' || e.key === 'Enter') {
@@ -210,9 +214,10 @@ export default function Autocomplete({
     if (highlightIndex >= 0 && listRef.current) {
       const highlightedElement = listRef.current.children[highlightIndex] as HTMLElement
       if (highlightedElement) {
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
         highlightedElement.scrollIntoView({
           block: 'nearest',
-          behavior: 'smooth'
+          behavior: prefersReduced ? 'auto' : 'smooth'
         })
       }
     }
@@ -222,23 +227,21 @@ export default function Autocomplete({
     <div ref={containerRef} className={`relative w-full ${className}`}>
       {label && (
         <label
-          className={labelClassName || "block text-sm font-medium text-gray-700 mb-1"}
+          className={labelClassName || "block text-sm font-medium text-(--color-text-secondary) mb-1"}
           htmlFor={inputId}
         >
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-danger-500 ml-1">*</span>}
         </label>
       )}
 
       <div className="relative">
-        <input
+        <Input
           ref={inputRef}
           id={inputId}
           type="text"
-          className={inputClassName || `w-full border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors
-            ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
-            ${required && !inputValue ? 'border-red-300' : ''}
-          `}
+          hasError={required && !inputValue}
+          className={cn("pr-9", inputClassName)}
           value={inputValue}
           placeholder={placeholder}
           disabled={disabled}
@@ -246,7 +249,7 @@ export default function Autocomplete({
           autoComplete="off"
           role="combobox"
           aria-expanded={showDropdown}
-          aria-haspopup="true"
+          aria-haspopup="listbox"
           aria-controls={listId}
           aria-activedescendant={
             highlightIndex >= 0
@@ -262,7 +265,7 @@ export default function Autocomplete({
         {clearable && inputValue && !disabled && (
           <button
             type="button"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-(--color-text-muted) hover:text-(--color-text-secondary) transition-colors"
+            className="absolute right-0 top-0 bottom-0 flex w-9 items-center justify-center text-(--color-text-muted) hover:text-(--color-text-secondary) transition-colors"
             onClick={handleClear}
             aria-label="Limpiar selección"
           >
@@ -276,7 +279,7 @@ export default function Autocomplete({
       {showDropdown && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed z-[9999] max-h-60 overflow-hidden rounded-md border border-(--color-border) bg-(--color-bg-surface) shadow-lg"
+          className="fixed z-9999 max-h-[min(15rem,40dvh)] overflow-hidden rounded-md border border-(--color-border) bg-(--color-bg-surface) shadow-lg"
           style={{
             top: dropdownPosition.top,
             left: dropdownPosition.left,
@@ -287,7 +290,7 @@ export default function Autocomplete({
             <div
               ref={listRef}
               id={listId}
-              className="max-h-60 overflow-y-auto flex flex-col"
+              className="max-h-[min(15rem,40dvh)] overflow-y-auto flex flex-col"
               role="listbox"
               aria-labelledby={inputId}
             >
@@ -299,7 +302,7 @@ export default function Autocomplete({
                   role="option"
                   aria-selected={i === highlightIndex}
                   tabIndex={-1}
-                  className={`w-full text-left px-4 py-2 transition-colors border-none bg-transparent cursor-pointer
+                  className={`flex min-h-11 w-full items-center text-left px-4 py-2.5 transition-colors border-none bg-transparent cursor-pointer
                     ${i === highlightIndex
                       ? "bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link)) font-semibold shadow-sm"
                       : "hover:bg-(--color-bg-subtle) text-(--color-text-primary)"

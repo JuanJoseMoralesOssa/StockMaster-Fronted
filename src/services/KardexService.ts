@@ -28,6 +28,19 @@ export class KardexService extends ApiService<Kardex> {
     }
   }
 
+  async getKardexByProducts(productId?: number): Promise<Kardex[]> {
+    try {
+      const params = new URLSearchParams()
+      if (productId != null) params.append('productId', productId.toString())
+      const query = params.toString() ? `?${params.toString()}` : ''
+      return await this.handleResponse<Kardex[]>(
+        httpClient.get(`${this.getUrl()}/all${query}`),
+      )
+    } catch (error) {
+      this.handleError(error, 'Error getting kardexes by product')
+    }
+  }
+
   async getAllPaginatedFiltered(
     filters: KardexFilters,
     page: number = 1,

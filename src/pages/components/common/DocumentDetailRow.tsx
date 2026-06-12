@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react'
 import Product from '../../../types/Product'
 import Person from '../../../types/Person'
 import Autocomplete from './Autocomplete'
+import { Button } from '../../../components/ui'
 
 export type DocumentUpdateValue =
     | { id: string | number; name: unknown }
@@ -28,6 +29,8 @@ interface DocumentDetailRowProps<T extends BaseDocumentDetail> {
     products: Partial<Product>[]
     suppliers: Person[]
     mode?: 'add' | 'edit'
+    /** `row` = table row (md+); `card` = stacked card (mobile). */
+    variant?: 'row' | 'card'
 }
 
 const DocumentDetailRow = <T extends BaseDocumentDetail>({
@@ -36,6 +39,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
     onDelete,
     products,
     suppliers,
+    variant = 'row',
 }: Readonly<DocumentDetailRowProps<T>>) => {
     const isNew = detail.id !== undefined && typeof detail.id === 'number' && detail.id < 0
     const canDelete = true
@@ -97,51 +101,107 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
             }
         }
 
+    // Shared field controls — rendered inside a <tr> on md+ and a stacked card on mobile.
+    const productAutocomplete = (label: string) => (
+        <Autocomplete
+            options={productOptions}
+            label={label}
+            placeholder="Buscar producto..."
+            displayKey="label"
+            initialValue={selectedProduct?.label || ''}
+            onSelect={handleProductSelect}
+            clearable={true}
+            noOptionsText="No se encontraron productos"
+            className="text-sm"
+        />
+    )
+
+    const supplierAutocomplete = (label: string) => (
+        <Autocomplete
+            options={supplierOptions}
+            label={label}
+            placeholder="Buscar proveedor..."
+            displayKey="label"
+            initialValue={selectedSupplier?.label || ''}
+            onSelect={handleSupplierSelect}
+            clearable={true}
+            noOptionsText="No se encontraron proveedores"
+            className="text-sm"
+        />
+    )
+
+    const weightInput = (className: string) => (
+        <input
+            type='number'
+            inputMode='decimal'
+            className={className}
+            name='weight_kg'
+            id={`weight_kg_${detail.id}`}
+            value={detail.weight_kg ?? ''}
+            min={0}
+            step='0.001'
+            required
+            onChange={handleNumberInputChange('weight_kg')}
+            aria-label="Peso en kilogramos"
+        />
+    )
+
+    const handleDelete = () => {
+        if (canDelete && detail.id !== undefined) {
+            onDelete(Number(detail.id))
+        }
+    }
+
+    const numberInputBase =
+        'block h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 text-sm text-(--color-text-primary) transition-colors hover:border-(--color-border-strong) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)'
+
+    if (variant === 'card') {
+        return (
+            <li className={`rounded-lg border border-(--color-border) p-4 shadow-xs ${isNew ? 'bg-success-50' : 'bg-(--color-bg-surface)'}`}>
+                <div className='flex flex-col gap-3'>
+                    {productAutocomplete('Producto')}
+                    {supplierAutocomplete('Proveedor')}
+                    <div className='flex items-end gap-3'>
+                        <div className='flex-1'>
+                            <label
+                                htmlFor={`weight_kg_${detail.id}`}
+                                className='mb-1 block text-sm font-medium text-(--color-text-secondary)'
+                            >
+                                Peso (kg)
+                            </label>
+                            {weightInput(`${numberInputBase} w-full text-left`)}
+                        </div>
+                        <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon-md'
+                            onClick={handleDelete}
+                            aria-label='Eliminar producto'
+                            title='Eliminar producto'
+                            className='action-icon-delete shrink-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11'
+                        >
+                            <Trash2 className='h-4 w-4' aria-hidden='true' />
+                        </Button>
+                    </div>
+                </div>
+            </li>
+        )
+    }
+
     return (
         <tr className={`text-sm transition-colors hover:bg-(--color-bg-subtle) ${isNew ? 'bg-success-50' : 'bg-(--color-bg-surface)'}`} key={detail.id}>
             <td className='px-4 py-3 whitespace-nowrap'>
                 <div className="w-48">
-                    <Autocomplete
-                        options={productOptions}
-                        label=""
-                        placeholder="Buscar producto..."
-                        displayKey="label"
-                        initialValue={selectedProduct?.label || ''}
-                        onSelect={handleProductSelect}
-                        clearable={true}
-                        noOptionsText="No se encontraron productos"
-                        className="text-sm"
-                    />
+                    {productAutocomplete('')}
                 </div>
             </td>
             <td className='px-4 py-3 whitespace-nowrap'>
                 <div className="w-48">
-                    <Autocomplete
-                        options={supplierOptions}
-                        label=""
-                        placeholder="Buscar proveedor..."
-                        displayKey="label"
-                        initialValue={selectedSupplier?.label || ''}
-                        onSelect={handleSupplierSelect}
-                        clearable={true}
-                        noOptionsText="No se encontraron proveedores"
-                        className="text-sm"
-                    />
+                    {supplierAutocomplete('')}
                 </div>
             </td>
             <td className='px-4 py-3 whitespace-nowrap'>
-                <input
-                    type='number'
-                    className='block w-24 h-9 rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 text-center text-sm text-(--color-text-primary) transition-colors hover:border-(--color-border-strong) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)'
-                    name='weight_kg'
-                    id={`weight_kg_${detail.id}`}
-                    value={detail.weight_kg ?? ''}
-                    min={0}
-                    step='0.001'
-                    required
-                    onChange={handleNumberInputChange('weight_kg')}
-                    aria-label="Peso en kilogramos"
-                />
+                {weightInput(`${numberInputBase} w-24 text-center`)}
             </td>
             <td className='px-4 py-3 text-center'>
                 <button
@@ -151,11 +211,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
                             ? 'action-icon-delete'
                             : 'text-(--color-text-muted) cursor-not-allowed'
                     }`}
-                    onClick={() => {
-                        if (canDelete && detail.id !== undefined) {
-                            onDelete(Number(detail.id))
-                        }
-                    }}
+                    onClick={handleDelete}
                     aria-label="Eliminar producto"
                     title="Eliminar producto"
                     disabled={!canDelete}>

@@ -37,6 +37,9 @@ export const useInventorySummary = (
   }, [lowStockThreshold])
 
   useEffect(() => {
+    // Fetch on mount / when the fetcher changes. The setState inside is the
+    // intentional loading transition of an async request, not a sync cascade.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchInventory()
   }, [fetchInventory])
 

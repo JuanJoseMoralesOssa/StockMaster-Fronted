@@ -8,7 +8,7 @@ interface InventoryKpisProps {
   loading: boolean
 }
 
-const INVENTORY_GRID = 'grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6'
+const INVENTORY_GRID = 'grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6'
 
 function InventoryKpisSkeleton() {
   return (
@@ -16,7 +16,7 @@ function InventoryKpisSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 shadow-xs"
+          className="min-w-0 bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 shadow-xs"
         >
           <div className="flex items-center justify-between mb-2">
             <Skeleton className="h-3 w-20" />
@@ -65,8 +65,8 @@ function InventoryKpis({ data, loading }: Readonly<InventoryKpisProps>) {
 
   const toneText: Record<'neutral' | 'warn' | 'danger', string> = {
     neutral: 'text-(--color-text-primary)',
-    warn: 'text-(--color-warning-text,#b45309)',
-    danger: 'text-(--color-danger-text,#dc2626)',
+    warn: 'text-warning-700',
+    danger: 'text-danger-700',
   }
 
   return (
@@ -74,25 +74,25 @@ function InventoryKpis({ data, loading }: Readonly<InventoryKpisProps>) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 shadow-xs"
+          className="min-w-0 bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 shadow-xs"
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[12px] font-semibold text-(--color-text-secondary) uppercase tracking-wide">
+            <span className="text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wide">
               {card.label}
             </span>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-(--color-bg-subtle) text-(--color-text-link)">
               {card.icon}
             </div>
           </div>
-          <div className={`text-[22px] font-bold tracking-tight font-mono ${toneText[card.tone]}`}>
+          <div className={`text-xl sm:text-2xl font-bold tracking-tight font-mono tabular-nums ${toneText[card.tone]}`}>
             {card.value}
           </div>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-[11px] text-(--color-text-secondary)">{card.hint}</span>
+            <span className="text-xs text-(--color-text-secondary)">{card.hint}</span>
             {'link' in card && card.link && (
               <Link
                 to={card.link}
-                className="flex items-center gap-0.5 text-[11px] text-danger-600 hover:text-danger-700 font-medium"
+                className="flex items-center gap-0.5 text-xs text-danger-700 hover:underline font-medium"
               >
                 Ver <ArrowRight className="w-3 h-3" />
               </Link>

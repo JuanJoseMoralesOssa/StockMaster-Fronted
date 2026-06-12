@@ -1,9 +1,9 @@
 export const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
 export const CHART_HEIGHTS = {
-  large: 300,
-  medium: 250,
-  small: 200,
+  large: 'h-[clamp(300px,35vh,420px)]',
+  medium: 'h-[clamp(250px,30vh,360px)]',
+  small: 'h-[clamp(200px,24vh,280px)]',
 } as const
 
 export const CHART_MARGINS = {

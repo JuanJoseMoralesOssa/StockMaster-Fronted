@@ -1,6 +1,6 @@
 import React from 'react'
 import { GenericActions } from '../../../types/GenericConfig'
-import PrimaryButton from '../common/PrimaryButton'
+import { Button } from '../../../components/ui'
 
 interface Props<T> {
   openDropdownIndex: number | null
@@ -27,6 +27,7 @@ export default function DropdownMenu<T>({
   return (
     <div
       ref={dropdownRef}
+      role="menu"
       className='fixed z-50 w-44 rounded-md bg-(--color-bg-surface) shadow-lg ring-1 ring-(--color-border) animate-dropdown-in'
       style={{ top: dropdownPosition.top, left: Math.max(8, dropdownPosition.left) }}
     >
@@ -34,15 +35,17 @@ export default function DropdownMenu<T>({
         {actions.customActions.map((action, actionIndex) => {
           if (action.condition && !action.condition(item)) return null
           return (
-            <PrimaryButton
+            <Button
               key={actionIndex}
+              role="menuitem"
+              variant="ghost"
+              size="sm"
               onClick={() => onExecuteAction(actionIndex, item)}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-(--color-bg-subtle) transition-colors flex items-center gap-2 ${action.className || 'text-(--color-text-secondary)'
-                }`}
-              icon={action.icon}
+              leftIcon={action.icon}
+              className={`w-full justify-start rounded-none ${action.className ?? ''}`}
             >
               {action.label}
-            </PrimaryButton>
+            </Button>
           )
         })}
       </div>

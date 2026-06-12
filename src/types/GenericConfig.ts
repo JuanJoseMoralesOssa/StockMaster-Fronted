@@ -63,6 +63,8 @@ export interface GenericField<T = object> {
   readOnly?: boolean
   /** Si el campo está deshabilitado */
   disabled?: boolean
+  /** Ocultar el campo en el formulario de edición (solo aplica al crear) */
+  hideOnEdit?: boolean
   /** Mostrar/ocultar contraseña */
   showPasswordToggle?: boolean
   /** Número mínimo (para type number) */

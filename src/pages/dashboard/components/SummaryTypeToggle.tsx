@@ -14,14 +14,14 @@ const OPTIONS: { value: SummaryType; label: string }[] = [
 /** Segmented control to scope the dashboard KPIs to Compras / Gastos / Ambos. */
 function SummaryTypeToggle({ value, onChange }: Readonly<SummaryTypeToggleProps>) {
   return (
-    <div className="flex bg-(--color-bg-subtle) rounded-lg p-1 w-fit mt-1 mb-1">
+    <div className="flex w-full sm:w-fit bg-(--color-bg-subtle) rounded-lg p-1 mt-1 mb-1">
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
           aria-pressed={value === opt.value}
-          className={`px-3.5 py-1.5 rounded-md text-[13px] font-semibold transition-all ${
+          className={`flex-1 sm:flex-none rounded-md px-3.5 py-1.5 [@media(pointer:coarse)]:py-2.5 text-sm font-semibold transition-all ${
             value === opt.value
               ? 'bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) shadow-sm'
               : 'text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-bg-muted)'

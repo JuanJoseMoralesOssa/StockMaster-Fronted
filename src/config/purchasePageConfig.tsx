@@ -76,9 +76,11 @@ const basePurchasePageConfig = buildDocumentPageConfig<
   {
     service: {
       getAllPaginated: (page: number, limit: number) => purchaseService.getAllPaginatedWithDetails(page, limit),
-      create: (data) => purchaseService.create(data),
-      update: (id, data) => purchaseService.update(id, data),
-      updatePartial: (id, data) => purchaseService.updatePartial(id, data),
+      create: (data) => purchaseService.createWithDetails(data as Purchase),
+      // El backend deshabilitó PATCH/PUT /purchases/{id} (405): toda edición
+      // debe ir por PUT /purchases/with-details con version (optimistic locking).
+      update: (id, data) => purchaseService.updateWithDetails({ ...(data as Purchase), id: Number(id) }),
+      updatePartial: (id, data) => purchaseService.updateWithDetails({ ...(data as Purchase), id: Number(id) }),
       delete: (id) => purchaseService.delete(id),
       getAllPaginatedFiltered: (filters, page, limit) => purchaseService.getAllPaginatedFiltered(filters, page, limit),
     },

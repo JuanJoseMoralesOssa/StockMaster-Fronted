@@ -57,6 +57,9 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       required: false,
       min: 0,
       defaultValue: 0,
+      // El backend ignora stock en updates (solo lo modifica la reconciliación
+      // de compras/gastos), así que solo se muestra al crear.
+      hideOnEdit: true,
     },
   ],
 
@@ -115,7 +118,12 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
 
   updatePartial: true,
 
-  prepareDataForSubmit: async (data: Partial<Product>) => {
+  prepareDataForSubmit: async (data: Partial<Product>, isEdit: boolean) => {
+    if (isEdit) {
+      // El backend descarta stock en updates; no lo enviamos para evitar confusión.
+      delete data.stock
+      return data
+    }
     // Asegurar que el stock sea un número
     if (data.stock !== undefined && data.stock !== null) {
       data.stock = Number(data.stock)

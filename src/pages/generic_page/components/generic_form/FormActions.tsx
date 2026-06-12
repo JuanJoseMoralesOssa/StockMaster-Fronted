@@ -9,7 +9,7 @@ interface FormActionsProps {
 
 export default function FormActions({ loading, submitLabel, cancelLabel, onCancel }: FormActionsProps) {
   return (
-    <div className="flex gap-3 pt-4">
+    <div className="sticky bottom-0 z-10 flex gap-3 border-t border-(--color-border) bg-(--color-bg-surface) pt-4 pb-1">
       <Button
         type="submit"
         variant="primary"

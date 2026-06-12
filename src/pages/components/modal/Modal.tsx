@@ -1,5 +1,7 @@
-import { ReactNode, useEffect, useRef } from 'react'
+import { ReactNode, useEffect, useId, useRef } from 'react'
 import { X } from 'lucide-react'
+import { cn } from '../../../lib/utils'
+import { useFocusTrap } from '../../../hooks/useFocusTrap'
 
 interface ModalProps {
     open: boolean
@@ -16,89 +18,56 @@ export const Modal = ({
     title,
     description,
     children,
-    className = 'sm:max-w-fit '
+    className = 'sm:max-w-lg'
 }: ModalProps) => {
+    const dialogRef = useRef<HTMLDivElement>(null)
     const closeButtonRef = useRef<HTMLButtonElement>(null)
+    const titleId = useId()
+    const descId = useId()
 
-    // Lock body scroll and focus the close button when modal opens
+    // Lock body scroll, focus the close button, and restore focus to the
+    // triggering element when the modal closes.
     useEffect(() => {
         if (!open) return
+        const prevFocused = document.activeElement as HTMLElement | null
         const prevOverflow = document.body.style.overflow
         document.body.style.overflow = 'hidden'
         closeButtonRef.current?.focus()
         return () => {
             document.body.style.overflow = prevOverflow
+            prevFocused?.focus()
         }
     }, [open])
 
-    // Focus trap + Escape key handler
-    useEffect(() => {
-        if (!open) return
-
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                onClose()
-                return
-            }
-            if (e.key !== 'Tab') return
-
-            const modal = document.getElementById('modal-dialog')
-            if (!modal) return
-
-            const focusableSelectors = [
-                'a[href]',
-                'button:not([disabled])',
-                'textarea:not([disabled])',
-                'input:not([disabled])',
-                'select:not([disabled])',
-                '[tabindex]:not([tabindex="-1"])',
-            ].join(', ')
-
-            const focusableEls = Array.from(
-                modal.querySelectorAll<HTMLElement>(focusableSelectors)
-            )
-            const firstEl = focusableEls[0]
-            const lastEl = focusableEls[focusableEls.length - 1]
-
-            if (e.shiftKey) {
-                if (document.activeElement === firstEl) {
-                    e.preventDefault()
-                    lastEl?.focus()
-                }
-            } else {
-                if (document.activeElement === lastEl) {
-                    e.preventDefault()
-                    firstEl?.focus()
-                }
-            }
-        }
-
-        document.addEventListener('keydown', handleKeyDown)
-        return () => document.removeEventListener('keydown', handleKeyDown)
-    }, [open, onClose])
+    useFocusTrap(dialogRef, { open, onClose })
 
     if (!open) return null
 
     return (
-        <div className='fixed inset-0 z-50 h-screen w-screen flex items-center justify-center'>
+        <div className='fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4'>
             <div
-                id="modal-dialog"
+                ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby={title ? 'modal-title' : undefined}
-                className={`relative bg-(--color-bg-surface) p-6 rounded shadow-lg w-full ${className} m-auto animate-modal-in`}
+                aria-labelledby={title ? titleId : undefined}
+                aria-describedby={description ? descId : undefined}
+                className={cn(
+                    'relative m-auto w-full max-w-none rounded-t-2xl bg-(--color-bg-surface) p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-lg animate-modal-in',
+                    'sm:max-w-[calc(100vw-2rem)] sm:rounded-lg sm:p-6 sm:pb-6',
+                    className
+                )}
             >
-                <div className='overflow-y-auto max-h-[95vh]'>
+                <div className='overflow-y-auto max-h-[80vh] sm:max-h-[calc(100vh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))]'>
                     {/* Header */}
                     {(title || description) && (
-                        <div className='mb-4'>
+                        <div className='mb-4 pr-10'>
                             {title && (
-                                <h2 id="modal-title" className='text-xl font-semibold text-(--color-text-primary)'>
+                                <h2 id={titleId} className='text-xl font-semibold text-(--color-text-primary)'>
                                     {title}
                                 </h2>
                             )}
                             {description && (
-                                <p className='text-(--color-text-secondary)'>{description}</p>
+                                <p id={descId} className='text-(--color-text-secondary)'>{description}</p>
                             )}
                         </div>
                     )}
@@ -112,7 +81,7 @@ export const Modal = ({
                     ref={closeButtonRef}
                     onClick={onClose}
                     aria-label="Cerrar diálogo"
-                    className='absolute top-2 right-2 bg-(--color-bg-subtle) hover:bg-(--color-bg-muted) rounded-full p-1 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-(--color-focus-ring)'
+                    className='absolute top-3 right-3 flex h-9 w-9 items-center justify-center bg-(--color-bg-subtle) hover:bg-(--color-bg-muted) rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-(--color-focus-ring)'
                 >
                     <X className='h-5 w-5' />
                 </button>
@@ -120,7 +89,7 @@ export const Modal = ({
 
             {/* Backdrop — div, not button, so it stays out of tab order */}
             <div
-                className='fixed inset-0 bg-black -z-50 cursor-pointer animate-backdrop'
+                className='fixed inset-0 bg-black/50 -z-50 cursor-pointer animate-backdrop'
                 onClick={onClose}
                 aria-hidden="true"
             />

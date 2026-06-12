@@ -82,7 +82,7 @@ function GeneralDashboard({ analyticsData: data, analyticsLoading: loading, anal
 
   return (
     <div className="space-y-6">
-      <div className="bg-(--color-bg-surface) p-6 rounded-lg shadow-xs border border-(--color-border)">
+      <div className="bg-(--color-bg-surface) p-4 sm:p-6 rounded-lg shadow-xs border border-(--color-border)">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="flex items-center gap-3 text-xl font-bold text-(--color-text-primary)">
             <span className="h-6 w-1 rounded-full bg-(--view-accent,var(--color-action-bg))" aria-hidden="true" />
@@ -106,7 +106,7 @@ function GeneralDashboard({ analyticsData: data, analyticsLoading: loading, anal
                   role="tab"
                   aria-selected={selected}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 px-4 py-2 -mb-px text-sm font-semibold border-b-2 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-(--color-focus-ring) rounded-t ${
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 pointer-coarse:min-h-11 -mb-px text-sm font-semibold border-b-2 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-(--color-focus-ring) rounded-t ${
                     selected
                       ? "border-(--view-accent,var(--color-action-bg)) text-(--view-accent-text,var(--color-text-link))"
                       : "border-transparent text-(--color-text-secondary) hover:text-(--color-text-primary)"

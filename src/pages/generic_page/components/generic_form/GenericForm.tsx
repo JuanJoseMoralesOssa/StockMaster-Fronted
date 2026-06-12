@@ -1,4 +1,4 @@
-
+import type { CSSProperties } from 'react'
 import FormError from './FormError'
 import FieldWrapper from './FieldWrapper'
 import FormActions from './FormActions'
@@ -35,7 +35,14 @@ export default function GenericForm<T extends Record<string, any>>({
   } = useGenericForm(fields, initialData, onSubmit)
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    // Route the form's focus ring to the active view accent; every primitive
+    // (Input, Textarea, PasswordInput, Button) reads --color-focus-ring, so the
+    // accent flows in via cascade with no per-field branching.
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4"
+      style={{ '--color-focus-ring': 'var(--view-accent)' } as CSSProperties}
+    >
       <FormError error={errors.general} />
 
       {fields.map((field) => (

@@ -67,70 +67,72 @@ export default function Dashboard() {
     !filters.startDate && !filters.endDate && !filters.supplierId && !filters.productId && dashboardMode === 'detailed'
 
   return (
-    <div className="min-h-screen w-full bg-(--color-bg-page) p-5 sm:p-6 md:p-8">
-      <DashboardHeader
-        title="Reporte de Operaciones"
-        subtitle="Consulta y analiza resultados por período, proveedor o producto"
-        dateFormatted={getTodayFormatted()}
-      />
+    <div className="min-h-full w-full bg-(--color-bg-page) p-5 sm:p-6 md:p-8">
+      <div className="mx-auto w-full max-w-[1440px]">
+        <DashboardHeader
+          title="Reporte de Operaciones"
+          subtitle="Consulta y analiza resultados por período, proveedor o producto"
+          dateFormatted={getTodayFormatted()}
+        />
 
-      <KpiCards
-        current={analytics.data?.summary}
-        previous={prevAnalytics.data?.summary}
-        loading={analytics.loading}
-      />
+        <KpiCards
+          current={analytics.data?.summary}
+          previous={prevAnalytics.data?.summary}
+          loading={analytics.loading}
+        />
 
-      <InventoryKpis data={inventory.data} loading={inventory.loading} />
+        <InventoryKpis data={inventory.data} loading={inventory.loading} />
 
-      <hr className="border-t border-(--color-border) mb-8 -mt-2" />
+        <hr className="border-t border-(--color-border) mb-8 -mt-2" />
 
-      <div className="mb-8 overflow-visible rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-(--color-border) px-5 pt-5 pb-3">
-          <ModeToggleDashboard
-            dashboardMode={dashboardMode}
-            handleModeChange={handleModeChange}
-          />
-          <SummaryTypeToggle value={summaryType} onChange={changeSummaryType} />
-        </div>
+        <div className="mb-8 overflow-visible rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-(--color-border) px-5 pt-5 pb-3">
+            <ModeToggleDashboard
+              dashboardMode={dashboardMode}
+              handleModeChange={handleModeChange}
+            />
+            <SummaryTypeToggle value={summaryType} onChange={changeSummaryType} />
+          </div>
 
-        <div className="relative z-20 border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle)) p-5">
-          <div className="flex flex-col gap-4">
-            <Filters
+          <div className="relative z-20 border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle)) p-4 sm:p-5">
+            <div className="flex flex-col gap-4">
+              <Filters
+                filters={filters}
+                setFilters={setFilters}
+                products={products}
+                suppliers={suppliers}
+                selectedFilter={selectedFilter}
+                setSelectedFilter={setSelectedFilter}
+                dashboardMode={dashboardMode}
+              />
+              <ActionButtons onSearch={fetchData} onClear={resetFilters} loading={loading} />
+
+              {error && (
+                <Alert variant="danger" title="No se pudo cargar el reporte">
+                  {error}
+                </Alert>
+              )}
+            </div>
+          </div>
+
+          <div className="relative z-0 p-4 sm:p-5">
+            <RenderingWithMode
+              dashboardMode={dashboardMode}
               filters={filters}
-              setFilters={setFilters}
               products={products}
               suppliers={suppliers}
+              suppliersResults={suppliersResults}
+              productsResults={productsResults}
+              supplierProductResults={supplierProductResults}
               selectedFilter={selectedFilter}
-              setSelectedFilter={setSelectedFilter}
-              dashboardMode={dashboardMode}
+              analyticsData={analytics.data}
+              analyticsLoading={analytics.loading}
+              analyticsError={analytics.error}
+              onAnalyticsRetry={refreshAnalytics}
             />
-            <ActionButtons onSearch={fetchData} onClear={resetFilters} loading={loading} />
 
-            {error && (
-              <Alert variant="danger" title="No se pudo cargar el reporte">
-                {error}
-              </Alert>
-            )}
+            {showEmptyState && <EmptyState />}
           </div>
-        </div>
-
-        <div className="relative z-0 p-5">
-          <RenderingWithMode
-            dashboardMode={dashboardMode}
-            filters={filters}
-            products={products}
-            suppliers={suppliers}
-            suppliersResults={suppliersResults}
-            productsResults={productsResults}
-            supplierProductResults={supplierProductResults}
-            selectedFilter={selectedFilter}
-            analyticsData={analytics.data}
-            analyticsLoading={analytics.loading}
-            analyticsError={analytics.error}
-            onAnalyticsRetry={refreshAnalytics}
-          />
-
-          {showEmptyState && <EmptyState />}
         </div>
       </div>
     </div>

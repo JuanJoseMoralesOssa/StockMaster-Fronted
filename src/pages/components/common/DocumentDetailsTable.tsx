@@ -6,6 +6,7 @@ import { useProductStore } from '../../../stores/useProductStore'
 import { useSupplierStore } from '../../../stores/useSupplierStore'
 import SummaryTable from './SummaryTable'
 import { Alert, Button, TableSkeleton, EmptyState } from '../../../components/ui'
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 
 interface DocumentDetailsTableProps<T extends { id?: number | string }> {
     details: T[]
@@ -21,6 +22,9 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
     mode,
 }: Readonly<DocumentDetailsTableProps<T>>) {
     const detailsLength = details.length
+    // Table on md+ (fits with horizontal scroll); stacked cards on mobile so the
+    // two autocompletes + weight input never force a cramped horizontal scroll.
+    const isDesktop = useMediaQuery('(min-width: 768px)')
     const {
         products,
         isLoading: productsLoading,
@@ -156,31 +160,48 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
 
                     {hasVisibleDetails ? (
                         <>
-                            <div className='overflow-x-auto rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
-                                <table className='w-full table-auto text-sm'>
-                                    <thead>
-                                        <tr className='border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle))'>
-                                            <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Producto</th>
-                                            <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Proveedor</th>
-                                            <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>kg</th>
-                                            <th className='px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className='divide-y divide-(--color-border)'>
-                                        {details.filter(d => !d.toDelete).map((detail, index) => (
-                                            <DocumentDetailRow<typeof detail>
-                                                key={detail.id ?? `temp-${index}`}
-                                                detail={detail}
-                                                onUpdate={updateDetail}
-                                                onDelete={deleteDetail}
-                                                products={products}
-                                                suppliers={suppliers}
-                                                mode={mode}
-                                            />
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            {isDesktop ? (
+                                <div className='overflow-x-auto rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
+                                    <table className='w-full table-auto text-sm'>
+                                        <thead>
+                                            <tr className='border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle))'>
+                                                <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Producto</th>
+                                                <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Proveedor</th>
+                                                <th className='px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>kg</th>
+                                                <th className='px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)'>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className='divide-y divide-(--color-border)'>
+                                            {details.filter(d => !d.toDelete).map((detail, index) => (
+                                                <DocumentDetailRow<typeof detail>
+                                                    key={detail.id ?? `temp-${index}`}
+                                                    detail={detail}
+                                                    onUpdate={updateDetail}
+                                                    onDelete={deleteDetail}
+                                                    products={products}
+                                                    suppliers={suppliers}
+                                                    mode={mode}
+                                                />
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <ul className='flex flex-col gap-3'>
+                                    {details.filter(d => !d.toDelete).map((detail, index) => (
+                                        <DocumentDetailRow<typeof detail>
+                                            key={detail.id ?? `temp-${index}`}
+                                            detail={detail}
+                                            onUpdate={updateDetail}
+                                            onDelete={deleteDetail}
+                                            products={products}
+                                            suppliers={suppliers}
+                                            mode={mode}
+                                            variant='card'
+                                        />
+                                    ))}
+                                </ul>
+                            )}
 
                             {productSummary.length > 0 && (
                                 <SummaryTable

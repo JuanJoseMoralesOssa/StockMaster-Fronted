@@ -99,8 +99,6 @@ function KardexFiltersSection({
           })}
           clearable
           noOptionsText="No se encontraron productos"
-          labelClassName="block text-sm font-medium text-(--color-text-secondary) mb-1"
-          inputClassName="w-full h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 pr-8 text-sm text-(--color-text-primary) transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
         />
 
         <div className="flex flex-col">
@@ -252,7 +250,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       key: 'balance_record',
       label: 'Ultimo Registro',
       render: (entry) => (
-        <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-xs ${entry.balance_record ? 'border border-success-500/50 bg-success-50 text-success-700' : 'border border-(--color-border-strong) bg-(--color-bg-surface) text-(--color-text-primary)'}`}>
+        <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-xs ${entry.balance_record ? 'border border-success-300 bg-success-50 text-success-700' : 'border border-(--color-border-strong) bg-(--color-bg-surface) text-(--color-text-primary)'}`}>
           {entry.balance_record ? 'Si' : 'No'}
         </span>
       ),
@@ -263,10 +261,10 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       render: (entry) => {
         const label = operationOptions.find((op) => op.value === entry.operation)?.label ?? 'N/A'
         const tone = entry.operation === 1
-          ? 'border border-success-500/40 bg-success-50 text-success-700'
+          ? 'border border-success-200 bg-success-50 text-success-700'
           : entry.operation === 2
-            ? 'border border-danger-500/40 bg-danger-50 text-danger-700'
-            : 'border border-warning-500/40 bg-warning-50 text-warning-700'
+            ? 'border border-danger-200 bg-danger-50 text-danger-700'
+            : 'border border-warning-200 bg-warning-50 text-warning-700'
         return (
           <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-xs ${tone}`}>
             {label}

@@ -12,7 +12,7 @@ export function Textarea({ hasError, className, rows = 3, ...props }: TextareaPr
       aria-invalid={hasError || undefined}
       className={cn(
         "w-full px-3 py-2 rounded-md border bg-(--color-bg-surface)",
-        "text-(--color-text-primary) text-sm",
+        "text-(--color-text-primary) text-sm pointer-coarse:text-[1rem]",
         "placeholder:text-(--color-text-muted)",
         "focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)",
         "disabled:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-60",

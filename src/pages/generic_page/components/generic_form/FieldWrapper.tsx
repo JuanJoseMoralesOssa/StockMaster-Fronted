@@ -1,4 +1,5 @@
 import { GenericField } from '../../../../types/GenericConfig'
+import { Label } from '../../../../components/ui'
 import Field from './Field'
 
 interface FieldWrapperProps<T> {
@@ -13,7 +14,16 @@ interface FieldWrapperProps<T> {
 
 export default function FieldWrapper<T>({ field, value, onChange, onBlur, error, showPassword, onTogglePassword }: FieldWrapperProps<T>) {
   const fieldId = typeof field.name === 'string' ? field.name : String(field.name)
+  const errorId = `${fieldId}-error`
+  const describedById = error ? errorId : undefined
 
+  const errorMessage = error && (
+    <p id={errorId} role="alert" className="mt-1 text-xs text-danger-700">
+      {error}
+    </p>
+  )
+
+  // Checkbox renders its own inline label inside Field; only attach the error.
   if (field.type === 'checkbox') {
     return (
       <div className="space-y-1">
@@ -23,34 +33,33 @@ export default function FieldWrapper<T>({ field, value, onChange, onBlur, error,
           onChange={onChange}
           onBlur={onBlur}
           error={error}
+          hasError={Boolean(error)}
+          describedById={describedById}
           showPassword={showPassword}
           onTogglePassword={onTogglePassword}
         />
-        {error && (
-          <p className="text-danger-500 text-sm flex items-center gap-1">⚠️ {error}</p>
-        )}
+        {errorMessage}
       </div>
     )
   }
 
   return (
     <div className="space-y-1">
-      <label htmlFor={fieldId} className="block text-sm font-medium text-(--color-text-secondary)">
+      <Label htmlFor={fieldId} required={field.required}>
         {field.label}
-        {field.required && <span className="text-danger-500 ml-1">*</span>}
-      </label>
+      </Label>
       <Field
         field={field}
         value={value}
         onChange={onChange}
         onBlur={onBlur}
         error={error}
+        hasError={Boolean(error)}
+        describedById={describedById}
         showPassword={showPassword}
         onTogglePassword={onTogglePassword}
       />
-      {error && (
-        <p className="text-danger-500 text-sm flex items-center gap-1">⚠️ {error}</p>
-      )}
+      {errorMessage}
     </div>
   )
 }

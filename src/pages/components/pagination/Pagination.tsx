@@ -57,25 +57,54 @@ export default function Pagination({
   }
 
   const visiblePages = totalPages > 1 ? getVisiblePages() : [1]
-  const controlClass = "relative inline-flex h-9 min-w-9 items-center justify-center border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm font-medium text-(--color-text-secondary) transition-colors hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
+  const controlClass = "relative inline-flex h-10 min-w-10 items-center justify-center border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm font-medium text-(--color-text-secondary) transition-colors hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
 
   return (
     <div className={`flex items-center justify-between border-t border-(--color-border) bg-(--color-bg-surface) px-4 py-3 sm:px-5 ${className}`}>
-      <div className="flex-1 flex justify-between sm:hidden">
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="relative inline-flex items-center rounded-md border border-(--color-border) bg-(--color-bg-surface) px-4 py-2 text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Anterior
-        </button>
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="relative ml-3 inline-flex items-center rounded-md border border-(--color-border) bg-(--color-bg-surface) px-4 py-2 text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Siguiente
-        </button>
+      <div className="flex w-full flex-col gap-2 sm:hidden">
+        <p className="text-center text-xs text-(--color-text-secondary)">
+          Página <span className="font-medium">{currentPage}</span> de{' '}
+          <span className="font-medium">{totalPages}</span>
+          {' · '}
+          <span className="font-medium">{startItem}</span>–
+          <span className="font-medium">{endItem}</span> de{' '}
+          <span className="font-medium">{totalItems}</span>
+        </p>
+        <div className="flex justify-between gap-3">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="relative inline-flex min-h-11 flex-1 items-center justify-center rounded-md border border-(--color-border) bg-(--color-bg-surface) px-4 text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Anterior
+          </button>
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="relative inline-flex min-h-11 flex-1 items-center justify-center rounded-md border border-(--color-border) bg-(--color-bg-surface) px-4 text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Siguiente
+          </button>
+        </div>
+        {showItemsPerPageSelector && onItemsPerPageChange && (
+          <div className="flex items-center justify-center gap-2">
+            <label htmlFor="itemsPerPageMobile" className="text-xs text-(--color-text-secondary)">
+              Por página:
+            </label>
+            <select
+              id="itemsPerPageMobile"
+              value={itemsPerPage}
+              onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+              className="rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 py-1.5 text-sm pointer-coarse:text-[1rem] min-h-11 text-(--color-text-primary) focus:outline-none focus:ring-2 focus:ring-(--view-accent,var(--color-focus-ring))"
+            >
+              {itemsPerPageOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <div className="flex items-center space-x-4">
@@ -93,7 +122,7 @@ export default function Pagination({
                 id="itemsPerPage"
                 value={itemsPerPage}
                 onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                className="rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 py-1 text-sm text-(--color-text-primary) focus:outline-none focus:ring-2 focus:ring-(--view-accent,var(--color-focus-ring))"
+                className="h-8 rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) focus:outline-none focus:ring-2 focus:ring-(--view-accent,var(--color-focus-ring))"
               >
                 {itemsPerPageOptions.map((option) => (
                   <option key={option} value={option}>

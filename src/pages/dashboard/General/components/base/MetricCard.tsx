@@ -29,7 +29,7 @@ function MetricCard({
           {icon}
         </div>
       )}
-      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-xl sm:text-2xl font-bold tabular-nums">{value}</div>
       <div className="text-sm opacity-80">{title}</div>
       {subtitle && (
         <div className="text-xs opacity-70 mt-1">{subtitle}</div>

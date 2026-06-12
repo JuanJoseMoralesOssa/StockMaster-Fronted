@@ -9,21 +9,23 @@ interface ActionButtonsProps {
 
 function ActionButtons({ onSearch, onClear, loading = false }: Readonly<ActionButtonsProps>) {
   return (
-    <div className="flex flex-wrap gap-3 mt-2 md:mt-0">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 mt-2 md:mt-0">
       <Button
         onClick={onSearch}
-        size="sm"
+        size="md"
         loading={loading}
         leftIcon={<Search className="h-4 w-4" />}
+        className="w-full sm:w-auto"
       >
         Buscar
       </Button>
       <Button
         onClick={onClear}
         variant="secondary"
-        size="sm"
+        size="md"
         disabled={loading}
         leftIcon={<X className="h-4 w-4" />}
+        className="w-full sm:w-auto"
       >
         Limpiar Filtros
       </Button>

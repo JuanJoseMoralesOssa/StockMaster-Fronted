@@ -2,24 +2,15 @@ import { NavLink } from 'react-router-dom' // Ensure using react-router-dom
 import { Fragment } from 'react'
 import type NavItem from '../../../../types/NavItem'
 import { getViewAccentStyle } from '../../../../constants/viewAccents'
-import { useNavItems } from '../../../../hooks/useNavItems'
+import { useGroupedNavItems } from '../../../../hooks/useNavItems'
 
 function NavbarDesktop() {
-    const navItems = useNavItems()
-    // Group items by category
-    const groupedItems = navItems.reduce((acc, item) => {
-        const category = item.category || 'General'
-        if (!acc[category]) {
-            acc[category] = []
-        }
-        acc[category].push(item)
-        return acc
-    }, {} as Record<string, NavItem[]>)
+    const groupedItems = useGroupedNavItems()
 
     return (
         <>
-            <nav className='flex-1 flex flex-col gap-0.5 overflow-y-auto w-full p-2.5'>
-                {Object.entries(groupedItems).map(([category, items], index) => (
+            <nav aria-label='Navegación principal' className='flex-1 flex flex-col gap-0.5 overflow-y-auto w-full p-2.5'>
+                {groupedItems.map(([category, items], index) => (
                     <Fragment key={category}>
                         <div className={`text-xs font-semibold uppercase tracking-[0.8px] text-(--color-sidebar-text-muted) px-2.5 pb-1 ${index > 0 ? 'mt-4' : 'mt-1'}`}>
                             {category}
@@ -31,7 +22,7 @@ function NavbarDesktop() {
                                 to={item.href}
                                 style={getViewAccentStyle(item.accent)}
                                 className={({ isActive }) =>
-                                    'flex items-center gap-2.5 px-3 py-2.25 rounded-lg text-[13.5px] font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-(--view-accent) ' +
+                                    'flex items-center gap-2.5 px-3 py-2.25 rounded-lg text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-(--view-accent) ' +
                                     (isActive
                                         ? 'bg-(--nav-accent-bg) text-(--color-sidebar-text-strong) shadow-[0_0_0_1px_var(--nav-accent-ring)]'
                                         : 'text-(--color-sidebar-text) hover:bg-(--color-sidebar-hover) hover:text-(--color-sidebar-text-strong)')

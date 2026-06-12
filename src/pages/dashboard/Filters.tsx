@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react"
 import Person from "../../types/Person"
 import Product from "../../types/Product"
 import Autocomplete from "../components/common/Autocomplete"
@@ -14,7 +15,7 @@ interface FiltersProps {
 function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, selectedFilter, dashboardMode = 'detailed' }: Readonly<FiltersProps>) {
   const showDetailedFilters = dashboardMode === 'detailed'
   const labelClassName = "text-xs font-semibold text-(--color-text-secondary) uppercase tracking-widest mb-label"
-  const inputClassName = "h-input w-full rounded-lg border-[1.5px] border-(--color-border) bg-(--color-bg-surface) px-3 text-[13.5px] text-(--color-text-primary) placeholder:text-(--color-text-muted) caret-(--view-accent,var(--color-focus-ring)) outline-none transition-all focus:border-(--view-accent,var(--color-focus-ring)) focus:shadow-[0_0_0_3px_var(--nav-accent-ring)]"
+  const inputClassName = "h-input w-full rounded-lg border-[1.5px] border-(--color-border) bg-(--color-bg-surface) px-3 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) placeholder:text-(--color-text-muted) caret-(--view-accent,var(--color-focus-ring)) outline-none transition-all focus:border-(--view-accent,var(--color-focus-ring)) focus:shadow-[0_0_0_3px_var(--nav-accent-ring)]"
   // Transformar datos para el autocomplete
   const supplierOptions = suppliers
     .filter(supplier => supplier.id !== undefined)
@@ -46,8 +47,8 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
 
   return (
     <div className="w-full">
-      <div className="flex flex-wrap lg:flex-nowrap gap-4 items-end">
-        <div className='flex flex-col w-full sm:w-auto flex-1 md:flex-none'>
+      <div className="flex flex-wrap gap-4 items-end">
+        <div className='flex flex-col flex-1 min-w-44'>
           <label htmlFor='startDate' className={labelClassName}>Fecha inicio</label>
           <input
             id='startDate'
@@ -58,7 +59,7 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
             className={`${inputClassName} font-mono`}
           />
         </div>
-        <div className='flex flex-col w-full sm:w-auto flex-1 md:flex-none'>
+        <div className='flex flex-col flex-1 min-w-44'>
           <label htmlFor='endDate' className={labelClassName}>Fecha fin</label>
           <input
             id='endDate'
@@ -71,7 +72,7 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
         </div>
 
         {showDetailedFilters && (
-          <div className='flex flex-col w-full lg:w-48 lg:flex-1'>
+          <div className='flex flex-col flex-1 min-w-48'>
             <Autocomplete
               key={supplierKey}
               options={supplierOptions}
@@ -86,13 +87,13 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
               clearable={true}
               noOptionsText="No se encontraron proveedores"
               className="flex flex-col"
-              inputClassName={`${inputClassName} pr-8`}
+              inputClassName={inputClassName}
               labelClassName={`${labelClassName} block w-full`}
             />
           </div>
         )}
         {showDetailedFilters && (
-          <div className='flex flex-col w-full lg:w-48 lg:flex-1'>
+          <div className='flex flex-col flex-1 min-w-48'>
             <Autocomplete
               key={productKey}
               options={productOptions}
@@ -107,26 +108,32 @@ function Filters({ suppliers, filters, products, setFilters, setSelectedFilter, 
               clearable={true}
               noOptionsText="No se encontraron productos"
               className="flex flex-col"
-              inputClassName={`${inputClassName} pr-8`}
+              inputClassName={inputClassName}
               labelClassName={`${labelClassName} block w-full`}
             />
           </div>
         )}
 
         {showDetailedFilters && (
-          <div className='flex flex-col w-full sm:w-auto flex-1 md:flex-none'>
+          <div className='flex flex-col flex-1 min-w-44'>
             <label htmlFor='filter' className={labelClassName}>Filtrar por</label>
-            <select
-              id='filter'
-              name='filter'
-              value={selectedFilter}
-              onChange={(e) => setSelectedFilter(e.target.value)}
-              className={`${inputClassName} appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%22%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-size-[10px_10px] bg-no-repeat bg-position-[right_10px_center]`}
-            >
-              <option value="all">Todos</option>
-              <option value="withDebt">Con deuda</option>
-              <option value="fullyPaid">Pagados totalmente</option>
-            </select>
+            <div className='relative'>
+              <select
+                id='filter'
+                name='filter'
+                value={selectedFilter}
+                onChange={(e) => setSelectedFilter(e.target.value)}
+                className={`${inputClassName} appearance-none pr-9`}
+              >
+                <option value="all">Todos</option>
+                <option value="withDebt">Con deuda</option>
+                <option value="fullyPaid">Pagados totalmente</option>
+              </select>
+              <ChevronDown
+                className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--color-text-muted)'
+                aria-hidden='true'
+              />
+            </div>
           </div>
         )}
       </div>

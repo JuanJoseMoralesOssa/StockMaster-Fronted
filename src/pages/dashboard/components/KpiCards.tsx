@@ -9,15 +9,15 @@ interface KpiCardsProps {
   loading?: boolean
 }
 
-const KPI_GRID = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6'
+const KPI_GRID = 'grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4'
 
 function KpiCardsSkeleton() {
   return (
-    <div className={KPI_GRID}>
+    <div className={`${KPI_GRID} mb-6`}>
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 md:p-5 shadow-xs"
+          className="bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-3 md:p-5 shadow-xs"
         >
           <div className="flex items-center justify-between mb-3">
             <Skeleton className="h-3 w-20" />
@@ -103,37 +103,37 @@ function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps
   ]
 
   return (
-    <>
+    <div className="mb-6">
     <div className={KPI_GRID}>
       {cards.map((card) => (
         <div
           key={card.label}
-          className="bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 md:p-5 shadow-xs hover:border-(--view-accent-border,var(--color-border-strong)) transition-colors"
+          className="min-w-0 bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-3 md:p-5 shadow-xs hover:border-(--view-accent-border,var(--color-border-strong)) transition-colors"
         >
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[12px] font-semibold text-(--color-text-secondary) uppercase tracking-wide">
+            <span className="text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wide">
               {card.label}
             </span>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link))">
               {card.icon}
             </div>
           </div>
-          <div className={`text-[22px] font-bold tracking-tight font-mono ${card.valueClass ?? 'text-(--color-text-primary)'}`}>
+          <div className={`text-xl sm:text-2xl font-bold tracking-tight font-mono tabular-nums ${card.valueClass ?? 'text-(--color-text-primary)'}`}>
             {card.value}
           </div>
           {card.hint && (
-            <div className="text-[11px] text-(--color-text-secondary) mt-1">{card.hint}</div>
+            <div className="text-xs text-(--color-text-secondary) mt-1">{card.hint}</div>
           )}
           <DeltaBadge delta={card.delta} show={hasPrev} />
         </div>
       ))}
     </div>
     {allZero && (
-      <p className="text-[12px] text-(--color-text-secondary) text-center -mt-2 mb-6">
+      <p className="text-xs text-(--color-text-secondary) text-center mt-2">
         Sin actividad registrada en este período
       </p>
     )}
-    </>
+    </div>
   )
 }
 

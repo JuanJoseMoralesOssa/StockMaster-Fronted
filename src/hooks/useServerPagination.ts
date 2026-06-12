@@ -31,14 +31,6 @@ interface UseServerPaginationReturn<T, TFilter = object> {
     removeItem: (itemId: string | number, idField?: keyof T) => void
     setActiveFilters: (active: boolean) => void
     retry?: () => Promise<PaginatedResponse<T> | null>
-    requestMeta?: {
-        lastArgs: unknown | null
-        lastResponse: PaginatedResponse<T> | null
-    }
-    filterRequestMeta?: {
-        lastArgs: unknown | null
-        lastResponse: PaginatedResponse<T> | null
-    }
 }
 
 export function useServerPagination<T, TFilter = object>({
@@ -160,6 +152,9 @@ export function useServerPagination<T, TFilter = object>({
     }, [runRequest])
 
     useEffect(() => {
+        // Fetch when page/limit/filters change. The setState inside is the
+        // intentional loading transition of an async request, not a sync cascade.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         void runRequest()
     }, [currentPage, itemsPerPage, refreshToken, runRequest])
 
@@ -178,14 +173,6 @@ export function useServerPagination<T, TFilter = object>({
         refresh,
         refreshWithFilters,
         retry,
-        requestMeta: {
-            lastArgs: null,
-            lastResponse: lastResponseRef.current,
-        },
-        filterRequestMeta: {
-            lastArgs: null,
-            lastResponse: lastResponseRef.current,
-        },
         addItem,
         updateItem,
         removeItem,

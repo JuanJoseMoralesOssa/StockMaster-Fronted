@@ -53,7 +53,7 @@ export default function ExpenseEditForm({ expense, onSuccess, onItemUpdated }: R
   }
 
   return (
-    <form onSubmit={handleEdit} className='mx-auto w-full max-w-3xl space-y-8 px-4 py-6' noValidate>
+    <form onSubmit={handleEdit} className='mx-auto w-full max-w-3xl space-y-8 py-2' noValidate>
       <section>
         <FieldGroup label='Fecha' htmlFor='date' required>
           <Input
@@ -90,7 +90,7 @@ export default function ExpenseEditForm({ expense, onSuccess, onItemUpdated }: R
         mode='edit'
       />
 
-      <section className='flex flex-col-reverse sm:flex-row gap-3 sm:justify-end'>
+      <section className='sticky bottom-0 z-10 flex flex-col-reverse gap-3 border-t border-(--color-border) bg-(--color-bg-surface) pt-4 pb-1 sm:flex-row sm:justify-end'>
         <Button type='button' variant='secondary' onClick={onSuccess} className='w-full sm:w-auto'>
           Cancelar
         </Button>

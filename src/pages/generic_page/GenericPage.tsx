@@ -81,7 +81,6 @@ function GenericPage<T extends object, TFilter extends object = object, CreateIn
     initialLimit: 10,
     refreshToken: filterRefreshToken,
   })
-  // requestMeta/filterRequestMeta are available for telemetry if needed
 
   // Keep the list current: re-fetch the viewed page every 5 minutes (respecting
   // active filters/page). Data stays visible during the background refresh.

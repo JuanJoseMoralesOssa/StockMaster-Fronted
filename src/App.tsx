@@ -4,7 +4,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import useAuthStore from './stores/useAuthStore'
 import { Roles } from './enums/Roles'
 import { LoadingScreen } from './pages/components/common/LoadingSpinner'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { configureHttpClient } from './services/httpClient'
 
 // Eagerly load auth/shell components — needed before any route resolves
@@ -42,6 +42,16 @@ function HttpClientAuthBridge() {
     return null
 }
 
+// Reset scroll to the top on every route change so a new page never opens
+// mid-scroll (most noticeable on mobile after a long list).
+function ScrollToTop() {
+    const { pathname } = useLocation()
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    }, [pathname])
+    return null
+}
+
 // Página inicial según rol: el Operador no ve el Dashboard, va a Compras.
 function DefaultLanding() {
     const role = useAuthStore((s) => s.user?.role)
@@ -68,6 +78,7 @@ function App() {
     return (
         <BrowserRouter>
             <HttpClientAuthBridge />
+            <ScrollToTop />
             <Suspense fallback={<LoadingScreen />}>
                 <Routes>
                     {/* Ruta pública de login */}

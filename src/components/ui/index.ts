@@ -1,6 +1,7 @@
 export { Button } from "./Button"
 export { Badge } from "./Badge"
 export { Input } from "./Input"
+export { PasswordInput } from "./PasswordInput"
 export { Textarea } from "./Textarea"
 export { Label } from "./Label"
 export { FieldGroup } from "./FieldGroup"

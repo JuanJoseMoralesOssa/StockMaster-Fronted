@@ -45,7 +45,7 @@ export default function GenericTableCards<T>({
   const [titleColumn, ...bodyColumns] = visibleColumns
 
   return (
-    <ul className='flex flex-col gap-3'>
+    <ul className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
       {data.map((item, rowIndex) => {
         const itemId = item[idField] as string | number
         const isExpanded = hasExpandable && expandedRows.has(itemId)
@@ -83,7 +83,7 @@ export default function GenericTableCards<T>({
               <div className='mt-3 border-t border-(--color-border) pt-3'>
                 <Button
                   variant='ghost'
-                  size='sm'
+                  size='md'
                   onClick={() => toggleRowExpansion(itemId)}
                   aria-expanded={isExpanded}
                   className='w-full justify-between'
@@ -115,7 +115,7 @@ export default function GenericTableCards<T>({
                 {actions.canEdit && (
                   <Button
                     variant='ghost'
-                    size='sm'
+                    size='md'
                     onClick={() => onEdit(item)}
                     disabled={isDeleting}
                     loading={isLoadingEdit}
@@ -129,7 +129,7 @@ export default function GenericTableCards<T>({
                 {actions.canDelete && (
                   <Button
                     variant='ghost'
-                    size='sm'
+                    size='md'
                     onClick={() => onDelete(item)}
                     loading={isDeleting}
                     leftIcon={<Trash2 className='h-4 w-4' aria-hidden='true' />}
@@ -142,7 +142,7 @@ export default function GenericTableCards<T>({
                 {actions.customActions && actions.customActions.length > 0 && (
                   <Button
                     variant='ghost'
-                    size='icon-sm'
+                    size='icon-md'
                     onClick={(e) => onDropdownToggle(rowIndex, e)}
                     disabled={isDeleting}
                     aria-label='Más opciones'
