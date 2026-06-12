@@ -5,7 +5,7 @@ function AccessDenied() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-(--color-bg-page) py-12 px-4 sm:px-6 lg:px-8">
+    <div className="grid min-h-[70dvh] place-content-center bg-(--color-bg-page) px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 text-center">
         <div>
           <div className="mx-auto h-12 w-12 text-danger-500">

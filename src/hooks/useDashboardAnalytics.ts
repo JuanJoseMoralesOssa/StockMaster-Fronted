@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { analyticsService } from '../services/AnalyticsService'
 import {
   DashboardSummaryResponse,
   AnalyticsFilters
 } from '../types/Analytics'
 
-interface UseAnalyticsReturn {
+export interface UseAnalyticsReturn {
   data: DashboardSummaryResponse | null
   loading: boolean
   error: string | null
@@ -17,34 +17,56 @@ export const useDashboardAnalytics = (filters: AnalyticsFilters): UseAnalyticsRe
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchAnalytics = async (customFilters?: AnalyticsFilters) => {
-    const currentFilters = customFilters || filters
+  // Los filtros se leen vía ref para que `refetch` sea estable y pueda usarse
+  // como dependencia de efectos/callbacks sin recrearse en cada render.
+  const filtersRef = useRef(filters)
+
+  const isMountedRef = useRef(true)
+  const requestIdRef = useRef(0)
+
+  useEffect(() => {
+    filtersRef.current = filters
+  }, [filters])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  // Fires only on manual refetch (search button click), not on mount.
+  const refetch = useCallback((customFilters?: AnalyticsFilters) => {
+    const currentFilters = customFilters || filtersRef.current
     if (!currentFilters.startDate || !currentFilters.endDate) {
       return
     }
 
+    const requestId = ++requestIdRef.current
     setLoading(true)
     setError(null)
 
-    try {
-      // Ahora es una única petición de red
-      const response = await analyticsService.getDashboardSummary({
+    analyticsService
+      .getDashboardSummary({
         ...currentFilters,
         limit: currentFilters.limit || 10
       })
-
-      setData(response)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido al cargar analytics')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Fires only on manual refetch (search button click), not on mount.
-  const refetch = (customFilters?: AnalyticsFilters) => {
-    fetchAnalytics(customFilters)
-  }
+      .then(response => {
+        if (isMountedRef.current && requestIdRef.current === requestId) {
+          setData(response)
+        }
+      })
+      .catch((err: unknown) => {
+        if (isMountedRef.current && requestIdRef.current === requestId) {
+          setError(err instanceof Error ? err.message : 'Error desconocido al cargar analytics')
+        }
+      })
+      .finally(() => {
+        if (isMountedRef.current && requestIdRef.current === requestId) {
+          setLoading(false)
+        }
+      })
+  }, [])
 
   return {
     data,

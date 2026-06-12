@@ -11,6 +11,7 @@ interface EditModalProps<T> {
   formFields?: GenericField<T>[]
   onUpdate?: (id: number | string, data: Partial<T>) => Promise<T>
   prepareDataForSubmit?: (data: Partial<T>, isEdit: boolean) => Promise<Partial<T>>
+  className?: string
   onEditSuccess: (updatedItem: T) => void
   onClose: () => void
 }
@@ -36,6 +37,7 @@ export default function EditModal<T extends Record<string, any>>({
   formFields,
   onUpdate,
   prepareDataForSubmit,
+  className,
   onEditSuccess,
   onClose
 }: EditModalProps<T>) {
@@ -47,7 +49,7 @@ export default function EditModal<T extends Record<string, any>>({
       onClose={onClose}
       title={`Editar ${entityName}`}
       description={`Actualiza la información del ${entityName}`}
-      className="sm:max-w-fit"
+      className={className}
     >
       {renderEditForm ? (
         renderEditForm(

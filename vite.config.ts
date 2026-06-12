@@ -13,12 +13,8 @@ const __dirname = path.dirname(__filename)
 export default defineConfig({
     plugins: [react(), tailwindcss()],
     resolve: {
-        tsconfigPaths: true,
         alias: {
             '@': path.resolve(__dirname, './src'),
-            '@app': path.resolve(__dirname, './src/app'),
-            // '@features': path.resolve(__dirname, './src/features'),
-            // '@shared': path.resolve(__dirname, './src/shared'),
         },
     },
     base: '/',
@@ -51,8 +47,8 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'html'],
-            include: ['src/services/**/*.ts'],
-            exclude: ['src/services/__tests__/**'],
+            include: ['src/services/**/*.ts', 'src/hooks/**/*.ts', 'src/utils/**/*.ts'],
+            exclude: ['src/**/__tests__/**'],
         },
     }
 })

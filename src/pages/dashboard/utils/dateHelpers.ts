@@ -29,14 +29,8 @@ export const getPreviousPeriodRange = (startDate: string, endDate: string) => {
   return { startDate: fmt(prevStart), endDate: fmt(prevEnd) }
 }
 
-/** Returns `{ startDate: 'YYYY-MM-01', endDate: 'YYYY-MM-DD' }` for the current month. */
-export const getCurrentMonthRange = () => {
-  const now = new Date()
-  return {
-    startDate: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`,
-    endDate: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
-  }
-}
+// Rango del mes en curso: implementación compartida en utils/date.
+export { getCurrentMonthRange } from '@/utils/date'
 
 /** Formats today as `dd/mm/yyyy` in Spanish locale. */
 export const getTodayFormatted = () =>

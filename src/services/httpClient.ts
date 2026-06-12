@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosHeaders } from 'axios'
 import { AppConfig, Config } from '../config/Config'
+import { tokenStorage } from './tokenStorage'
 
 type UnauthenticatedHandler = () => void
 
@@ -17,16 +18,12 @@ export function configureHttpClient(options: { onUnauthenticated?: Unauthenticat
 // Interceptor de request: adjunta el token JWT si existe
 httpClient.interceptors.request.use(
   config => {
-    try {
-      const token = localStorage.getItem('token')
-      if (token) {
-        config.headers = AxiosHeaders.from({
-          ...(config.headers ?? {}),
-          Authorization: `Bearer ${token}`,
-        })
-      }
-    } catch {
-      // Ignorar errores de acceso a storage (por ejemplo en entornos sin window)
+    const token = tokenStorage.getToken()
+    if (token) {
+      config.headers = AxiosHeaders.from({
+        ...(config.headers ?? {}),
+        Authorization: `Bearer ${token}`,
+      })
     }
     return config
   },
@@ -39,13 +36,7 @@ httpClient.interceptors.response.use(
   (error: AxiosError) => {
     const status = error.response?.status
     if (status === 401 || status === 403) {
-      try {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-      } catch {
-        // Ignorar si no se puede limpiar el storage
-      }
-
+      tokenStorage.clear()
       unauthenticatedHandler?.()
     }
 

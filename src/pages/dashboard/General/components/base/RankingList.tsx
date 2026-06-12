@@ -13,6 +13,7 @@ interface RankingListProps {
   items: RankingItem[];
   colorClass?: string;
   maxItems?: number;
+  mobileMaxItems?: number;
   showNumbers?: boolean;
   valueFormatter?: (value: number) => string;
   /** Si se provee, el nombre de cada item se vuelve clicable. */
@@ -23,7 +24,8 @@ function RankingList({
   title,
   items,
   colorClass = "bg-(--color-bg-subtle)",
-  maxItems = 5,
+  maxItems = 10,
+  mobileMaxItems = 5,
   showNumbers = true,
   valueFormatter = (value) => value.toString(),
   onItemClick,
@@ -39,7 +41,10 @@ function RankingList({
       </h3>
       <div className="space-y-2">
         {displayItems.map((item, index) => (
-          <div key={item.id} className="flex justify-between items-center text-sm text-(--color-text-primary)">
+          <div
+            key={item.id}
+            className={`${index >= mobileMaxItems ? "hidden lg:flex" : "flex"} justify-between items-center text-sm text-(--color-text-primary)`}
+          >
             <span className="font-medium flex items-center gap-2">
               {showNumbers && (
                 <span className="bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) px-2 py-1 rounded text-xs font-bold">
@@ -58,7 +63,7 @@ function RankingList({
                 item.name
               )}
             </span>
-            <div className="text-right">
+            <div className="text-right tabular-nums">
               <div className="font-bold">
                 {valueFormatter(item.primaryValue)}
                 <span className="text-xs ml-1 opacity-75">{item.primaryLabel}</span>

@@ -88,7 +88,7 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
         />
       </div>
       <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:justify-end">
-        <Button type="submit" size="sm" className="w-full sm:w-fit" loading={loading} leftIcon={<Search className="h-4 w-4" />}>
+        <Button type="submit" variant="secondary" size="sm" className="w-full sm:w-fit" loading={loading} leftIcon={<Search className="h-4 w-4" />}>
           Buscar
         </Button>
         <Button type="button" variant="secondary" size="sm" className="w-full sm:w-fit" disabled={loading} onClick={onClear}>

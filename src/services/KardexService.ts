@@ -1,12 +1,11 @@
-import Kardex from '../types/Kardex'
+import Kardex, { KardexFilters } from '../types/Kardex'
 import { PaginatedResponse } from '../types/PaginatedResponse'
 import { ApiService } from './ApiService'
 import { httpClient } from './httpClient'
-import type { KardexFilters } from '../config/kardexPageConfig'
 
 export class KardexService extends ApiService<Kardex> {
   constructor() {
-    super('kardexes')
+    super('kardexes', 'kardex')
   }
 
   async getAllPaginated(page: number = 1, limit: number = 10): Promise<PaginatedResponse<Kardex>> {
@@ -24,7 +23,7 @@ export class KardexService extends ApiService<Kardex> {
         httpClient.get(`${this.getUrl()}?${params.toString()}`),
       )
     } catch (error) {
-      this.handleError(error, 'Error getting paginated kardexes with product')
+      this.handleError(error, 'Error al obtener la lista de kardex')
     }
   }
 
@@ -37,7 +36,7 @@ export class KardexService extends ApiService<Kardex> {
         httpClient.get(`${this.getUrl()}/all${query}`),
       )
     } catch (error) {
-      this.handleError(error, 'Error getting kardexes by product')
+      this.handleError(error, 'Error al obtener el kardex del producto')
     }
   }
 
@@ -65,7 +64,7 @@ export class KardexService extends ApiService<Kardex> {
         httpClient.get(`${this.getUrl()}/filtered?${params.toString()}`),
       )
     } catch (error) {
-      this.handleError(error, 'Error getting filtered kardexes')
+      this.handleError(error, 'Error al obtener el kardex filtrado')
     }
   }
 }

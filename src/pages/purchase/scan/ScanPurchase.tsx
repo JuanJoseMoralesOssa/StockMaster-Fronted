@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Camera, Upload, Loader2, ScanLine } from 'lucide-react'
 import { Alert, Button, Input, Label } from '../../../components/ui'
-import PurchasesDetailsTable from '../../purchase_details/PurchaseDetailsTable'
+import DocumentDetailsTable from '../../components/common/DocumentDetailsTable'
 import PurchaseDetails from '../../../types/PurchaseDetails'
 import Purchase from '../../../types/Purchase'
 import { purchaseService } from '../../../services/PurchaseService'
@@ -238,7 +238,7 @@ export default function ScanPurchase() {
             />
           </div>
 
-          <PurchasesDetailsTable details={details} setDetails={setDetails} mode='add' />
+          <DocumentDetailsTable<PurchaseDetails> details={details} setDetails={setDetails} mode='add' title='Detalles de la compra' />
 
           <div className='flex flex-col gap-2 border-t border-(--color-border) pt-4 sm:flex-row sm:justify-end'>
             <Button variant='outline' onClick={resetToUpload} disabled={saving}>

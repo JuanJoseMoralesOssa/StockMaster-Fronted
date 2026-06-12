@@ -164,19 +164,19 @@ function SupplierProductCharts({
     <div>
       {/* Resumen general */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6 justify-center items-center">
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pedido</h3>
           <p className="text-xl sm:text-2xl font-bold text-(--color-text-secondary)">{totalPurchases.toLocaleString()}</p>
         </div>
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pagado</h3>
           <p className="text-xl sm:text-2xl font-bold text-success-700">{totalExpenses.toLocaleString()}</p>
         </div>
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pendiente</h3>
           <p className="text-xl sm:text-2xl font-bold text-danger-700">{pendingAmount.toLocaleString()}</p>
         </div>
-        <div className='bg-(--color-bg-surface) py-3 px-4 rounded-lg shadow flex flex-col gap-1'>
+        <div className='bg-(--color-bg-surface) py-3 px-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col gap-1'>
           {(selectedFilter === 'all' || selectedFilter === 'withDebt') &&
             <div className="flex gap-4 items-center justify-center md:justify-between">
               <h3 className="text-sm font-medium text-(--color-text-secondary)">Con deuda</h3>
@@ -208,7 +208,7 @@ function SupplierProductCharts({
 
       {/* Gráficos principales */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Distribución de Pagos por Mes</h2>
           <div className={CHART_HEIGHTS.large}>
             <ResponsiveContainer width="100%" height="100%">
@@ -229,7 +229,7 @@ function SupplierProductCharts({
           </div>
         </div>
 
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Panorama General</h2>
           <div className={CHART_HEIGHTS.large}>
             <ResponsiveContainer width="100%" height="100%">
@@ -258,7 +258,7 @@ function SupplierProductCharts({
         </summary>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {Object.entries(dailyByMonth).map(([month, days]) => (
-            <div key={month} className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+            <div key={month} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
               <h3 className="text-md font-medium mb-4 text-center text-(--color-text-primary)">{month}</h3>
               <div className={CHART_HEIGHTS.medium}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -288,7 +288,7 @@ function SupplierProductCharts({
       </details>
 
       {/* Tabla de detalle diario */}
-      <div className="bg-(--color-bg-surface) rounded-lg shadow overflow-hidden">
+      <div className="bg-(--color-bg-surface) rounded-lg border border-(--color-border) shadow-xs overflow-hidden">
         <section className='flex flex-col md:flex-row justify-between items-center bg-(--color-bg-subtle) border-b border-(--color-border)'>
           <h2 className="text-lg font-semibold p-4 text-(--color-text-primary)">Detalle Diario - {supplierName} / {productName}</h2>
           <div className='flex items-end w-full md:w-fit gap-4 p-4'>
@@ -304,9 +304,9 @@ function SupplierProductCharts({
             </Button>
           </div>
         </section>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto lg:max-h-[60vh] lg:overflow-y-auto">
           <table className="min-w-full divide-y divide-(--color-border)">
-            <thead className="bg-(--color-bg-subtle)">
+            <thead className="bg-(--color-bg-subtle) lg:sticky lg:top-0 lg:z-10">
               <tr>
                 <th className={TH}>Fecha</th>
                 <th className={TH}>Día</th>
@@ -342,7 +342,7 @@ function SupplierProductCharts({
                 </tr>
               ))}
               {/* Fila de totales */}
-              <tr className="bg-(--color-bg-subtle) font-bold">
+              <tr className="bg-(--color-bg-subtle) font-bold lg:sticky lg:bottom-0 lg:z-10">
                 <td className={`${TD} text-(--color-text-primary)`}>TOTAL</td>
                 <td className={`${TD} text-(--color-text-primary)`}>-</td>
                 <td className={`${TD_NUMERIC} text-(--color-text-primary)`}>{totalPurchases.toLocaleString()}</td>

@@ -12,3 +12,14 @@ export default interface Kardex {
 
     product?: Product
 }
+
+/** Filtros de búsqueda de kardex (los strings vienen de los inputs del formulario). */
+export interface KardexFilters {
+    startDate: string
+    endDate: string
+    productId: string
+    productName: string
+    operation: string
+    balanceRecord: '' | 'yes' | 'no'
+    activeDate: boolean
+}

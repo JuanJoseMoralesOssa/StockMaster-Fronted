@@ -60,13 +60,19 @@ export default function GenericTableBody<T>({
 
           return (
             <Fragment key={itemId}>
-              <tr className={`bg-(--color-bg-surface) transition-colors hover:bg-(--view-accent-soft,var(--color-bg-subtle)) ${rowClassName ? rowClassName(item) : ''}`}>
+              <tr
+                className={`bg-(--color-bg-surface) transition-colors hover:bg-(--view-accent-soft,var(--color-bg-subtle)) ${hasExpandable ? 'cursor-pointer' : ''} ${rowClassName ? rowClassName(item) : ''}`}
+                onClick={hasExpandable ? () => toggleRowExpansion(itemId) : undefined}
+              >
                 {hasExpandable && (
                   <td className='w-12 whitespace-nowrap px-4 py-3.5'>
                     <Button
                       variant='ghost'
                       size='icon-sm'
-                      onClick={() => toggleRowExpansion(itemId)}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        toggleRowExpansion(itemId)
+                      }}
                       aria-label={isExpanded ? 'Ocultar detalles' : 'Ver detalles'}
                       aria-expanded={isExpanded}
                     >
@@ -87,7 +93,10 @@ export default function GenericTableBody<T>({
                 ))}
 
                 {showActions && (
-                  <td className='whitespace-nowrap px-5 py-3.5 text-right text-sm'>
+                  <td
+                    className='whitespace-nowrap px-5 py-3.5 text-right text-sm'
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <div className='inline-flex items-center justify-end gap-1'>
                       {actions.canEdit && (
                         <Button

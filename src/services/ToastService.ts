@@ -78,7 +78,9 @@ export class ToastService {
       icon: 'error',
       title,
       text: message,
-      timer: 4000, // Más tiempo para errores
+      timer: undefined,
+      timerProgressBar: false,
+      showCloseButton: true,
     })
   }
 
@@ -197,108 +199,5 @@ export class ToastService {
    */
   static close(): void {
     Swal.close()
-  }
-}
-
-/**
- * Factory para crear notificaciones específicas del dominio
- * Principio Open/Closed: fácil extensión sin modificar ToastService
- */
-export class NotificationFactory {
-  /**
-   * Notificaciones para operaciones de usuario
-   */
-  static readonly user = {
-    created: () => ToastService.success('Usuario creado exitosamente'),
-    updated: () => ToastService.success('Usuario actualizado exitosamente'),
-    deleted: () => ToastService.success('Usuario eliminado exitosamente'),
-    createError: (error?: string) => ToastService.error(error || 'Error al crear el usuario'),
-    updateError: (error?: string) => ToastService.error(error || 'Error al actualizar el usuario'),
-    deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar el usuario'),
-  }
-
-  /**
-   * Notificaciones para operaciones de productos
-   */
-  static readonly product = {
-    created: () => ToastService.success('Producto creado exitosamente'),
-    updated: () => ToastService.success('Producto actualizado exitosamente'),
-    deleted: () => ToastService.success('Producto eliminado exitosamente'),
-    createError: (error?: string) => ToastService.error(error || 'Error al crear el producto'),
-    updateError: (error?: string) => ToastService.error(error || 'Error al actualizar el producto'),
-    deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar el producto'),
-  }
-
-  /**
-   * Notificaciones para operaciones de compras
-   */
-  static readonly purchase = {
-    created: () => ToastService.success('Compra creada exitosamente'),
-    updated: () => ToastService.success('Compra actualizada exitosamente'),
-    deleted: () => ToastService.success('Compra eliminada exitosamente'),
-    createError: (error?: string) => ToastService.error(error || 'Error al crear la compra'),
-    updateError: (error?: string) => ToastService.error(error || 'Error al actualizar la compra'),
-    deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar la compra'),
-    missingId: () => ToastService.error('Error al editar la compra: ID no definido'),
-    missingDate: () => ToastService.error('Error al editar la compra: Fecha no definida'),
-    invalidDetails: () => ToastService.error('Error al editar la compra: Producto o persona indefinida en detalle'),
-  }
-
-  /**
-   * Notificaciones para operaciones de proveedores
-   */
-  static readonly supplier = {
-    created: () => ToastService.success('Proveedor creado exitosamente'),
-    updated: () => ToastService.success('Proveedor actualizado exitosamente'),
-    deleted: () => ToastService.success('Proveedor eliminado exitosamente'),
-    createError: (error?: string) => ToastService.error(error || 'Error al crear el proveedor'),
-    updateError: (error?: string) => ToastService.error(error || 'Error al actualizar el proveedor'),
-    deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar el proveedor'),
-  }
-
-  /**
-   * Notificaciones para operaciones de kardex
-   */
-  // static readonly kardex = {
-  //   created: () => ToastService.success('Registro de kardex creado exitosamente'),
-  //   updated: () => ToastService.success('Registro de kardex actualizado exitosamente'),
-  //   deleted: () => ToastService.success('Registro de kardex eliminado exitosamente'),
-  //   createError: (error?: string) => ToastService.error(error || 'Error al crear el registro del kardex'),
-  //   updateError: (error?: string) => ToastService.error(error || 'Error al actualizar el kardex'),
-  //   deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar el registro del kardex'),
-  // }
-
-  /**
-   * Notificaciones para operaciones de gastos
-   */
-  static readonly expense = {
-    created: () => ToastService.success('Gasto creado exitosamente'),
-    updated: () => ToastService.success('Gasto actualizado exitosamente'),
-    deleted: () => ToastService.success('Gasto eliminado exitosamente'),
-    createError: (error?: string) => ToastService.error(error || 'Error al crear el gasto'),
-    updateError: (error?: string) => ToastService.error(error || 'Error al actualizar el gasto'),
-    deleteError: (error?: string) => ToastService.error(error || 'Error al eliminar el gasto'),
-  }
-
-  /**
-   * Notificaciones para autenticación
-   */
-  static readonly auth = {
-    loginSuccess: () => ToastService.success('Inicio de sesión exitoso'),
-    loginError: () => ToastService.error('Credenciales incorrectas'),
-    logoutSuccess: () => ToastService.success('Sesión cerrada exitosamente'),
-    sessionExpired: () => ToastService.warning('Su sesión ha expirado'),
-    unauthorized: () => ToastService.error('No tiene permisos para realizar esta acción'),
-  }
-
-  /**
-   * Notificaciones genéricas
-   */
-  static readonly generic = {
-    loading: (message?: string) => ToastService.loading(message),
-    networkError: () => ToastService.error('Error de conexión. Verifique su conexión a internet'),
-    unexpectedError: () => ToastService.error('Ha ocurrido un error inesperado'),
-    actionCancelled: () => ToastService.info('Acción cancelada'),
-    dataRefreshed: () => ToastService.success('Datos actualizados'),
   }
 }

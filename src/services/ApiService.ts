@@ -9,9 +9,12 @@ const API_BASE_URL = Config.LOGIC_URL
 // Clase base para servicios API
 export class ApiService<T> {
   private readonly endpoint: string
+  /** Nombre legible (en español) para los mensajes de error que ve el usuario. */
+  protected readonly entityLabel: string
 
-  constructor(endpoint: string) {
+  constructor(endpoint: string, entityLabel?: string) {
     this.endpoint = endpoint
+    this.entityLabel = entityLabel ?? endpoint
   }
 
   // Método para obtener la URL completa
@@ -75,7 +78,7 @@ export class ApiService<T> {
     try {
       return await this.handleResponse<T[]>(httpClient.get(`${this.getUrl()}/all`))
     } catch (error) {
-      this.handleError(error, `Error getting all ${this.endpoint}`)
+      this.handleError(error, `Error al obtener ${this.entityLabel}`)
     }
   }
 
@@ -90,7 +93,7 @@ export class ApiService<T> {
         httpClient.get(`${this.getUrl()}?${params.toString()}`)
       )
     } catch (error) {
-      this.handleError(error, `Error getting paginated ${this.endpoint}`)
+      this.handleError(error, `Error al obtener la lista de ${this.entityLabel}`)
     }
   }
 
@@ -100,7 +103,7 @@ export class ApiService<T> {
         httpClient.get(this.getUrl(id.toString()))
       )
     } catch (error) {
-      this.handleError(error, `Error getting ${this.endpoint} with id ${id}`)
+      this.handleError(error, `Error al obtener ${this.entityLabel} con id ${id}`)
     }
   }
 
@@ -110,7 +113,7 @@ export class ApiService<T> {
         httpClient.post(this.getUrl(), data)
       )
     } catch (error) {
-      this.handleError(error, `Error creating ${this.endpoint}`)
+      this.handleError(error, `Error al crear ${this.entityLabel}`)
     }
   }
 
@@ -122,7 +125,7 @@ export class ApiService<T> {
         httpClient.put(this.getUrl(id.toString()), payload)
       )
     } catch (error) {
-      this.handleError(error, `Error updating ${this.endpoint} with id ${id}`)
+      this.handleError(error, `Error al actualizar ${this.entityLabel} con id ${id}`)
     }
   }
 
@@ -135,7 +138,7 @@ export class ApiService<T> {
         httpClient.patch(this.getUrl(id.toString()), payload)
       )
     } catch (error) {
-      this.handleError(error, `Error partially updating ${this.endpoint} with id ${id}`)
+      this.handleError(error, `Error al actualizar ${this.entityLabel} con id ${id}`)
     }
   }
 
@@ -145,7 +148,7 @@ export class ApiService<T> {
         httpClient.delete(this.getUrl(id.toString()))
       )
     } catch (error) {
-      this.handleError(error, `Error deleting ${this.endpoint} with id ${id}`)
+      this.handleError(error, `Error al eliminar ${this.entityLabel} con id ${id}`)
     }
   }
 }

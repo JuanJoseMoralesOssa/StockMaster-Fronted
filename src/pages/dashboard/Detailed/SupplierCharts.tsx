@@ -151,16 +151,16 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
   return (
     <div>
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pedido</h3>
           <p className="text-2xl font-bold text-(--color-text-primary)">{totals.Total.toLocaleString()}</p>
         </div>
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pagado</h3>
           <p className="text-2xl font-bold text-success-700">{totals.Pagado.toLocaleString()}</p>
         </div>
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow flex flex-col justify-between items-center">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pendiente</h3>
           <p className="text-2xl font-bold text-danger-700">{totals.Pendiente.toLocaleString()}</p>
         </div>
@@ -168,7 +168,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg font-medium mb-4">Distribución Mensual de Pagos</h2>
           <div className={CHART_HEIGHTS.large}>
             <ResponsiveContainer width="100%" height="100%">
@@ -186,7 +186,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
           </div>
         </div>
 
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg font-medium mb-4">Panorama General de Pagos</h2>
           <div className={CHART_HEIGHTS.large}>
             <ResponsiveContainer width="100%" height="100%">
@@ -214,7 +214,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
           {Object.entries(dataByProduct).map(([productId, productData]) => {
             const productName = productsMap.get(parseInt(productId)) || 'Desconocido'
             return (
-              <div key={productId} className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+              <div key={productId} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
                 <h3 className="text-lg font-medium mb-4 text-center">{productName}</h3>
                 <div className={CHART_HEIGHTS.medium}>
                   <ResponsiveContainer width="100%" height="100%">
@@ -254,7 +254,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                 {monthsWithData.map(([month, dailyData]) => (
-                  <div key={`${productId}-${month}`} className="bg-(--color-bg-surface) p-4 rounded-lg shadow border">
+                  <div key={`${productId}-${month}`} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
                     <h4 className="text-md font-medium mb-3 text-center text-(--color-text-secondary)">{month}</h4>
                     <div className={CHART_HEIGHTS.small}>
                       <ResponsiveContainer width="100%" height="100%">

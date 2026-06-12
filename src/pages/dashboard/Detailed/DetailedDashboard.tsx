@@ -1,43 +1,26 @@
-import SupplierProductCharts from './SupplierProductCharts';
-import SupplierCharts from './SupplierCharts';
-import ProductChart from './ProductChart';
-import Person from '../../../types/Person';
-import { DashboardResult, PersonReportRow, ProductReportRow } from '../../../types/DashboardResults';
-import Product from '../../../types/Product';
-import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import SupplierProductCharts from './SupplierProductCharts'
+import SupplierCharts from './SupplierCharts'
+import ProductChart from './ProductChart'
+import type Person from '../../../types/Person'
+import { ErrorBoundary } from '../../../components/ErrorBoundary'
+import { useDashboard } from '../DashboardContext'
 
-interface DetailedDashboardProps {
-  filters: {
-    supplierId: string;
-    productId: string;
-    startDate: string;
-    endDate: string;
-  };
-  products: Partial<Product>[];
-  suppliers: Person[];
-  suppliersResults: ProductReportRow[];
-  productsResults: PersonReportRow[];
-  supplierProductResults: DashboardResult[];
-  selectedFilter: 'all' | 'withDebt' | 'fullyPaid';
-}
-
-function DetailedDashboard(
-  {
+function DetailedDashboard() {
+  const {
     filters,
     products,
     suppliers,
     suppliersResults,
     productsResults,
     supplierProductResults,
-    selectedFilter
-  }: Readonly<DetailedDashboardProps>
-) {
+    selectedFilter,
+  } = useDashboard()
+
   return (
-    <section className="flex flex-col gap-4 ">
+    <section className="flex flex-col gap-4">
       {filters.supplierId &&
         filters.productId &&
-        supplierProductResults.length > 0 &&
-        (
+        supplierProductResults.length > 0 && (
           <ErrorBoundary key={`supplier-product-${filters.supplierId}-${filters.productId}`}>
             <SupplierProductCharts
               key={`supplier-product-${filters.supplierId}-${filters.productId}-${filters.startDate}-${filters.endDate}`}
@@ -48,15 +31,14 @@ function DetailedDashboard(
                 name: products.find(p => p.id === Number(filters.productId))?.name ?? 'Unknown Product',
               }}
               filters={filters}
-              selectedFilter={selectedFilter} />
+              selectedFilter={selectedFilter}
+            />
           </ErrorBoundary>
-        )
-      }
+        )}
 
       {filters.supplierId &&
         !filters.productId &&
-        productsResults.length > 0 &&
-        (
+        productsResults.length > 0 && (
           <ErrorBoundary key={`supplier-${filters.supplierId}`}>
             <SupplierCharts
               key={`supplier-${filters.supplierId}-${filters.startDate}-${filters.endDate}`}
@@ -65,13 +47,11 @@ function DetailedDashboard(
               filters={filters}
             />
           </ErrorBoundary>
-        )
-      }
+        )}
 
       {!filters.supplierId &&
         filters.productId &&
-        suppliersResults.length > 0 &&
-        (
+        suppliersResults.length > 0 && (
           <ErrorBoundary key={`product-${filters.productId}`}>
             <ProductChart
               key={`product-${filters.productId}-${filters.startDate}-${filters.endDate}`}
@@ -80,9 +60,7 @@ function DetailedDashboard(
               filters={filters}
             />
           </ErrorBoundary>
-        )
-      }
-
+        )}
     </section>
   )
 }

@@ -4,7 +4,7 @@ import { ApiService } from './ApiService'
 
 export class ProductService extends ApiService<Product> {
     constructor() {
-        super('products')
+        super('products', 'productos')
     }
 
     // Método específico para obtener productos paginados

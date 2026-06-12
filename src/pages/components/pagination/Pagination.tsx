@@ -57,7 +57,8 @@ export default function Pagination({
   }
 
   const visiblePages = totalPages > 1 ? getVisiblePages() : [1]
-  const controlClass = "relative inline-flex h-10 min-w-10 items-center justify-center border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm font-medium text-(--color-text-secondary) transition-colors hover:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-50"
+  const controlClass = "relative inline-flex h-10 min-w-10 items-center justify-center border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm font-medium text-(--color-text-secondary) transition-colors hover:bg-(--color-bg-subtle) focus-visible:z-20 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-(--color-focus-ring) disabled:cursor-not-allowed disabled:opacity-50"
+  const ellipsisClass = "relative inline-flex h-10 min-w-10 items-center justify-center border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm font-medium text-(--color-text-muted)"
 
   return (
     <div className={`flex items-center justify-between border-t border-(--color-border) bg-(--color-bg-surface) px-4 py-3 sm:px-5 ${className}`}>
@@ -161,7 +162,7 @@ export default function Pagination({
                 return (
                   <span
                     key={`dots-${index === 1 ? 'start' : 'end'}`}
-                    className={controlClass}
+                    className={ellipsisClass}
                   >
                     ...
                   </span>

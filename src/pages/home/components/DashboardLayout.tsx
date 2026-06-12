@@ -18,7 +18,7 @@ export function DashboardLayout({ children }: { readonly children: React.ReactNo
     const [navOpen, setNavOpen] = useState(false)
 
     return (
-        <section className='flex justify-between min-h-dvh bg-(--color-bg-page) text-(--color-text-primary) transition-colors duration-200'>
+        <section className='flex min-h-dvh bg-(--color-bg-page) text-(--color-text-primary) transition-colors duration-200'>
             {/* Skip-to-content link for keyboard users */}
             <a
                 href="#main-content"

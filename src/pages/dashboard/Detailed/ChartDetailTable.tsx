@@ -38,7 +38,7 @@ export default function ChartDetailTable({
   onExport,
 }: Readonly<ChartDetailTableProps>) {
   return (
-    <div className="bg-(--color-bg-surface) p-4 rounded-lg shadow">
+    <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
       <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
         <h2 className="text-lg font-medium">{title}</h2>
         <Button

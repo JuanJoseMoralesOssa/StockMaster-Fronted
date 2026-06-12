@@ -9,7 +9,7 @@ export interface PersonFilters {
 
 export class PersonService extends ApiService<Person> {
     constructor() {
-        super('people')
+        super('people', 'personas')
     }
 
     // Método específico para obtener personas paginadas
@@ -37,7 +37,7 @@ export class PersonService extends ApiService<Person> {
                 httpClient.get(`${this.getUrl()}/filtered?${params.toString()}`)
             )
         } catch (error) {
-            this.handleError(error, 'Error getting paginated people with filters')
+            this.handleError(error, 'Error al obtener personas filtradas')
         }
     }
 }

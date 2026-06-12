@@ -11,7 +11,7 @@ export interface UserFilters {
 
 export class UserService extends ApiService<User> {
     constructor() {
-        super('users')
+        super('users', 'usuarios')
     }
 
     // Método específico para obtener usuarios paginados
@@ -48,7 +48,7 @@ export class UserService extends ApiService<User> {
                 httpClient.get(`${this.getUrl()}/filtered?${params.toString()}`)
             )
         } catch (error) {
-            this.handleError(error, 'Error getting paginated users with filters')
+            this.handleError(error, 'Error al obtener usuarios filtrados')
         }
     }
 }

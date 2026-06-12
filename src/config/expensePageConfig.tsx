@@ -1,70 +1,14 @@
-/* eslint-disable react-refresh/only-export-components */
-import { useEffect } from 'react'
 import Expense from '../types/Expense'
 import ExpenseDetails from '../types/ExpenseDetails'
 import { DateRangeFilters, buildInitialDateRangeFilters } from '../utils/date'
 import { expenseService } from '../services/ExpenseService'
-import ExpenseCreate from '../pages/expense/components/ExpenseCreate'
-import ExpenseEditForm from '../pages/expense/components/ExpenseEditForm'
-import ExpenseFilters from '../pages/expense/components/ExpenseFilters'
 import { buildDocumentPageConfig } from './documentPageConfig'
-import { useProductStore, useSupplierStore } from '../stores'
-import DocumentFiltersChrome from '../pages/components/common/DocumentFiltersChrome'
-import DocumentDetailsExpandedView from '../pages/components/common/DocumentDetailsExpandedView'
+import DocumentCreate from '../pages/components/document/DocumentCreate'
+import DocumentEditForm from '../pages/components/document/DocumentEditForm'
+import DocumentFiltersSection from '../pages/components/document/DocumentFiltersSection'
+import DocumentExpandedDetails from '../pages/components/document/DocumentExpandedDetails'
 
-function ExpenseExpandedDetails({ expense }: Readonly<{ expense: Expense }>) {
-  const { products, fetchProducts } = useProductStore()
-  const { suppliers, fetchSuppliers } = useSupplierStore()
-
-  useEffect(() => {
-    fetchProducts()
-    fetchSuppliers()
-  }, [fetchProducts, fetchSuppliers])
-
-  return (
-    <DocumentDetailsExpandedView<ExpenseDetails>
-      details={expense.expense_details ?? []}
-      products={products}
-      suppliers={suppliers}
-    />
-  )
-}
-
-function ExpenseFiltersSection({
-  filters,
-  setFilters,
-  onSearch,
-  onClear,
-  loading,
-}: Readonly<{
-  filters: DateRangeFilters
-  setFilters: (filters: DateRangeFilters) => void
-  onSearch: () => void
-  onClear: () => void
-  loading: boolean
-}>) {
-  const products = useProductStore((state) => state.products)
-  const suppliers = useSupplierStore((state) => state.suppliers)
-  const fetchProducts = useProductStore((state) => state.fetchProducts)
-  const fetchSuppliers = useSupplierStore((state) => state.fetchSuppliers)
-
-  useEffect(() => {
-    fetchProducts()
-    fetchSuppliers()
-  }, [fetchProducts, fetchSuppliers])
-
-  return (
-    <DocumentFiltersChrome onSearch={onSearch} onClear={onClear} loading={loading}>
-      <ExpenseFilters
-        filters={filters}
-        setFilters={setFilters}
-        products={products}
-        suppliers={suppliers}
-        loading={loading}
-      />
-    </DocumentFiltersChrome>
-  )
-}
+const EXPENSE_DETAILS_TITLE = 'Detalles del gasto'
 
 export const expensePageConfig = buildDocumentPageConfig<
   Expense,
@@ -87,21 +31,37 @@ export const expensePageConfig = buildDocumentPageConfig<
     entityNamePlural: 'Gastos',
     detailsKey: 'expense_details',
     fetchForEdit: (id) => expenseService.getByIdWithDetails(id as number),
-    renderExpandedDetails: (item) => <ExpenseExpandedDetails expense={item} />,
-    renderFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
-      <ExpenseFiltersSection
-        filters={filters}
-        setFilters={setFilters}
-        onSearch={onSearch}
-        onClear={onClear}
-        loading={loading}
+    renderExpandedDetails: (item) => (
+      <DocumentExpandedDetails<ExpenseDetails> details={item.expense_details ?? []} />
+    ),
+    renderFilters: (props) => <DocumentFiltersSection {...props} />,
+    renderCreateForm: (onSuccess, onItemCreated) => (
+      <DocumentCreate<'expense_details', ExpenseDetails, Expense>
+        service={expenseService}
+        detailsKey='expense_details'
+        detailsTitle={EXPENSE_DETAILS_TITLE}
+        successMessage='Gasto creado exitosamente'
+        errorMessage='Error al crear el gasto'
+        onSuccess={onSuccess}
+        onCreated={onItemCreated}
       />
     ),
-    renderCreateForm: (onSuccess, onItemCreated) => (
-      <ExpenseCreate onSuccess={onSuccess} onExpenseCreated={onItemCreated} />
-    ),
     renderEditForm: (item, onSuccess, onItemUpdated) => (
-      <ExpenseEditForm key={item.id} expense={item} onSuccess={onSuccess} onItemUpdated={onItemUpdated} />
+      <DocumentEditForm<'expense_details', ExpenseDetails, Expense>
+        key={item.id}
+        initialDocument={item}
+        service={expenseService}
+        detailsKey='expense_details'
+        detailsTitle={EXPENSE_DETAILS_TITLE}
+        messages={{
+          missingId: 'Error al editar el gasto: ID no definido',
+          missingDate: 'Error al editar el gasto: Fecha no definida',
+          success: 'Gasto actualizado exitosamente',
+          error: 'Error al actualizar el gasto',
+        }}
+        onSuccess={onSuccess}
+        onItemUpdated={onItemUpdated}
+      />
     ),
   },
   buildInitialDateRangeFilters(),

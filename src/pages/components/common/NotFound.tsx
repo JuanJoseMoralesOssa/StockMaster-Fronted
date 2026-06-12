@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 function NotFound() {
     return (
         <section className='bg-(--color-bg-page)'>
-            <section className='py-8 px-4 mx-auto max-w-7xl lg:py-16 lg:px-6'>
+            <section className='mx-auto grid min-h-[70dvh] max-w-7xl place-content-center px-4 py-8 lg:px-6 lg:py-16'>
                 <section className='mx-auto max-w-2xl text-center'>
                     <h1 className='mb-4 text-7xl tracking-tight font-extrabold lg:text-9xl text-brand-600'>
                         404

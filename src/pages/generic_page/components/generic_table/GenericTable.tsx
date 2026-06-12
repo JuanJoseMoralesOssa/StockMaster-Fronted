@@ -22,6 +22,7 @@ interface GenericTableProps<T> {
   entityName: string
   formFields?: GenericField<T>[]
   prepareDataForSubmit?: (data: Partial<T>, isEdit: boolean) => Promise<Partial<T>>
+  modalClassName?: string
   expandableConfig?: {
     renderExpandedContent: (item: T) => React.ReactNode
     expandedTitle?: (item: T) => string
@@ -41,6 +42,7 @@ export default function GenericTable<T extends Record<string, any>>({
   fetchForEdit,
   formFields,
   prepareDataForSubmit,
+  modalClassName,
   expandableConfig
 }: Readonly<GenericTableProps<T>>) {
   const {
@@ -152,7 +154,7 @@ export default function GenericTable<T extends Record<string, any>>({
       <div className='overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
         {isDesktop ? (
           /* Tabla: tablet landscape y desktop (≥ lg = 1024px) */
-          <div className='overflow-x-auto'>
+          <div className='max-h-[70vh] overflow-x-auto overflow-y-auto'>
             <table className='w-full min-w-180 divide-y divide-(--color-border)'>
               <GenericTableHeader
                 columns={columns}
@@ -202,6 +204,7 @@ export default function GenericTable<T extends Record<string, any>>({
         formFields={formFields}
         onUpdate={serviceUpdate}
         prepareDataForSubmit={prepareDataForSubmit}
+        className={modalClassName}
         onEditSuccess={(updatedItem) => handleEditSuccess(updatedItem, idField)}
         onClose={closeEditModal}
       />

@@ -22,7 +22,7 @@ export class DocumentWithDetailsService<
   TDetail extends DocumentDetailFlags & { id?: number; weight_kg?: number; productId?: number; personId?: number },
 > extends ApiService<TParent> {
   constructor(private readonly cfg: DocumentWithDetailsConfig) {
-    super(cfg.endpoint)
+    super(cfg.endpoint, cfg.entityLabel)
   }
 
   async createWithDetails(parent: TParent): Promise<TParent> {
@@ -85,7 +85,7 @@ export class DocumentWithDetailsService<
           { cause: error },
         )
       }
-      this.handleError(error, `Error updating ${this.cfg.endpoint} with details`)
+      this.handleError(error, `Error al actualizar ${this.cfg.entityLabel} con detalles`)
     }
   }
 
@@ -117,7 +117,7 @@ export class DocumentWithDetailsService<
         httpClient.get(`${this.getUrl()}?${params.toString()}`),
       )
     } catch (error) {
-      this.handleError(error, `Error getting paginated ${this.cfg.endpoint} with details`)
+      this.handleError(error, `Error al obtener la lista de ${this.cfg.entityLabel}s`)
     }
   }
 
@@ -153,7 +153,7 @@ export class DocumentWithDetailsService<
         httpClient.get(`${this.getUrl()}/filtered?${params.toString()}`),
       )
     } catch (error) {
-      this.handleError(error, `Error getting paginated ${this.cfg.endpoint} with details`)
+      this.handleError(error, `Error al obtener la lista de ${this.cfg.entityLabel}s`)
     }
   }
 }

@@ -89,6 +89,7 @@ export const personPageConfig: GenericPageConfig<Person, PersonFilters> = {
       <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:justify-end">
         <Button
           type="submit"
+          variant="secondary"
           className="w-full sm:w-fit"
           loading={loading}
           leftIcon={<Search className="h-4 w-4" />}

@@ -1,5 +1,6 @@
 import axios from 'axios'
-import { Config } from '../config/Config'
+import { AppConfig, Config } from '../config/Config'
+import { tokenStorage } from './tokenStorage'
 
 export interface LoginCredentials {
     email: string
@@ -29,7 +30,11 @@ class AuthService {
 
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
         try {
-            const response = await axios.post<AuthResponse>(`${this.baseUrl}/sign-in`, credentials)
+            // axios "pelado" a propósito: el interceptor global de 401/403 del
+            // httpClient dispararía logout/redirect sobre un login fallido.
+            const response = await axios.post<AuthResponse>(`${this.baseUrl}/sign-in`, credentials, {
+                timeout: AppConfig.requestTimeout,
+            })
             return response.data
         } catch (error) {
             console.error('Error en login:', error)
@@ -49,6 +54,7 @@ class AuthService {
     async verifyToken(token: string): Promise<User> {
         try {
             const response = await axios.get<User>(`${this.baseUrl}/whoami`, {
+                timeout: AppConfig.requestTimeout,
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -60,27 +66,26 @@ class AuthService {
         }
     }
 
-    // Métodos para manejar el almacenamiento local
+    // Almacenamiento local de la sesión: delega en tokenStorage (única fuente de claves)
     saveToken(token: string): void {
-        localStorage.setItem('token', token)
+        tokenStorage.setToken(token)
     }
 
     getToken(): string | null {
-        return localStorage.getItem('token')
+        return tokenStorage.getToken()
     }
 
     saveUser(user: User): void {
-        localStorage.setItem('user', JSON.stringify(user))
+        tokenStorage.setUserRaw(JSON.stringify(user))
     }
 
     getUser(): User | null {
-        const userData = localStorage.getItem('user')
+        const userData = tokenStorage.getUserRaw()
         return userData ? JSON.parse(userData) : null
     }
 
     clearLocalData(): void {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
+        tokenStorage.clear()
     }
 
     isTokenExpired(token: string): boolean {

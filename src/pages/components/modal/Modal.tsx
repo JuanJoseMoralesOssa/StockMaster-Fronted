@@ -57,21 +57,21 @@ export const Modal = ({
                     className
                 )}
             >
-                <div className='overflow-y-auto max-h-[80vh] sm:max-h-[calc(100vh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))]'>
-                    {/* Header */}
-                    {(title || description) && (
-                        <div className='mb-4 pr-10'>
-                            {title && (
-                                <h2 id={titleId} className='text-xl font-semibold text-(--color-text-primary)'>
-                                    {title}
-                                </h2>
-                            )}
-                            {description && (
-                                <p id={descId} className='text-(--color-text-secondary)'>{description}</p>
-                            )}
-                        </div>
-                    )}
+                {/* Header */}
+                {(title || description) && (
+                    <div className='mb-4 pr-10'>
+                        {title && (
+                            <h2 id={titleId} className='text-xl font-semibold text-(--color-text-primary)'>
+                                {title}
+                            </h2>
+                        )}
+                        {description && (
+                            <p id={descId} className='text-(--color-text-secondary)'>{description}</p>
+                        )}
+                    </div>
+                )}
 
+                <div className='overflow-y-auto max-h-[70vh] sm:max-h-[calc(100vh-10rem)]'>
                     {/* Content */}
                     {children}
                 </div>

@@ -78,7 +78,7 @@ function GenericPage<T extends object, TFilter extends object = object, CreateIn
     filters: appliedFilters,
     initialActiveFilters: Boolean(config.initialFiltersActive),
     initialPage: 1,
-    initialLimit: 10,
+    initialLimit: 20,
     refreshToken: filterRefreshToken,
   })
 

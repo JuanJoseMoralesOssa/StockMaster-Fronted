@@ -2,19 +2,7 @@ import { ReactNode } from 'react'
 import { Badge } from '../components/ui'
 import { GenericPageConfig } from '../types/GenericConfig'
 import { formatLocalDate } from '../utils/date'
-
-type DocumentDetailLike = {
-  id?: number
-  productId?: number
-  personId?: number
-  toDelete?: boolean
-}
-
-type DocumentLike<K extends string, TDetail extends DocumentDetailLike> = {
-  id?: number
-  date: string
-  total_kg?: number
-} & Partial<Record<K, TDetail[]>>
+import type { DocumentDetailLike, DocumentLike } from '../types/DocumentBase'
 
 export interface DocumentPageDeps<
   TDocument extends DocumentLike<K, TDetail>,
@@ -48,6 +36,7 @@ export function buildDocumentPageConfig<
     idField: 'id' as keyof TDocument,
     service: deps.service,
     initialFilterState,
+    modalClassName: 'sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl',
     formFields: [
       {
         name: 'date' as keyof TDocument,

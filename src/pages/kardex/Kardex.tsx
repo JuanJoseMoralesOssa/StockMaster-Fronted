@@ -1,6 +1,6 @@
 import GenericPage from '../generic_page/GenericPage'
 import type KardexEntity from '../../types/Kardex'
-import { KardexFilters, kardexPageConfig } from '../../config/kardexPageConfig'
+import { KardexFilters, kardexPageConfig, buildInitialKardexFilters } from '../../config/kardexPageConfig'
 import { kardexService } from '../../services/KardexService'
 import { useEntityCrud } from '../../hooks/useEntityCrud'
 import { useMemo } from 'react'
@@ -14,13 +14,16 @@ function KardexPage() {
 
     const createServiceHooks = useEntityCrud(kardexService, 'Registro de kardex')
 
+    // Fechas calculadas al montar (no al cargar el módulo) para que una pestaña
+    // abierta varios días no arrastre un "mes actual" desactualizado.
     const pageConfig = useMemo(() => ({
         ...kardexPageConfig,
         initialFilterState: {
-            ...kardexPageConfig.initialFilterState,
+            ...buildInitialKardexFilters(),
             productId,
             productName,
         } as KardexFilters,
+        clearFilterState: buildInitialKardexFilters(),
         initialFiltersActive: hasProductFilter,
     }), [hasProductFilter, productId, productName])
 

@@ -37,6 +37,7 @@ export default function PageTable<T extends object, TFilter = object, CreateInpu
       entityName={config.entityName}
       formFields={config.formFields}
       prepareDataForSubmit={config.prepareDataForSubmit}
+      modalClassName={config.modalClassName}
       expandableConfig={config.expandableConfig}
       renderEditForm={config.renderEditForm}
       fetchForEdit={config.fetchForEdit}

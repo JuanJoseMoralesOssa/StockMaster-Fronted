@@ -17,7 +17,7 @@ function Navbar({ open, setOpen }: NavbarProps) {
             <NavbarMobile open={open} setOpen={setOpen} />
 
             {/* Desktop sidebar — visible only on md+ screens */}
-            <aside className='hidden md:flex w-55 sticky top-0 h-dvh shrink-0 flex-col'>
+            <aside className='hidden md:flex w-55 2xl:w-64 sticky top-0 h-dvh shrink-0 flex-col'>
                 <section className='flex flex-col grow border-r border-(--color-sidebar-border) bg-(--color-sidebar-bg)'>
                     <section className='flex items-center gap-2.5 py-5.5 px-5 border-b border-(--color-sidebar-border)'>
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-linear-to-br from-logo-from to-logo-to shadow-sm">

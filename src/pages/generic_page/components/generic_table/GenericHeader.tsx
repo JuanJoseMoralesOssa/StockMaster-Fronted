@@ -17,6 +17,8 @@ export interface GenericHeaderProps<T> {
   modalTitle?: string
   /** Descripción del modal de creación */
   modalDescription?: string
+  /** Clase CSS adicional para el modal de creación */
+  modalClassName?: string
   /** Renderizado del formulario de creación */
   renderCreateForm: (onSuccess: () => void, onItemCreated: (item: T) => void) => ReactNode
   /** Ícono personalizado para el botón (opcional) */
@@ -40,6 +42,7 @@ function GenericHeaderInner<T>({
   createButtonText = DEFAULT_CREATE_TEXT,
   modalTitle = DEFAULT_MODAL_TITLE,
   modalDescription = DEFAULT_MODAL_DESCRIPTION,
+  modalClassName,
   renderCreateForm,
   buttonIcon,
   buttonClassName,
@@ -75,7 +78,7 @@ function GenericHeaderInner<T>({
         {renderCustomButton ? renderCustomButton(openModal) : defaultButton}
       </div>
 
-      <Modal open={open} onClose={closeModal} title={modalTitle} description={modalDescription}>
+      <Modal open={open} onClose={closeModal} title={modalTitle} description={modalDescription} className={modalClassName}>
         {renderCreateForm(closeModal, onItemCreated)}
       </Modal>
     </section>

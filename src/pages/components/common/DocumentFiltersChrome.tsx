@@ -20,15 +20,21 @@ export default function DocumentFiltersChrome({
   clearLabel = 'Limpiar',
 }: Readonly<DocumentFiltersChromeProps>) {
   return (
-    <div className='flex flex-col gap-4'>
+    <form
+      className='flex flex-col gap-4'
+      onSubmit={(event) => {
+        event.preventDefault()
+        onSearch()
+      }}
+    >
       <div className='w-full'>
         {children}
       </div>
 
       <div className='flex flex-col sm:flex-row gap-2 w-full sm:justify-end'>
         <Button
-          variant='primary'
-          onClick={onSearch}
+          type='submit'
+          variant='secondary'
           className='w-full sm:w-fit'
           aria-label={searchLabel}
           loading={loading}
@@ -38,6 +44,7 @@ export default function DocumentFiltersChrome({
         </Button>
 
         <Button
+          type='button'
           variant='secondary'
           onClick={onClear}
           className='w-full sm:w-fit'
@@ -48,6 +55,6 @@ export default function DocumentFiltersChrome({
           {clearLabel}
         </Button>
       </div>
-    </div>
+    </form>
   )
 }

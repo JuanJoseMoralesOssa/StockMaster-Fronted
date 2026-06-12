@@ -1,197 +1,13 @@
-/* eslint-disable react-refresh/only-export-components */
 import { GenericPageConfig } from '../types/GenericConfig'
 import Kardex from '../types/Kardex'
 import { kardexService } from '../services/KardexService'
-import { useEffect } from 'react'
-import { Search, X } from 'lucide-react'
-import { Button } from '../components/ui'
-import Autocomplete from '../pages/components/common/Autocomplete'
-import { useProductStore } from '../stores'
+import { coerceNumericFields } from '../utils/form'
+import KardexFiltersSection from '../pages/kardex/components/KardexFiltersSection'
+import { KARDEX_OPERATION_OPTIONS, KardexFilters, buildInitialKardexFilters } from '../pages/kardex/kardexFilters'
 
-const operationOptions = [
-  { value: 1, label: 'Entrada' },
-  { value: 2, label: 'Salida' },
-  { value: 3, label: 'Kardex' },
-]
-
-const dateToggleClasses = {
-  active: 'w-full border border-(--view-accent,var(--color-action-bg)) bg-(--view-accent,var(--color-action-bg)) text-white shadow-sm hover:bg-(--view-accent-hover,var(--color-action-bg-hover)) md:w-fit',
-  inactive: 'w-full border border-(--view-accent-border,var(--color-border-strong)) bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) hover:bg-(--view-accent-soft,var(--color-bg-subtle)) md:w-fit',
-}
-
-export interface KardexFilters {
-  startDate: string
-  endDate: string
-  productId: string
-  productName: string
-  operation: string
-  balanceRecord: '' | 'yes' | 'no'
-  activeDate: boolean
-}
-
-function buildInitialKardexFilters(): KardexFilters {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-
-  return {
-    startDate: `${year}-${month}-01`,
-    endDate: `${year}-${month}-${day}`,
-    productId: '',
-    productName: '',
-    operation: '',
-    balanceRecord: '',
-    activeDate: false,
-  }
-}
-
-function KardexFiltersSection({
-  filters,
-  setFilters,
-  onSearch,
-  onClear,
-  loading,
-}: Readonly<{
-  filters: KardexFilters
-  setFilters: (filters: KardexFilters) => void
-  onSearch: () => void
-  onClear: () => void
-  loading: boolean
-}>) {
-  const products = useProductStore((state) => state.products)
-  const fetchProducts = useProductStore((state) => state.fetchProducts)
-
-  useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
-
-  const productOptions = products
-    .filter(product => product.id !== undefined && product.name !== undefined)
-    .map(product => ({
-      id: product.id!,
-      label: product.name,
-      name: product.name,
-    }))
-  const selectedProduct = productOptions.find(option => option.id.toString() === filters.productId)
-  const selectedProductName = selectedProduct?.label || filters.productName
-
-  return (
-    <form
-      className="flex flex-col gap-4"
-      onSubmit={(event) => {
-        event.preventDefault()
-        onSearch()
-      }}
-    >
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
-        <Autocomplete
-          key={`kardex-product-${filters.productId || 'empty'}`}
-          options={productOptions}
-          label="Producto"
-          placeholder="Buscar producto..."
-          displayKey="label"
-          initialValue={selectedProductName}
-          onSelect={(option) => setFilters({
-            ...filters,
-            productId: option ? option.id.toString() : '',
-            productName: option && typeof option.label === 'string' ? option.label : '',
-          })}
-          clearable
-          noOptionsText="No se encontraron productos"
-        />
-
-        <div className="flex flex-col">
-          <label htmlFor="kardex-operation-filter" className="mb-1 text-sm font-medium text-(--color-text-secondary)">
-            Operacion
-          </label>
-          <select
-            id="kardex-operation-filter"
-            value={filters.operation}
-            onChange={(event) => setFilters({ ...filters, operation: event.target.value })}
-            className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
-          >
-            <option value="">Todas</option>
-            {operationOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col">
-          <label htmlFor="kardex-balance-record-filter" className="mb-1 text-sm font-medium text-(--color-text-secondary)">
-            Ultimo registro
-          </label>
-          <select
-            id="kardex-balance-record-filter"
-            value={filters.balanceRecord}
-            onChange={(event) => setFilters({ ...filters, balanceRecord: event.target.value as KardexFilters['balanceRecord'] })}
-            className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
-          >
-            <option value="">Todos</option>
-            <option value="yes">Solo ultimo registro</option>
-            <option value="no">No ultimo registro</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="rounded-md bg-(--view-accent-soft,var(--color-bg-subtle)) p-3">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end">
-          <Button
-            type="button"
-            variant={filters.activeDate ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => setFilters({ ...filters, activeDate: !filters.activeDate })}
-            className={filters.activeDate ? dateToggleClasses.active : dateToggleClasses.inactive}
-            disabled={loading}
-          >
-            {filters.activeDate ? 'Rango activo' : 'Filtrar por fechas'}
-          </Button>
-
-          {filters.activeDate && (
-            <div className="grid flex-1 gap-3 sm:grid-cols-2">
-              <div className="flex flex-col">
-                <label htmlFor="kardex-start-date" className="mb-1 text-sm font-medium text-(--color-text-secondary)">
-                  Fecha inicio
-                </label>
-                <input
-                  id="kardex-start-date"
-                  type="date"
-                  value={filters.startDate}
-                  onChange={(event) => setFilters({ ...filters, startDate: event.target.value })}
-                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="kardex-end-date" className="mb-1 text-sm font-medium text-(--color-text-secondary)">
-                  Fecha fin
-                </label>
-                <input
-                  id="kardex-end-date"
-                  type="date"
-                  value={filters.endDate}
-                  onChange={(event) => setFilters({ ...filters, endDate: event.target.value })}
-                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
-        <Button type="submit" size="sm" className="w-full sm:w-fit" loading={loading} leftIcon={<Search className="h-4 w-4" />}>
-          Buscar
-        </Button>
-        <Button type="button" variant="secondary" size="sm" className="w-full sm:w-fit" disabled={loading} leftIcon={<X className="h-4 w-4" />} onClick={onClear}>
-          Limpiar
-        </Button>
-      </div>
-    </form>
-  )
-}
+// Re-export para los consumidores existentes del config (p. ej. Kardex.tsx).
+export type { KardexFilters }
+export { buildInitialKardexFilters }
 
 export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
   entityName: 'Registro de Kardex',
@@ -259,7 +75,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       key: 'operation',
       label: 'Operacion',
       render: (entry) => {
-        const label = operationOptions.find((op) => op.value === entry.operation)?.label ?? 'N/A'
+        const label = KARDEX_OPERATION_OPTIONS.find((op) => op.value === entry.operation)?.label ?? 'N/A'
         const tone = entry.operation === 1
           ? 'border border-success-200 bg-success-50 text-success-700'
           : entry.operation === 2
@@ -293,7 +109,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       label: 'Operacion',
       type: 'select',
       required: true,
-      options: operationOptions,
+      options: KARDEX_OPERATION_OPTIONS,
       defaultValue: 3,
     },
     {
@@ -345,30 +161,13 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
   service: kardexService,
 
   prepareDataForSubmit: async (data: Partial<Kardex>, isEdit: boolean) => {
-    const preparedData = { ...data }
+    const preparedData = coerceNumericFields(
+      { ...data },
+      ['input', 'output', 'balance', 'productId', 'operation'],
+    )
 
     if (preparedData.date) {
       preparedData.date = new Date(preparedData.date).toISOString()
-    }
-
-    if (preparedData.input !== undefined && preparedData.input !== null) {
-      preparedData.input = Number(preparedData.input)
-    }
-
-    if (preparedData.output !== undefined && preparedData.output !== null) {
-      preparedData.output = Number(preparedData.output)
-    }
-
-    if (preparedData.balance !== undefined && preparedData.balance !== null) {
-      preparedData.balance = Number(preparedData.balance)
-    }
-
-    if (preparedData.productId !== undefined && preparedData.productId !== null) {
-      preparedData.productId = Number(preparedData.productId)
-    }
-
-    if (preparedData.operation !== undefined && preparedData.operation !== null) {
-      preparedData.operation = Number(preparedData.operation)
     }
 
     if (!isEdit) {

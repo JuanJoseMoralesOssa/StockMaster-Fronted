@@ -47,15 +47,23 @@ export function todayBogota(): string {
   return `${year}-${month}-${day}`
 }
 
-export function buildInitialDateRangeFilters(): DateRangeFilters {
+const pad = (n: number) => n.toString().padStart(2, '0')
+
+/** Devuelve `{ startDate: 'YYYY-MM-01', endDate: 'YYYY-MM-DD' }` para el mes en curso. */
+export function getCurrentMonthRange(): { startDate: string; endDate: string } {
   const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
+  return {
+    startDate: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`,
+    endDate: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+  }
+}
+
+export function buildInitialDateRangeFilters(): DateRangeFilters {
+  const { startDate, endDate } = getCurrentMonthRange()
 
   return {
-    startDate: `${year}-${month}-01`,
-    endDate: `${year}-${month}-${day}`,
+    startDate,
+    endDate,
     personId: '',
     personName: '',
     productId: '',

@@ -13,10 +13,8 @@ export interface DashboardFilters {
   productId: string
 }
 
-type SelectedFilter = 'all' | 'withDebt' | 'fullyPaid'
+export type SelectedFilter = 'all' | 'withDebt' | 'fullyPaid'
 export type SummaryType = 'both' | 'purchases' | 'expenses'
-
-const defaultRange = getCurrentMonthRange()
 
 export function useDashboardData() {
   const [loading, setLoading] = useState(false)
@@ -28,11 +26,16 @@ export function useDashboardData() {
   const [selectedFilter, setSelectedFilter] = useState<SelectedFilter>('all')
   const [summaryType, setSummaryType] = useState<SummaryType>('both')
 
-  const [filters, setFilters] = useState<DashboardFilters>({
-    startDate: defaultRange.startDate,
-    endDate: defaultRange.endDate,
-    supplierId: '',
-    productId: '',
+  // El rango por defecto se calcula al montar (no al cargar el módulo) para que
+  // una pestaña abierta varios días no arrastre un "mes actual" desactualizado.
+  const [filters, setFilters] = useState<DashboardFilters>(() => {
+    const range = getCurrentMonthRange()
+    return {
+      startDate: range.startDate,
+      endDate: range.endDate,
+      supplierId: '',
+      productId: '',
+    }
   })
 
   // Zustand store selectors
@@ -56,14 +59,18 @@ export function useDashboardData() {
     type: summaryType,
   })
 
-  // Bootstrap: load stores + initial analytics
+  // `refetch` es estable (useCallback con deps vacías en useDashboardAnalytics),
+  // así que puede usarse en dependencias sin recrear efectos ni callbacks.
+  const { refetch: refetchAnalytics } = analytics
+  const { refetch: refetchPrevAnalytics } = prevAnalytics
+
+  // Bootstrap: load stores + initial analytics (runs once — all deps are stable)
   useEffect(() => {
     fetchProducts()
     fetchSuppliers()
-    analytics.refetch()
-    prevAnalytics.refetch()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchProducts, fetchSuppliers])
+    refetchAnalytics()
+    refetchPrevAnalytics()
+  }, [fetchProducts, fetchSuppliers, refetchAnalytics, refetchPrevAnalytics])
 
   // ---------- helpers ----------
 
@@ -88,88 +95,85 @@ export function useDashboardData() {
   // ---------- data fetch ----------
 
   const fetchData = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      clearResults()
+    setLoading(true)
+    setError(null)
+    clearResults()
 
+    try {
       if (!filters.startDate || !filters.endDate) {
         setError('Por favor, selecciona un rango de fechas válido.')
-        setLoading(false)
         return
       }
       if (filters.startDate > filters.endDate) {
         setError('La fecha de inicio no puede ser posterior a la fecha de fin.')
-        setLoading(false)
         return
       }
       if (filters.supplierId && isNaN(Number(filters.supplierId))) {
         setError('Por favor, selecciona un proveedor válido.')
-        setLoading(false)
         return
       }
       if (filters.productId && isNaN(Number(filters.productId))) {
         setError('Por favor, selecciona un producto válido.')
-        setLoading(false)
         return
       }
 
       // Fetch detailed results based on the filter combination
       if (filters.supplierId && filters.productId) {
-        await dashboardService
-          .getPersonProductTransactions(
+        try {
+          const data = await dashboardService.getPersonProductTransactions(
             Number(filters.supplierId),
             Number(filters.productId),
             filters.startDate,
             filters.endDate,
           )
-          .then(data => setSupplierProductResults([...data]))
-          .catch(() => {
-            setError('Error al cargar los datos de transacciones de proveedor y producto')
-          })
-      }
-      if (filters.supplierId && !filters.productId) {
-        await dashboardService
-          .getPersonTransactions(Number(filters.supplierId), filters.startDate, filters.endDate)
-          .then(data => setProductsResults([...data]))
-          .catch(() => {
-            setError('Error al cargar los datos de transacciones de proveedor')
-          })
-      }
-      if (!filters.supplierId && filters.productId) {
-        await dashboardService
-          .getProductTransactions(Number(filters.productId), filters.startDate, filters.endDate)
-          .then(data => setSuppliersResults([...data]))
-          .catch(() => {
-            setError('Error al cargar los datos de transacciones de producto')
-          })
+          setSupplierProductResults([...data])
+        } catch {
+          setError('Error al cargar los datos de transacciones de proveedor y producto')
+        }
+      } else if (filters.supplierId) {
+        try {
+          const data = await dashboardService.getPersonTransactions(
+            Number(filters.supplierId),
+            filters.startDate,
+            filters.endDate,
+          )
+          setProductsResults([...data])
+        } catch {
+          setError('Error al cargar los datos de transacciones de proveedor')
+        }
+      } else if (filters.productId) {
+        try {
+          const data = await dashboardService.getProductTransactions(
+            Number(filters.productId),
+            filters.startDate,
+            filters.endDate,
+          )
+          setSuppliersResults([...data])
+        } catch {
+          setError('Error al cargar los datos de transacciones de producto')
+        }
       }
 
       // Refresh analytics (current period + previous same-length period)
-      analytics.refetch({ startDate: filters.startDate, endDate: filters.endDate, type: summaryType })
+      refetchAnalytics({ startDate: filters.startDate, endDate: filters.endDate, type: summaryType })
       const prev = getPreviousPeriodRange(filters.startDate, filters.endDate)
-      prevAnalytics.refetch({ startDate: prev.startDate, endDate: prev.endDate, type: summaryType })
-
-      setLoading(false)
-    } catch {
-      setError('Error al cargar los datos de pagos')
+      refetchPrevAnalytics({ startDate: prev.startDate, endDate: prev.endDate, type: summaryType })
+    } finally {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, clearResults])
+  }, [filters, summaryType, clearResults, refetchAnalytics, refetchPrevAnalytics])
 
   // Cambiar el tipo (Compras/Gastos/Ambos) refresca los KPIs al instante.
   const changeSummaryType = useCallback(
     (type: SummaryType) => {
       setSummaryType(type)
       if (filters.startDate && filters.endDate) {
-        analytics.refetch({ startDate: filters.startDate, endDate: filters.endDate, type })
+        refetchAnalytics({ startDate: filters.startDate, endDate: filters.endDate, type })
         const prev = getPreviousPeriodRange(filters.startDate, filters.endDate)
-        prevAnalytics.refetch({ startDate: prev.startDate, endDate: prev.endDate, type })
+        refetchPrevAnalytics({ startDate: prev.startDate, endDate: prev.endDate, type })
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filters.startDate, filters.endDate],
+    [filters.startDate, filters.endDate, refetchAnalytics, refetchPrevAnalytics],
   )
 
   return {

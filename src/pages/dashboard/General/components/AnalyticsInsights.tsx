@@ -64,7 +64,7 @@ function AnalyticsInsights({ data }: Readonly<AnalyticsInsightsProps>) {
         Estadísticas Inteligentes
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
         {insightCards.map((card) => (
           <InsightCard
             key={card.title}

@@ -52,7 +52,7 @@ export default function Autocomplete({
   const inputId = `autocomplete-${label.replace(/\s+/g, '-').toLowerCase()}`
   const listId = `autocomplete-list-${label.replace(/\s+/g, '-').toLowerCase()}`
 
-  // Memoized filtered options with performance optimization
+  // Filtrado en cliente sobre las opciones recibidas (limitado a maxOptions)
   const filteredOptions = useMemo(() => {
     if (!inputValue.trim()) return options.slice(0, maxOptions)
 
@@ -142,7 +142,7 @@ export default function Autocomplete({
     inputRef.current?.focus()
   }, [onSelect])
 
-  // Handle input change with debounced filtering
+  // El filtrado es síncrono (sin debounce): las opciones ya están en memoria
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setInputValue(value)

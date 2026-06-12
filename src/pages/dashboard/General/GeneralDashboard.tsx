@@ -1,23 +1,17 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { Scale, Activity, TrendingDown, Inbox } from "lucide-react"
-import { DashboardSummaryResponse, SupplierAnalytics, ProductAnalytics } from "../../../types/Analytics"
-import { EmptyState } from "../../../components/ui"
-import RankingList from "./components/base/RankingList"
-import { supplierToRankingItems, productToRankingItems, formatWeight } from "./components/adapters/analyticsAdapters"
-import AnalyticsInsights from "./components/AnalyticsInsights"
-import LoadingSkeleton from "./components/LoadingSkeleton"
-import ErrorState from "./components/ErrorState"
-import SummaryStats from "./components/SummaryStats"
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Scale, Activity, TrendingDown, Inbox } from 'lucide-react'
+import type { SupplierAnalytics, ProductAnalytics } from '../../../types/Analytics'
+import { EmptyState } from '../../../components/ui'
+import RankingList from './components/base/RankingList'
+import { supplierToRankingItems, productToRankingItems, formatWeight } from './components/adapters/analyticsAdapters'
+import AnalyticsInsights from './components/AnalyticsInsights'
+import LoadingSkeleton from './components/LoadingSkeleton'
+import ErrorState from './components/ErrorState'
+import SummaryStats from './components/SummaryStats'
+import { useDashboard } from '../DashboardContext'
 
-interface GeneralDashboardProps {
-  analyticsData?: DashboardSummaryResponse | null
-  analyticsLoading?: boolean
-  analyticsError?: string | null
-  onRetry?: () => void
-}
-
-type RankingTabKey = "weight" | "activity" | "bottom"
+type RankingTabKey = 'weight' | 'activity' | 'bottom'
 
 interface RankingTab {
   key: RankingTabKey
@@ -28,45 +22,40 @@ interface RankingTab {
   supplierAccent: boolean
 }
 
-function GeneralDashboard({ analyticsData: data, analyticsLoading: loading, analyticsError: error, onRetry }: GeneralDashboardProps) {
+function GeneralDashboard() {
+  const { analytics: { data, loading, error }, refreshAnalytics } = useDashboard()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<RankingTabKey>("weight")
+  const [activeTab, setActiveTab] = useState<RankingTabKey>('weight')
 
   const goToSupplierDetail = (supplierId: number, supplierName: string) => {
     const params = new URLSearchParams({ personId: String(supplierId), personName: supplierName })
     navigate(`/compras?${params.toString()}`)
   }
 
-  if (loading) {
-    return <LoadingSkeleton />
-  }
-
-  if (error) {
-    return <ErrorState error={error} onRetry={onRetry} />
-  }
-
+  if (loading) return <LoadingSkeleton />
+  if (error) return <ErrorState error={error} onRetry={refreshAnalytics} />
   if (!data) return null
 
   const tabs: RankingTab[] = [
     {
-      key: "weight",
-      label: "Por Peso",
+      key: 'weight',
+      label: 'Por Peso',
       icon: <Scale className="w-4 h-4" />,
       suppliers: data.topSuppliersByWeight,
       products: data.topProductsByWeight,
       supplierAccent: true,
     },
     {
-      key: "activity",
-      label: "Por Actividad",
+      key: 'activity',
+      label: 'Por Actividad',
       icon: <Activity className="w-4 h-4" />,
       suppliers: data.mostActiveSuppliers,
       products: data.mostTransactedProducts,
       supplierAccent: false,
     },
     {
-      key: "bottom",
-      label: "Menor Volumen",
+      key: 'bottom',
+      label: 'Menor Volumen',
       icon: <TrendingDown className="w-4 h-4" />,
       suppliers: data.bottomSuppliersByWeight,
       products: data.bottomProductsByWeight,
@@ -76,8 +65,8 @@ function GeneralDashboard({ analyticsData: data, analyticsLoading: loading, anal
 
   const current = tabs.find((t) => t.key === activeTab) ?? tabs[0]
   const supplierColor = current.supplierAccent
-    ? "bg-(--view-accent-soft,var(--color-bg-subtle)) border-(--view-accent-border,var(--color-border))"
-    : "bg-(--color-bg-surface) border-(--color-border)"
+    ? 'bg-(--view-accent-soft,var(--color-bg-subtle)) border-(--view-accent-border,var(--color-border))'
+    : 'bg-(--color-bg-surface) border-(--color-border)'
   const currentIsEmpty = current.suppliers.length === 0 && current.products.length === 0
 
   return (
@@ -94,7 +83,6 @@ function GeneralDashboard({ analyticsData: data, analyticsLoading: loading, anal
           />
         </div>
 
-        {/* Rankings — a single section with tabs instead of three identical grids */}
         <div className="mb-6">
           <div role="tablist" aria-label="Rankings" className="flex flex-wrap gap-2 mb-4 border-b border-(--color-border)">
             {tabs.map((tab) => {
@@ -108,8 +96,8 @@ function GeneralDashboard({ analyticsData: data, analyticsLoading: loading, anal
                   onClick={() => setActiveTab(tab.key)}
                   className={`flex items-center gap-2 px-3 sm:px-4 py-2 pointer-coarse:min-h-11 -mb-px text-sm font-semibold border-b-2 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-(--color-focus-ring) rounded-t ${
                     selected
-                      ? "border-(--view-accent,var(--color-action-bg)) text-(--view-accent-text,var(--color-text-link))"
-                      : "border-transparent text-(--color-text-secondary) hover:text-(--color-text-primary)"
+                      ? 'border-(--view-accent,var(--color-action-bg)) text-(--view-accent-text,var(--color-text-link))'
+                      : 'border-transparent text-(--color-text-secondary) hover:text-(--color-text-primary)'
                   }`}
                 >
                   {tab.icon}
@@ -146,7 +134,6 @@ function GeneralDashboard({ analyticsData: data, analyticsLoading: loading, anal
           )}
         </div>
 
-        {/* Analytics Insights */}
         <AnalyticsInsights data={data} />
       </div>
     </div>

@@ -138,6 +138,8 @@ export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>
   }
   /** Renderizado personalizado para el formulario de crear */
   renderCustomForm?: (onSuccess: () => void, onItemCreated: (item: T) => void) => ReactNode
+  /** Clase CSS opcional para el ancho/layout del modal de crear y editar */
+  modalClassName?: string
   /** Función para obtener un item completo (con relaciones) antes de abrir el modal de edición */
   fetchForEdit?: (id: string | number) => Promise<T>
   /** Renderizado personalizado para el formulario de editar */
@@ -156,11 +158,4 @@ export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>
   renderCreateButton?: (onClick: () => void) => ReactNode
   /** Acciones extra que se muestran junto al botón de crear en el header (ej: botón Escanear) */
   renderHeaderActions?: () => ReactNode
-  /** Filtros adicionales para la tabla */
-  filters?: Array<{
-    name: string
-    label: string
-    type: 'text' | 'select' | 'date'
-    options?: Array<{ value: string; label: string }>
-  }>
 }
