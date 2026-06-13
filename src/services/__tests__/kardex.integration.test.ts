@@ -6,12 +6,13 @@
 import MockAdapter from 'axios-mock-adapter'
 import { httpClient } from '../httpClient'
 import { kardexService } from '../KardexService'
+import type Kardex from '../../types/Kardex'
 
 const BASE = 'http://127.0.0.1:3000'
 
 // ── Datos de prueba ──────────────────────────────────────────────────────────
-const KARDEX_1 = { id: 1, date: '2026-01-10T00:00:00.000Z', input: 100, output: 0, balance: 100, balance_record: true, operation: 1, productId: 1 }
-const KARDEX_2 = { id: 2, date: '2026-01-15T00:00:00.000Z', input: 0, output: 30, balance: 70, balance_record: false, operation: 2, productId: 1 }
+const KARDEX_1: Kardex = { id: 1, date: '2026-01-10T00:00:00.000Z', input: 100, output: 0, balance: 100, operation: 1, productId: 1, sourceKind: 'purchase', sourceId: 7, sourceDetailId: 70, userId: 1 }
+const KARDEX_2: Kardex = { id: 2, date: '2026-01-15T00:00:00.000Z', input: 0, output: 30, balance: 70, operation: 3, productId: 1, sourceKind: 'expense', sourceId: 8, sourceDetailId: 80, userId: 1 }
 const KARDEXES = [KARDEX_1, KARDEX_2]
 
 function paginated<T>(data: T[], page = 1, limit = 10) {
@@ -58,8 +59,9 @@ describe('KardexService – getPaginated()', () => {
 
     expect(result.data).toHaveLength(2)
     expect(result.data[0]).toHaveProperty('balance')
-    expect(result.data[0]).toHaveProperty('balance_record')
     expect(result.data[0]).toHaveProperty('operation')
+    expect(result.data[0]).toHaveProperty('sourceKind')
+    expect(result.data[0]).not.toHaveProperty('balance_record')
   })
 
   it('lanza error si el servidor responde 500', async () => {

@@ -13,8 +13,9 @@ import {
     // Truck,
 } from 'lucide-react'
 
-// Dashboard, Usuarios y Kardex: solo Oficina y Admin (Operador no los ve).
-const OFFICE_ADMIN = [Roles.OFFICE, Roles.ADMIN]
+// Los endpoints operativos hoy solo aceptan Oficina/Admin; Operador queda
+// limitado a autenticarse hasta que producto defina sus permisos.
+const OFFICE_ADMIN: string[] = [Roles.OFFICE, Roles.ADMIN]
 
 const navItems: NavItem[] = [
     {
@@ -47,6 +48,7 @@ const navItems: NavItem[] = [
         icon: <ClipboardList className='h-5 w-5' />,
         category: 'Operaciones',
         accent: 'blue',
+        roles: OFFICE_ADMIN,
     },
     {
         title: 'Consumos',
@@ -54,6 +56,7 @@ const navItems: NavItem[] = [
         icon: <DollarSign className='h-5 w-5' />,
         category: 'Operaciones',
         accent: 'amber',
+        roles: OFFICE_ADMIN,
     },
     {
         title: 'Proveedores',
@@ -61,6 +64,7 @@ const navItems: NavItem[] = [
         icon: <User className='h-5 w-5' />,
         category: 'Operaciones',
         accent: 'violet',
+        roles: OFFICE_ADMIN,
     },
     {
         title: 'Productos',
@@ -68,6 +72,7 @@ const navItems: NavItem[] = [
         icon: <Package className='h-5 w-5' />,
         category: 'Operaciones',
         accent: 'teal',
+        roles: OFFICE_ADMIN,
     },
 ]
 

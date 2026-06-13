@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "my-inventory",
   "private": true,
   "version": "0.0.0",
@@ -15,14 +16,13 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.2.4",
-    "axios": "^1.15.2",
+    "axios": "^1.17.0",
     "clsx": "^2.1.1",
-    "exceljs": "^3.10.0",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-hook-form": "^7.74.0",
-    "react-router-dom": "^7.14.2",
+    "react-router-dom": "^7.17.0",
     "recharts": "^3.8.1",
     "sweetalert2": "^11.26.24",
     "tailwind-merge": "^3.6.0",

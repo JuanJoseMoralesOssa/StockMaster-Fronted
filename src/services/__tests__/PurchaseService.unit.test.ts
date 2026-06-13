@@ -70,4 +70,10 @@ describe('PurchaseService Unit Tests', () => {
       'Este registro fue modificado por otro usuario. Por favor recarga y vuelve a intentarlo.'
     )
   })
+
+  it('delete should send the current purchase version', async () => {
+    mock.onDelete(`${service.buildUrl('1')}?version=2`).reply(204)
+
+    await expect(service.delete(1, { id: 1, version: 2, date: '2026-03-01' })).resolves.toBeUndefined()
+  })
 })

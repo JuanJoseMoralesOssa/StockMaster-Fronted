@@ -16,7 +16,7 @@ interface ChartDetailTableProps {
   firstColumnLabel: string
   rows: ChartMonthlyRow[]
   totals: Pick<ChartMonthlyRow, 'Total' | 'Pagado' | 'Pendiente'>
-  /** Triggers the parent's Excel export (each chart builds its own workbook). */
+  /** Triggers the parent's CSV export. */
   onExport: () => void
 }
 
@@ -28,7 +28,7 @@ const TD_NUMERIC = 'px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right tabul
 /**
  * Monthly payment breakdown table shared by the detailed Product and Supplier
  * charts. Keeps the markup, tokens and status pills in one place; the parent
- * owns the Excel export because each report builds a different workbook.
+ * owns the export because each report builds a different CSV.
  */
 export default function ChartDetailTable({
   title,
@@ -48,7 +48,7 @@ export default function ChartDetailTable({
           leftIcon={<FileSpreadsheet className="h-4 w-4" aria-hidden="true" />}
           className="text-success-700 bg-success-50 border-[1.5px] border-success-200 hover:bg-success-100 hover:border-success-300"
         >
-          Exportar a Excel
+          Exportar CSV
         </Button>
       </div>
       {/* Only the table scrolls horizontally; the heading and export button stay pinned. */}

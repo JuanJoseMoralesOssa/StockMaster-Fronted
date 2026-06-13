@@ -6,9 +6,12 @@ export default interface Kardex {
     input: number
     output: number
     balance: number
-    balance_record: boolean
     operation: number
     productId: number
+    sourceKind?: 'purchase' | 'expense'
+    sourceId?: number
+    sourceDetailId?: number
+    userId?: number
 
     product?: Product
 }
@@ -20,6 +23,5 @@ export interface KardexFilters {
     productId: string
     productName: string
     operation: string
-    balanceRecord: '' | 'yes' | 'no'
     activeDate: boolean
 }

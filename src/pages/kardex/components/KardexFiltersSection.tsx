@@ -18,7 +18,7 @@ interface KardexFiltersSectionProps {
   loading: boolean
 }
 
-/** Filtros de kardex: producto (autocomplete), operación, último registro y rango de fechas. */
+/** Filtros de kardex: producto (autocomplete), operación y rango de fechas. */
 export default function KardexFiltersSection({
   filters,
   setFilters,
@@ -51,7 +51,7 @@ export default function KardexFiltersSection({
         onSearch()
       }}
     >
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <Autocomplete
           key={`kardex-product-${filters.productId || 'empty'}`}
           options={productOptions}
@@ -87,21 +87,6 @@ export default function KardexFiltersSection({
           </select>
         </div>
 
-        <div className="flex flex-col">
-          <label htmlFor="kardex-balance-record-filter" className="mb-1 text-sm font-medium text-(--color-text-secondary)">
-            Ultimo registro
-          </label>
-          <select
-            id="kardex-balance-record-filter"
-            value={filters.balanceRecord}
-            onChange={(event) => setFilters({ ...filters, balanceRecord: event.target.value as KardexFilters['balanceRecord'] })}
-            className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
-          >
-            <option value="">Todos</option>
-            <option value="yes">Solo ultimo registro</option>
-            <option value="no">No ultimo registro</option>
-          </select>
-        </div>
       </div>
 
       <div className="rounded-md bg-(--view-accent-soft,var(--color-bg-subtle)) p-3">

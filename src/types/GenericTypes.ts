@@ -5,7 +5,12 @@ export type GenericService<T, TFilter = object, CreateInput = Partial<T>, Update
   create: (data: CreateInput) => Promise<T>
   update: (id: string | number, data: UpdateInput) => Promise<T>
   updatePartial: (id: string | number, data: Partial<UpdateInput>) => Promise<T>
-  delete: (id: string | number) => Promise<void>
+  /**
+   * `item` es la fila tal como está cargada en la tabla. Los documentos con
+   * bloqueo optimista (compras/gastos) la necesitan para enviar su `version`
+   * al backend: DELETE sin version responde 400, y una version obsoleta 409.
+   */
+  delete: (id: string | number, item?: T) => Promise<void>
   getAllPaginatedFiltered?: (filters: TFilter, page?: number, limit?: number) => Promise<PaginatedResponse<T>>
 }
 
@@ -33,7 +38,7 @@ export interface PageContextValue<T, TFilter = object> {
 
   handleCreate: (formData: Partial<T>) => Promise<T>
   handleUpdate: (id: number | string, formData: Partial<T>) => Promise<T>
-  handleDelete: (id: number | string) => Promise<void>
+  handleDelete: (id: number | string, item?: T) => Promise<void>
 
   selectedItemForDetail: T | null
   setSelectedItemForDetail: (item: T | null) => void

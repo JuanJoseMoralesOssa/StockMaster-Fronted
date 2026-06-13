@@ -13,7 +13,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
   entityName: 'Registro de Kardex',
   entityNamePlural: 'Kardex',
   idField: 'id',
-  rowClassName: (entry) => (entry.balance_record ? 'bg-success-50/70' : ''),
+  rowClassName: (entry) => (entry.input > 0 ? 'bg-success-50/70' : entry.output > 0 ? 'bg-danger-50/60' : ''),
   initialFilterState: buildInitialKardexFilters(),
   clearFilterState: buildInitialKardexFilters(),
 
@@ -63,27 +63,42 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       ),
     },
     {
-      key: 'balance_record',
-      label: 'Ultimo Registro',
-      render: (entry) => (
-        <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-xs ${entry.balance_record ? 'border border-success-300 bg-success-50 text-success-700' : 'border border-(--color-border-strong) bg-(--color-bg-surface) text-(--color-text-primary)'}`}>
-          {entry.balance_record ? 'Si' : 'No'}
-        </span>
-      ),
-    },
-    {
       key: 'operation',
       label: 'Operacion',
       render: (entry) => {
         const label = KARDEX_OPERATION_OPTIONS.find((op) => op.value === entry.operation)?.label ?? 'N/A'
-        const tone = entry.operation === 1
+        const tone = entry.operation === 1 || entry.operation === 4
           ? 'border border-success-200 bg-success-50 text-success-700'
-          : entry.operation === 2
+          : entry.operation === 3
             ? 'border border-danger-200 bg-danger-50 text-danger-700'
             : 'border border-warning-200 bg-warning-50 text-warning-700'
         return (
           <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-xs ${tone}`}>
             {label}
+          </span>
+        )
+      },
+    },
+    {
+      key: 'sourceKind',
+      label: 'Origen',
+      render: (entry) => {
+        const sourceLabel = entry.sourceKind === 'purchase'
+          ? 'Compra'
+          : entry.sourceKind === 'expense'
+            ? 'Gasto'
+            : 'Sin origen'
+        const sourceParts = [
+          entry.sourceId ? `#${entry.sourceId}` : '',
+          entry.sourceDetailId ? `Detalle #${entry.sourceDetailId}` : '',
+        ].filter(Boolean)
+
+        return (
+          <span className='inline-flex flex-col rounded-md border border-(--color-border-strong) bg-(--color-bg-surface) px-2.5 py-1 text-xs font-semibold text-(--color-text-primary) shadow-xs'>
+            <span>{sourceLabel}</span>
+            {sourceParts.length > 0 && (
+              <span className='font-normal text-(--color-text-muted)'>{sourceParts.join(' - ')}</span>
+            )}
           </span>
         )
       },
@@ -110,7 +125,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       type: 'select',
       required: true,
       options: KARDEX_OPERATION_OPTIONS,
-      defaultValue: 3,
+      defaultValue: 1,
     },
     {
       name: 'input',
@@ -134,12 +149,6 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       type: 'number',
       required: true,
       defaultValue: 0,
-    },
-    {
-      name: 'balance_record',
-      label: 'Ultimo Registro',
-      type: 'checkbox',
-      defaultValue: true,
     },
   ],
 
@@ -171,8 +180,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
     }
 
     if (!isEdit) {
-      if (preparedData.operation === undefined) preparedData.operation = 3
-      if (preparedData.balance_record === undefined) preparedData.balance_record = true
+      if (preparedData.operation === undefined) preparedData.operation = 1
     }
 
     return preparedData

@@ -39,13 +39,34 @@ export const formatChartValue = (value: unknown): string => {
 export const formatChartPercent = (percent: number | undefined): string =>
   `${((percent ?? 0) * 100).toFixed(0)}%`
 
-/** Triggers a browser download for an Excel (.xlsx) buffer. */
-export async function downloadXlsxBlob(
-  buffer: ArrayBuffer,
+type CsvCell = string | number | boolean | null | undefined
+
+function serializeCsvCell(value: CsvCell, delimiter: string): string {
+  const rawText = value == null ? '' : String(value)
+  const text = typeof value === 'string' && /^[=+\-@]/.test(rawText)
+    ? `'${rawText}`
+    : rawText
+  const shouldQuote =
+    text.includes(delimiter) ||
+    text.includes('"') ||
+    text.includes('\n') ||
+    text.includes('\r')
+
+  if (!shouldQuote) return text
+  return `"${text.replaceAll('"', '""')}"`
+}
+
+/** Triggers a browser download for a spreadsheet-compatible UTF-8 CSV file. */
+export function downloadCsvFile(
+  rows: CsvCell[][],
   filename: string,
-): Promise<void> {
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  delimiter = ';',
+): void {
+  const csv = rows
+    .map((row) => row.map((cell) => serializeCsvCell(cell, delimiter)).join(delimiter))
+    .join('\r\n')
+  const blob = new Blob([`\ufeff${csv}`], {
+    type: 'text/csv;charset=utf-8',
   })
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')

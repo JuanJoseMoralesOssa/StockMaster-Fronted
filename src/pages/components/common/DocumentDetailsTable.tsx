@@ -8,6 +8,8 @@ import SummaryTable from './SummaryTable'
 import { Alert, Button, TableSkeleton, EmptyState } from '../../../components/ui'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 
+const MAX_DOCUMENT_DETAILS = 100
+
 interface DocumentDetailsTableProps<T extends { id?: number | string }> {
     details: T[]
     setDetails: (details: T[]) => void
@@ -21,7 +23,9 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
     title,
     mode,
 }: Readonly<DocumentDetailsTableProps<T>>) {
-    const detailsLength = details.length
+    const visibleDetails = details.filter(d => !d.toDelete)
+    const detailsLength = visibleDetails.length
+    const reachedDetailsLimit = detailsLength >= MAX_DOCUMENT_DETAILS
     // Table on md+ (fits with horizontal scroll); stacked cards on mobile so the
     // two autocompletes + weight input never force a cramped horizontal scroll.
     const isDesktop = useMediaQuery('(min-width: 768px)')
@@ -50,6 +54,8 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
 
     const addDetail = (e: React.FormEvent) => {
         e.preventDefault()
+        if (reachedDetailsLimit) return
+
         const newDetails = [
             ...details,
             {
@@ -121,7 +127,7 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
     }
 
     const showEmptyState = detailsLength === 0 && mode === 'add'
-    const hasVisibleDetails = details.filter(d => !d.toDelete).length > 0
+    const hasVisibleDetails = visibleDetails.length > 0
 
     return (
         <div className='w-full flex flex-col gap-8'>
@@ -136,6 +142,7 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
                             size="sm"
                             leftIcon={<Plus className="w-4 h-4" aria-hidden="true" />}
                             onClick={addDetail}
+                            disabled={reachedDetailsLimit}
                         >
                             Agregar Producto
                         </Button>
@@ -152,11 +159,18 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
                             size="md"
                             leftIcon={<Plus className="w-4 h-4" aria-hidden="true" />}
                             onClick={addDetail}
+                            disabled={reachedDetailsLimit}
                             className="w-full sm:w-auto"
                         >
                             Agregar Producto
                         </Button>
                     </section>
+
+                    {reachedDetailsLimit && (
+                        <Alert variant="warning" title="Limite de detalles">
+                            Cada documento admite hasta {MAX_DOCUMENT_DETAILS} productos.
+                        </Alert>
+                    )}
 
                     {hasVisibleDetails ? (
                         <>
@@ -172,7 +186,7 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
                                             </tr>
                                         </thead>
                                         <tbody className='divide-y divide-(--color-border)'>
-                                            {details.filter(d => !d.toDelete).map((detail, index) => (
+                                            {visibleDetails.map((detail, index) => (
                                                 <DocumentDetailRow<typeof detail>
                                                     key={detail.id ?? `temp-${index}`}
                                                     detail={detail}
@@ -188,7 +202,7 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
                                 </div>
                             ) : (
                                 <ul className='flex flex-col gap-3'>
-                                    {details.filter(d => !d.toDelete).map((detail, index) => (
+                                    {visibleDetails.map((detail, index) => (
                                         <DocumentDetailRow<typeof detail>
                                             key={detail.id ?? `temp-${index}`}
                                             detail={detail}

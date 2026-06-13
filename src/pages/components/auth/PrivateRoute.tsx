@@ -5,7 +5,7 @@ import { LoadingScreen } from '../common/LoadingSpinner'
 
 interface PrivateRouteProps {
   element: JSX.Element
-  allowedRoles?: string[] // Array de roles permitidos (ej: ['admin', 'user'])
+  allowedRoles?: string[] // Array de roles permitidos (ej: ['admin', 'office'])
 }
 
 const PrivateRoute = ({ element, allowedRoles }: PrivateRouteProps) => {

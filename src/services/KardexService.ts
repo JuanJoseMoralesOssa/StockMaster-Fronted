@@ -58,7 +58,6 @@ export class KardexService extends ApiService<Kardex> {
 
       if (filters.productId) params.append('productId', filters.productId)
       if (filters.operation) params.append('operation', filters.operation)
-      if (filters.balanceRecord) params.append('balanceRecord', filters.balanceRecord)
 
       return await this.handleResponse<PaginatedResponse<Kardex>>(
         httpClient.get(`${this.getUrl()}/filtered?${params.toString()}`),

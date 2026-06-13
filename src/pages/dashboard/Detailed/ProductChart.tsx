@@ -17,7 +17,7 @@ import Person from '../../../types/Person'
 import {
   formatChartValue,
   formatChartPercent,
-  downloadXlsxBlob,
+  downloadCsvFile,
   CHART_HEIGHTS,
   CHART_MARGINS,
   CHART_COLORS,
@@ -78,11 +78,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
     { name: `Total Pendiente (${formatChartPercent(pieTotal ? totals.Pendiente / pieTotal : 0)})`, value: totals.Pendiente, fill: CHART_COLORS.pieOrange },
   ]
 
-  const exportToExcel = async (): Promise<void> => {
-    const ExcelJS = (await import('exceljs')).default
-    const workbook = new ExcelJS.Workbook()
-    const worksheet = workbook.addWorksheet('Pagos Proveedores')
-
+  const exportToCsv = (): void => {
     const exportData = monthlyDataArray.map((m) => ({
       Mes: m.name,
       Total: m.Total,
@@ -102,33 +98,17 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
           : paymentStateLabel(totals.Total, totals.Pagado),
     })
 
-    worksheet.addRow(['Reporte Mensual - Proveedores'])
-    worksheet.addRow([`Período: ${filters.startDate} al ${filters.endDate}`])
-    worksheet.addRow([`Generado: ${new Date().toLocaleString()}`])
-    worksheet.addRow([])
-    worksheet.addRow(['Mes', 'Total', 'Pagado', 'Pendiente', 'Estado'])
-
-    exportData.forEach((row) => {
-      worksheet.addRow([row.Mes, row.Total, row.Pagado, row.Pendiente, row.Estado])
-    })
-
-    const headerRow = worksheet.getRow(5)
-    headerRow.font = { bold: true }
-    headerRow.eachCell((cell) => {
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CHART_COLORS.headerFill } }
-    })
-
-    worksheet.columns.forEach((column) => {
-      let maxLength = 10
-      column.eachCell?.({ includeEmpty: true }, (cell) => {
-        const value = cell.value ? cell.value.toString() : ''
-        maxLength = Math.max(maxLength, value.length)
-      })
-      column.width = maxLength + 2
-    })
-
-    const buffer = await workbook.xlsx.writeBuffer()
-    await downloadXlsxBlob(buffer as ArrayBuffer, `Reporte_Proveedores_${Date.now()}.xlsx`)
+    downloadCsvFile(
+      [
+        ['Reporte Mensual - Proveedores'],
+        [`Periodo: ${filters.startDate} al ${filters.endDate}`],
+        [`Generado: ${new Date().toLocaleString()}`],
+        [],
+        ['Mes', 'Total', 'Pagado', 'Pendiente', 'Estado'],
+        ...exportData.map((row) => [row.Mes, row.Total, row.Pagado, row.Pendiente, row.Estado]),
+      ],
+      `Reporte_Proveedores_${Date.now()}.csv`,
+    )
   }
 
   if (!filters.startDate || !filters.endDate) {
@@ -275,7 +255,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
         firstColumnLabel="Mes / Proveedor"
         rows={monthlyDataArray}
         totals={totals}
-        onExport={exportToExcel}
+        onExport={exportToCsv}
       />
     </div>
   )

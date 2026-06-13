@@ -4,7 +4,7 @@ import { extractErrorInfo } from '../../../../utils/error'
 
 export function useTableActions<T>(
   entityName: string,
-  onDelete: (id: number | string) => Promise<void>,
+  onDelete: (id: number | string, item?: T) => Promise<void>,
   updateItem?: (updatedItem: T, idField?: keyof T) => void,
   removeItem?: (itemId: string | number, idField?: keyof T) => void,
   fetchForEdit?: (id: string | number) => Promise<T>,
@@ -28,7 +28,9 @@ export function useTableActions<T>(
 
     try {
       setDeletingItemId(itemId)
-      await onDelete(itemId)
+      // Pasar la fila completa: los documentos versionados toman item.version
+      // para el bloqueo optimista del DELETE.
+      await onDelete(itemId, item)
       if (removeItem) removeItem(itemId, idFieldArg)
       showSuccess(`${entityName} eliminado exitosamente`, 'Eliminación exitosa')
     } catch (error) {

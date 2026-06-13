@@ -89,6 +89,33 @@ export class DocumentWithDetailsService<
     }
   }
 
+  async deleteWithVersion(id: number | string, version: number | undefined): Promise<void> {
+    if (typeof version !== 'number' || !Number.isFinite(version)) {
+      throw new Error(`No se pudo eliminar ${this.cfg.entityLabel}: falta la versión del registro`)
+    }
+
+    const params = new URLSearchParams({ version: version.toString() })
+
+    try {
+      await this.handleResponse<void>(
+        httpClient.delete(`${this.getUrl(id.toString())}?${params.toString()}`),
+      )
+    } catch (error: unknown) {
+      const { message: msg, status } = extractErrorInfo(error)
+      if (status === 409) {
+        throw new Error(
+          msg || 'Este registro fue modificado por otro usuario. Por favor recarga y vuelve a intentarlo.',
+          { cause: error },
+        )
+      }
+      this.handleError(error, `Error al eliminar ${this.cfg.entityLabel} con id ${id}`)
+    }
+  }
+
+  override async delete(id: number | string, item?: TParent): Promise<void> {
+    return this.deleteWithVersion(id, item?.version)
+  }
+
   async getByIdWithDetails(id: number | string): Promise<TParent> {
     const params = new URLSearchParams({
       filter: JSON.stringify({ include: [{ relation: this.cfg.entityDetailsKey }] }),

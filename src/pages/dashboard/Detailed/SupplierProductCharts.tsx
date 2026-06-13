@@ -5,7 +5,7 @@ import Product from '../../../types/Product'
 import { DashboardResult } from '../../../types/DashboardResults'
 import { EXPENSE, PURCHASE } from '../../../constants/cts'
 import { FileSpreadsheet, ChevronDown } from 'lucide-react'
-import { formatChartValue, formatChartPercent, downloadXlsxBlob, CHART_HEIGHTS, CHART_MARGINS, CHART_COLORS } from './chart.utils'
+import { formatChartValue, formatChartPercent, downloadCsvFile, CHART_HEIGHTS, CHART_MARGINS, CHART_COLORS } from './chart.utils'
 import { processDailyEntries, processMonthlyEntries, groupDailyEntriesByMonth } from '../../../utils/chartTransforms'
 import { Button } from '../../../components/ui'
 
@@ -43,51 +43,8 @@ function SupplierProductCharts({
   const pendingAmount = totalPurchases - totalExpenses
   const paymentStatus = pendingAmount === 0 ? 'Completo' : `${((totalExpenses / totalPurchases) * 100).toFixed(2)}% Pagado`
 
-  const exportToExcel = async () => {
-    const ExcelJS = (await import('exceljs')).default
-    const workbook = new ExcelJS.Workbook()
-    const worksheet = workbook.addWorksheet('Pagos a Proveedores')
-
-    // Header
-    worksheet.addRow([`Reporte de Pagos del Proveedor: ${supplierName} y Producto: ${productName}`])
-    worksheet.addRow([`Período: ${filters.startDate} al ${filters.endDate}`])
-    worksheet.addRow([
-      `Generado el: ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`
-    ])
-    worksheet.addRow([])
-
-    // Merge headers
-    worksheet.mergeCells('A1:F1')
-    worksheet.mergeCells('A2:F2')
-    worksheet.mergeCells('A3:F3')
-
-      // Styles header
-      ;[1, 2, 3].forEach(rowNumber => {
-        const row = worksheet.getRow(rowNumber)
-        row.font = { bold: true, size: 14 }
-        row.alignment = { horizontal: 'center' }
-      })
-
-    // Table headers
-    const headerRow = worksheet.addRow([
-      'Fecha',
-      'Día',
-      'Compra',
-      'Gasto',
-      'Pendiente',
-      'Estado'
-    ])
-
-    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '4472C4' }
-    }
-    headerRow.alignment = { horizontal: 'center' }
-
-    // Data rows
-    dailyData.forEach(day => {
+  const exportToCsv = () => {
+    const rows = dailyData.map(day => {
       let status = 'Sin compras'
 
       if (day.pendiente === 0 && day.compra > 0) {
@@ -96,54 +53,27 @@ function SupplierProductCharts({
         status = `${((day.gasto / day.compra) * 100).toFixed(1)}% Pagado`
       }
 
-      worksheet.addRow([
+      return [
         day.date,
         day.day,
         day.compra,
         day.gasto,
         day.pendiente,
         status
-      ])
+      ]
     })
 
-    // Totals row
-    const totalRow = worksheet.addRow([
-      'TOTAL',
-      '-',
-      totalPurchases,
-      totalExpenses,
-      pendingAmount,
-      paymentStatus
-    ])
-
-    totalRow.font = { bold: true }
-
-    // Borders for all cells
-    worksheet.eachRow(row => {
-      row.eachCell(cell => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        }
-      })
-    })
-
-    // Auto width columns
-    worksheet.columns = [
-      { key: 'fecha', width: 15 },
-      { key: 'dia', width: 10 },
-      { key: 'compra', width: 15 },
-      { key: 'gasto', width: 15 },
-      { key: 'pendiente', width: 15 },
-      { key: 'estado', width: 18 }
-    ]
-
-    const buffer = await workbook.xlsx.writeBuffer()
-    await downloadXlsxBlob(
-      buffer as ArrayBuffer,
-      `Reporte_Pagos_Proveedores_${filters.startDate}_${filters.endDate}.xlsx`,
+    downloadCsvFile(
+      [
+        [`Reporte de Pagos del Proveedor: ${supplierName} y Producto: ${productName}`],
+        [`Periodo: ${filters.startDate} al ${filters.endDate}`],
+        [`Generado el: ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`],
+        [],
+        ['Fecha', 'Dia', 'Compra', 'Gasto', 'Pendiente', 'Estado'],
+        ...rows,
+        ['TOTAL', '-', totalPurchases, totalExpenses, pendingAmount, paymentStatus],
+      ],
+      `Reporte_Pagos_Proveedores_${filters.startDate}_${filters.endDate}.csv`,
     )
   }
 
@@ -296,11 +226,11 @@ function SupplierProductCharts({
               variant="ghost"
               size="sm"
               disabled={!dailyData.length}
-              onClick={exportToExcel}
+              onClick={exportToCsv}
               leftIcon={<FileSpreadsheet className="h-4 w-4" aria-hidden="true" />}
               className="w-full md:w-auto text-success-700 bg-success-50 border-[1.5px] border-success-200 hover:bg-success-100 hover:border-success-300"
             >
-              Exportar a Excel
+              Exportar CSV
             </Button>
           </div>
         </section>

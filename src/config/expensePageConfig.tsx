@@ -24,7 +24,7 @@ export const expensePageConfig = buildDocumentPageConfig<
       // debe ir por PUT /expenses/with-details con version (optimistic locking).
       update: (id, data) => expenseService.updateWithDetails({ ...(data as Expense), id: Number(id) }),
       updatePartial: (id, data) => expenseService.updateWithDetails({ ...(data as Expense), id: Number(id) }),
-      delete: (id) => expenseService.delete(id),
+      delete: (id, item) => expenseService.delete(id, item),
       getAllPaginatedFiltered: (filters, page, limit) => expenseService.getAllPaginatedFiltered(filters, page, limit),
     },
     entityName: 'Gasto',

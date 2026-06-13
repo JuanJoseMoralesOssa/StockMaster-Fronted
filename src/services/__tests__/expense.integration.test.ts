@@ -10,8 +10,8 @@ import { expenseService } from '../ExpenseService'
 const BASE = 'http://127.0.0.1:3000'
 
 // ── Datos de prueba ──────────────────────────────────────────────────────────
-const EXPENSE_1 = { id: 1, total_kg: 80, date: '2026-01-20T08:00:00.000Z' }
-const EXPENSE_2 = { id: 2, total_kg: 60, date: '2026-02-10T11:00:00.000Z' }
+const EXPENSE_1 = { id: 1, version: 6, total_kg: 80, date: '2026-01-20T08:00:00.000Z' }
+const EXPENSE_2 = { id: 2, version: 1, total_kg: 60, date: '2026-02-10T11:00:00.000Z' }
 const EXPENSES = [EXPENSE_1, EXPENSE_2]
 
 function paginated<T>(data: T[], page = 1, limit = 10) {
@@ -93,15 +93,15 @@ describe('ExpenseService – getById()', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('ExpenseService – delete()', () => {
   it('elimina un gasto por su id', async () => {
-    mock.onDelete(`${BASE}/expenses/1`).reply(204)
+    mock.onDelete(`${BASE}/expenses/1?version=6`).reply(204)
 
-    await expect(expenseService.delete(1)).resolves.toBeUndefined()
+    await expect(expenseService.delete(1, EXPENSE_1)).resolves.toBeUndefined()
   })
 
   it('lanza error en fallo de red al eliminar', async () => {
-    mock.onDelete(`${BASE}/expenses/1`).networkError()
+    mock.onDelete(`${BASE}/expenses/1?version=6`).networkError()
 
-    await expect(expenseService.delete(1)).rejects.toThrow()
+    await expect(expenseService.delete(1, EXPENSE_1)).rejects.toThrow()
   })
 })
 

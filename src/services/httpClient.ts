@@ -30,12 +30,12 @@ httpClient.interceptors.request.use(
   error => Promise.reject(error),
 )
 
-// Interceptor de respuesta: manejo global básico de 401/403
+// Interceptor de respuesta: 401 invalida la sesión; 403 se muestra como error de permisos.
 httpClient.interceptors.response.use(
   response => response,
   (error: AxiosError) => {
     const status = error.response?.status
-    if (status === 401 || status === 403) {
+    if (status === 401) {
       tokenStorage.clear()
       unauthenticatedHandler?.()
     }

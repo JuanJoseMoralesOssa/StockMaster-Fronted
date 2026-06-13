@@ -101,7 +101,8 @@ export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>
     create: (data: CreateInput) => Promise<T>
     update: (id: string | number, data: UpdateInput) => Promise<T>
     updatePartial: (id: string | number, data: Partial<UpdateInput>) => Promise<T>
-    delete: (id: string | number) => Promise<void>
+    /** `item` es la fila cargada; los documentos versionados envían item.version en el DELETE. */
+    delete: (id: string | number, item?: T) => Promise<void>
     getAllPaginatedFiltered?: (filters: TFilter, page?: number, limit?: number) => Promise<PaginatedResponse<T>>
   }
 

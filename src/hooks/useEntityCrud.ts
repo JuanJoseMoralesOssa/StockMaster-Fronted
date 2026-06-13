@@ -7,7 +7,7 @@ export type CrudOps<T> = {
   create: (data: Partial<T>) => Promise<T>
   update: (id: string | number, data: Partial<T>) => Promise<T>
   updatePartial: (id: string | number, data: Partial<T>) => Promise<T>
-  delete: (id: string | number) => Promise<void>
+  delete: (id: string | number, item?: T) => Promise<void>
 }
 
 /**
@@ -39,7 +39,7 @@ export function useEntityCrud<T extends object>(
     (id, data) => service.updatePartial(id, data),
     { successMessage: `${label} actualizado`, showSuccessToast: true },
   )
-  const deleteReq = useApiRequest<void, [number | string]>((id) => service.delete(id), {
+  const deleteReq = useApiRequest<void, [number | string, T | undefined]>((id, item) => service.delete(id, item), {
     successMessage: `${label} eliminado`,
     showSuccessToast: true,
   })
@@ -61,8 +61,8 @@ export function useEntityCrud<T extends object>(
       if (!res) throw new Error(`No se pudo actualizar el ${lower}`)
       return res
     },
-    delete: async (id) => {
-      const res = await deleteReq.execute(id)
+    delete: async (id, item) => {
+      const res = await deleteReq.execute(id, item)
       if (res === null) throw new Error(`No se pudo eliminar el ${lower}`)
     },
   })

@@ -1,5 +1,5 @@
 import './App.css'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { lazy, Suspense, useEffect } from 'react'
 import useAuthStore from './stores/useAuthStore'
 import { Roles } from './enums/Roles'
@@ -12,6 +12,7 @@ import Home from './pages/home/Home'
 import Login from './pages/components/auth/Login'
 import PrivateRoute from './pages/components/auth/PrivateRoute'
 import AccessDenied from './pages/components/common/AccessDenied'
+import NoAssignedModules from './pages/components/common/NoAssignedModules'
 import NotFound from './pages/components/common/NotFound'
 
 // Lazy-load heavy page components to reduce initial bundle size
@@ -52,16 +53,16 @@ function ScrollToTop() {
     return null
 }
 
-// Página inicial según rol: el Operador no ve el Dashboard, va a Compras.
+// Pagina inicial segun rol: los endpoints operativos hoy son solo Oficina/Admin.
 function DefaultLanding() {
     const role = useAuthStore((s) => s.user?.role)
-    if (role === Roles.OPERATOR) {
-        return <Navigate to="/compras" replace />
+    if (!role || !OFFICE_ADMIN.includes(role)) {
+        return <NoAssignedModules />
     }
     return <Dashboard />
 }
 
-const OFFICE_ADMIN = [Roles.OFFICE, Roles.ADMIN]
+const OFFICE_ADMIN: string[] = [Roles.OFFICE, Roles.ADMIN]
 
 function App() {
     const { checkAuth, isLoading } = useAuthStore()
@@ -89,12 +90,12 @@ function App() {
                         <PrivateRoute element={<Home />} />
                     }>
                         <Route index element={<DefaultLanding />} />
-                        <Route path='productos' element={<Product />} />
+                        <Route path='productos' element={<PrivateRoute element={<Product />} allowedRoles={OFFICE_ADMIN} />} />
                         <Route path='kardex' element={<PrivateRoute element={<Kardex />} allowedRoles={OFFICE_ADMIN} />} />
-                        <Route path='gastos' element={<Expense />} />
-                        <Route path='compras' element={<Purchase />} />
-                        <Route path='compras/escanear' element={<ScanPurchase />} />
-                        <Route path='personas' element={<Person />} />
+                        <Route path='gastos' element={<PrivateRoute element={<Expense />} allowedRoles={OFFICE_ADMIN} />} />
+                        <Route path='compras' element={<PrivateRoute element={<Purchase />} allowedRoles={OFFICE_ADMIN} />} />
+                        <Route path='compras/escanear' element={<PrivateRoute element={<ScanPurchase />} allowedRoles={OFFICE_ADMIN} />} />
+                        <Route path='personas' element={<PrivateRoute element={<Person />} allowedRoles={OFFICE_ADMIN} />} />
                         <Route path='usuarios' element={<PrivateRoute element={<User />} allowedRoles={OFFICE_ADMIN} />} />
                     </Route>
                     <Route path="/access-denied" element={<AccessDenied />} />

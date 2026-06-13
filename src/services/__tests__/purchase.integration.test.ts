@@ -10,8 +10,8 @@ import { purchaseService } from '../PurchaseService'
 const BASE = 'http://127.0.0.1:3000'
 
 // ── Datos de prueba ──────────────────────────────────────────────────────────
-const PURCHASE_1 = { id: 1, total_kg: 200, date: '2026-01-15T10:00:00.000Z' }
-const PURCHASE_2 = { id: 2, total_kg: 150, date: '2026-02-01T09:30:00.000Z' }
+const PURCHASE_1 = { id: 1, version: 4, total_kg: 200, date: '2026-01-15T10:00:00.000Z' }
+const PURCHASE_2 = { id: 2, version: 1, total_kg: 150, date: '2026-02-01T09:30:00.000Z' }
 const PURCHASES = [PURCHASE_1, PURCHASE_2]
 
 function paginated<T>(data: T[], page = 1, limit = 10) {
@@ -98,15 +98,15 @@ describe('PurchaseService – getById()', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('PurchaseService – delete()', () => {
   it('elimina una compra por su id', async () => {
-    mock.onDelete(`${BASE}/purchases/1`).reply(204)
+    mock.onDelete(`${BASE}/purchases/1?version=4`).reply(204)
 
-    await expect(purchaseService.delete(1)).resolves.toBeUndefined()
+    await expect(purchaseService.delete(1, PURCHASE_1)).resolves.toBeUndefined()
   })
 
   it('lanza error si la compra no existe al eliminar (404)', async () => {
-    mock.onDelete(`${BASE}/purchases/999`).reply(404, { message: 'Compra no encontrada' })
+    mock.onDelete(`${BASE}/purchases/999?version=4`).reply(404, { message: 'Compra no encontrada' })
 
-    await expect(purchaseService.delete(999)).rejects.toThrow()
+    await expect(purchaseService.delete(999, PURCHASE_1)).rejects.toThrow()
   })
 })
 

@@ -117,8 +117,8 @@ function GenericPage<T extends object, TFilter extends object = object, CreateIn
     })
   }
 
-  const handleDelete = async (id: number | string) => {
-    return mergedService.delete(id)
+  const handleDelete = async (id: number | string, item?: T) => {
+    return mergedService.delete(id, item)
   }
 
   const applyFilters = () => {

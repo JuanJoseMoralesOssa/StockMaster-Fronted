@@ -42,4 +42,15 @@ describe('httpClient', () => {
     expect(localStorage.removeItem).toHaveBeenCalledWith('token')
     expect(localStorage.removeItem).toHaveBeenCalledWith('user')
   })
+
+  it('does not clear the session on permission errors', async () => {
+    const onUnauthenticated = vi.fn()
+    configureHttpClient({ onUnauthenticated })
+
+    mock.onGet('/admin-only').reply(403, { message: 'Acceso denegado' })
+
+    await expect(httpClient.get('/admin-only')).rejects.toBeTruthy()
+    expect(onUnauthenticated).not.toHaveBeenCalled()
+    expect(localStorage.removeItem).not.toHaveBeenCalled()
+  })
 })

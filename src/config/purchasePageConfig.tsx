@@ -25,7 +25,7 @@ const basePurchasePageConfig = buildDocumentPageConfig<
       // debe ir por PUT /purchases/with-details con version (optimistic locking).
       update: (id, data) => purchaseService.updateWithDetails({ ...(data as Purchase), id: Number(id) }),
       updatePartial: (id, data) => purchaseService.updateWithDetails({ ...(data as Purchase), id: Number(id) }),
-      delete: (id) => purchaseService.delete(id),
+      delete: (id, item) => purchaseService.delete(id, item),
       getAllPaginatedFiltered: (filters, page, limit) => purchaseService.getAllPaginatedFiltered(filters, page, limit),
     },
     entityName: 'Compra',

@@ -90,6 +90,17 @@ describe('DocumentWithDetailsService Unit Tests', () => {
     ).rejects.toThrow('Este registro fue modificado por otro usuario. Por favor recarga y vuelve a intentarlo.')
   })
 
+  it('delete should send the row version as a query parameter', async () => {
+    mock.onDelete(`${service.buildUrl('1')}?version=3`).reply(204)
+
+    await expect(service.delete(1, { id: 1, version: 3 })).resolves.toBeUndefined()
+  })
+
+  it('delete should require the row version before calling the API', async () => {
+    await expect(service.delete(1, { id: 1 })).rejects.toThrow('falta la versión')
+    expect(mock.history.delete).toHaveLength(0)
+  })
+
   it('createWithDetails should require at least one detail', async () => {
     await expect(
       service.createWithDetails({ date: '2026-03-01', test_details: [] }),
