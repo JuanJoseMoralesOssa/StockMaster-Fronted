@@ -31,6 +31,7 @@ import {
   TransactionWithEntity,
 } from '../../../utils/chartTransforms'
 import ChartDetailTable from './ChartDetailTable'
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 
 interface Filters { startDate: string; endDate: string; supplierId: string; productId: string }
 
@@ -41,6 +42,10 @@ interface ProductReportProps {
 }
 
 const ProductReport: React.FC<ProductReportProps> = ({ results, products, filters }) => {
+  // Keep the long daily-distribution section open on desktop but collapsed on
+  // phones, where it would otherwise dominate the scroll.
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+
   const productsMap = useMemo(() => {
     const map = new Map<number, string>()
     products.forEach((p) => {
@@ -139,7 +144,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg font-medium mb-4">Distribución Mensual de Pagos</h2>
           <div className={CHART_HEIGHTS.large}>
@@ -209,7 +214,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
       </div>
 
       {/* Distribución Diaria — collapsible (largest section; reduces scroll on mobile) */}
-      <details className="group mb-6" open>
+      <details className="group mb-6" open={isDesktop}>
         <summary className="mb-4 flex cursor-pointer list-none items-center justify-between gap-2 text-xl font-semibold [&::-webkit-details-marker]:hidden">
           <span>Distribución Diaria por Mes y Producto</span>
           <ChevronDown className="h-5 w-5 text-(--color-text-secondary) transition-transform group-open:rotate-180" aria-hidden="true" />

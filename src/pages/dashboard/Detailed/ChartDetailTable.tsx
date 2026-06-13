@@ -46,7 +46,7 @@ export default function ChartDetailTable({
           size="sm"
           onClick={onExport}
           leftIcon={<FileSpreadsheet className="h-4 w-4" aria-hidden="true" />}
-          className="text-success-700 bg-success-50 border-[1.5px] border-success-200 hover:bg-success-100 hover:border-success-300"
+          className="text-success-700 bg-success-50 border-[1.5px] border-success-200 hover:bg-success-100 hover:border-success-300 pointer-coarse:h-11 pointer-coarse:px-4"
         >
           Exportar CSV
         </Button>

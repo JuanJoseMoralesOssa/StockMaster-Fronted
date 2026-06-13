@@ -118,7 +118,7 @@ function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps
               {card.icon}
             </div>
           </div>
-          <div className={`text-xl sm:text-2xl font-bold tracking-tight font-mono tabular-nums ${card.valueClass ?? 'text-(--color-text-primary)'}`}>
+          <div className={`text-lg sm:text-2xl font-bold tracking-tight font-mono tabular-nums wrap-break-word ${card.valueClass ?? 'text-(--color-text-primary)'}`}>
             {card.value}
           </div>
           {card.hint && (

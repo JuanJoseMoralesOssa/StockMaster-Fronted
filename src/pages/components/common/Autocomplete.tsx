@@ -118,9 +118,17 @@ export default function Autocomplete({
     window.addEventListener("resize", updateDropdownPosition)
     window.addEventListener("scroll", updateDropdownPosition, true)
 
+    // The on-screen keyboard resizes the visual viewport (not always the layout
+    // viewport), so track it too to keep the portaled dropdown anchored to the input.
+    const vv = window.visualViewport
+    vv?.addEventListener("resize", updateDropdownPosition)
+    vv?.addEventListener("scroll", updateDropdownPosition)
+
     return () => {
       window.removeEventListener("resize", updateDropdownPosition)
       window.removeEventListener("scroll", updateDropdownPosition, true)
+      vv?.removeEventListener("resize", updateDropdownPosition)
+      vv?.removeEventListener("scroll", updateDropdownPosition)
     }
   }, [showDropdown, updateDropdownPosition])
 

@@ -8,6 +8,7 @@ import { FileSpreadsheet, ChevronDown } from 'lucide-react'
 import { formatChartValue, formatChartPercent, downloadCsvFile, CHART_HEIGHTS, CHART_MARGINS, CHART_COLORS } from './chart.utils'
 import { processDailyEntries, processMonthlyEntries, groupDailyEntriesByMonth } from '../../../utils/chartTransforms'
 import { Button } from '../../../components/ui'
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 
 const TH = 'px-3 sm:px-6 py-3 text-left text-xs font-medium text-(--color-text-secondary) uppercase tracking-wider'
 const TH_NUMERIC = 'px-3 sm:px-6 py-3 text-right text-xs font-medium text-(--color-text-secondary) uppercase tracking-wider tabular-nums'
@@ -29,6 +30,10 @@ function SupplierProductCharts({
   selectedFilter,
   filters,
 }: Readonly<SupplierAndProductProps>) {
+  // Keep the long daily-distribution section open on desktop but collapsed on
+  // phones, where it would otherwise dominate the scroll.
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+
   const supplierName = supplier?.name || 'Desconocido'
   const productName = product.name || 'Producto Seleccionado'
 
@@ -137,7 +142,7 @@ function SupplierProductCharts({
       </div>
 
       {/* Gráficos principales */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Distribución de Pagos por Mes</h2>
           <div className={CHART_HEIGHTS.large}>
@@ -181,7 +186,7 @@ function SupplierProductCharts({
       </div>
 
       {/* Gráfica diaria por mes — collapsible (reduces scroll on mobile) */}
-      <details className="group mb-6" open>
+      <details className="group mb-6" open={isDesktop}>
         <summary className="mb-4 flex cursor-pointer list-none items-center justify-between gap-2 text-lg font-semibold [&::-webkit-details-marker]:hidden">
           <span>Distribución Diaria por Mes</span>
           <ChevronDown className="h-5 w-5 text-(--color-text-secondary) transition-transform group-open:rotate-180" aria-hidden="true" />
@@ -228,7 +233,7 @@ function SupplierProductCharts({
               disabled={!dailyData.length}
               onClick={exportToCsv}
               leftIcon={<FileSpreadsheet className="h-4 w-4" aria-hidden="true" />}
-              className="w-full md:w-auto text-success-700 bg-success-50 border-[1.5px] border-success-200 hover:bg-success-100 hover:border-success-300"
+              className="w-full md:w-auto text-success-700 bg-success-50 border-[1.5px] border-success-200 hover:bg-success-100 hover:border-success-300 pointer-coarse:h-11 pointer-coarse:px-4"
             >
               Exportar CSV
             </Button>
