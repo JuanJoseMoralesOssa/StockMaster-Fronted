@@ -10,7 +10,7 @@ function DashboardHeader({ title, subtitle, dateFormatted }: Readonly<DashboardH
       <div className="flex min-w-0 items-start gap-3">
         <span className="mt-1 h-10 w-1 rounded-full bg-(--view-accent,var(--color-action-bg))" aria-hidden="true" />
         <div>
-          <h1 className="text-2xl font-bold text-(--color-text-primary) tracking-tight">{title}</h1>
+          <h1 className="text-2xl xl:text-3xl font-bold text-(--color-text-primary) tracking-tight">{title}</h1>
           <p className="text-sm text-(--color-text-secondary) mt-1">{subtitle}</p>
         </div>
       </div>

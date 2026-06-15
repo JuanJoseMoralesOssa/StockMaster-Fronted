@@ -73,7 +73,7 @@ function GeneralDashboard() {
     <div className="space-y-6">
       <div className="bg-(--color-bg-surface) p-4 sm:p-6 rounded-lg shadow-xs border border-(--color-border)">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="flex items-center gap-3 text-xl font-bold text-(--color-text-primary)">
+          <h2 className="flex items-center gap-3 text-xl xl:text-2xl font-bold text-(--color-text-primary)">
             <span className="h-6 w-1 rounded-full bg-(--view-accent,var(--color-action-bg))" aria-hidden="true" />
             Tablero General
           </h2>

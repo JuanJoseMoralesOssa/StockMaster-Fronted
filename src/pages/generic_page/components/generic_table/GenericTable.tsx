@@ -154,7 +154,7 @@ export default function GenericTable<T extends Record<string, any>>({
       <div className='overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs'>
         {isDesktop ? (
           /* Tabla: tablet landscape y desktop (≥ lg = 1024px) */
-          <div className='max-h-[70vh] overflow-x-auto overflow-y-auto'>
+          <div className='max-h-[70vh] lg:max-h-[78vh] 2xl:max-h-[84vh] overflow-x-auto overflow-y-auto'>
             <table className='w-full min-w-180 divide-y divide-(--color-border)'>
               <GenericTableHeader
                 columns={columns}

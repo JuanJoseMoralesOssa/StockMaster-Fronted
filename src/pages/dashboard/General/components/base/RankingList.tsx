@@ -43,7 +43,7 @@ function RankingList({
         {displayItems.map((item, index) => (
           <div
             key={item.id}
-            className={`${index >= mobileMaxItems ? "hidden lg:flex" : "flex"} justify-between items-center text-sm text-(--color-text-primary)`}
+            className={`${index >= mobileMaxItems ? "hidden lg:flex" : "flex"} justify-between items-center text-sm text-(--color-text-primary) ${onItemClick ? "rounded -mx-1 px-1 py-0.5 transition-colors hover:bg-(--color-bg-surface)/60" : ""}`}
           >
             <span className="font-medium flex items-center gap-2">
               {showNumbers && (

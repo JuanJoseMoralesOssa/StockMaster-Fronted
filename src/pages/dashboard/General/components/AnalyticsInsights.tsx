@@ -59,12 +59,12 @@ function AnalyticsInsights({ data }: Readonly<AnalyticsInsightsProps>) {
 
   return (
     <div className="bg-(--view-accent-soft,var(--color-bg-subtle)) p-6 rounded-lg border border-(--view-accent-border,var(--color-border))">
-      <h3 className="text-lg font-bold text-(--color-text-primary) mb-4 flex items-center gap-2">
+      <h3 className="text-lg xl:text-xl font-bold text-(--color-text-primary) mb-4 flex items-center gap-2">
         <Brain className="w-5 h-5 text-(--view-accent-text,var(--color-text-link))" />
         Estadísticas Inteligentes
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {insightCards.map((card) => (
           <InsightCard
             key={card.title}

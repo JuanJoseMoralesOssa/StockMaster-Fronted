@@ -55,13 +55,13 @@ export default function GenericTableCards<T>({
         return (
           <li
             key={itemId}
-            className={`rounded-lg border border-(--color-border) bg-(--color-bg-surface) p-4 shadow-xs ${rowClassName ? rowClassName(item) : ''}`}
+            className={`rounded-lg border border-(--color-border) bg-(--color-bg-surface) p-4 shadow-xs ${isExpanded ? 'sm:col-span-2' : ''} ${rowClassName ? rowClassName(item) : ''}`}
           >
             {/* Primera columna como título prominente */}
             {titleColumn && (
-              <p className='mb-3 text-base font-semibold text-(--color-text-primary)'>
+              <div className='mb-3 text-base font-semibold text-(--color-text-primary)'>
                 {getCellValue(item, titleColumn)}
-              </p>
+              </div>
             )}
 
             {/* Resto de columnas como pares label/valor */}

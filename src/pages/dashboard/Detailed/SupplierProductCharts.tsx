@@ -144,44 +144,40 @@ function SupplierProductCharts({
       {/* Gráficos principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
-          <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Distribución de Pagos por Mes</h2>
-          <div className={CHART_HEIGHTS.large}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={barChartData}
-                margin={CHART_MARGINS.inline}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" fontSize={10} />
-                <YAxis fontSize={10} />
-                <Tooltip formatter={(value) => formatChartValue(value)} />
-                <Legend />
-                <Bar dataKey="Total" fill={CHART_COLORS.blue} />
-                <Bar dataKey="Pagado" fill={CHART_COLORS.green} />
-                <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <h2 className="text-lg xl:text-xl font-semibold mb-4 text-(--color-text-primary)">Distribución de Pagos por Mes</h2>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
+            <BarChart
+              data={barChartData}
+              margin={CHART_MARGINS.inline}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" fontSize={10} />
+              <YAxis fontSize={10} />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
+              <Legend />
+              <Bar dataKey="Total" fill={CHART_COLORS.blue} />
+              <Bar dataKey="Pagado" fill={CHART_COLORS.green} />
+              <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
-          <h2 className="text-lg font-semibold mb-4 text-(--color-text-primary)">Panorama General</h2>
-          <div className={CHART_HEIGHTS.large}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  nameKey="name"
-                  outerRadius="70%"
-                  dataKey="value"
-                />
-                <Tooltip formatter={(value) => formatChartValue(value)} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <h2 className="text-lg xl:text-xl font-semibold mb-4 text-(--color-text-primary)">Panorama General</h2>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                nameKey="name"
+                outerRadius="70%"
+                dataKey="value"
+              />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -191,32 +187,30 @@ function SupplierProductCharts({
           <span>Distribución Diaria por Mes</span>
           <ChevronDown className="h-5 w-5 text-(--color-text-secondary) transition-transform group-open:rotate-180" aria-hidden="true" />
         </summary>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Object.entries(dailyByMonth).map(([month, days]) => (
             <div key={month} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
               <h3 className="text-md font-medium mb-4 text-center text-(--color-text-primary)">{month}</h3>
-              <div className={CHART_HEIGHTS.medium}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={days.map(d => ({
-                      día: d.day,
-                      Compra: d.compra,
-                      Gasto: d.gasto,
-                      Pendiente: d.pendiente
-                    }))}
-                    margin={CHART_MARGINS.inline}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="día" fontSize={10} />
-                    <YAxis fontSize={10} />
-                    <Tooltip formatter={(value) => formatChartValue(value)} />
-                    <Legend />
-                    <Bar dataKey="Compra" fill={CHART_COLORS.blue} />
-                    <Bar dataKey="Gasto" fill={CHART_COLORS.green} />
-                    <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <ResponsiveContainer width="100%" height={CHART_HEIGHTS.medium}>
+                <BarChart
+                  data={days.map(d => ({
+                    día: d.day,
+                    Compra: d.compra,
+                    Gasto: d.gasto,
+                    Pendiente: d.pendiente
+                  }))}
+                  margin={CHART_MARGINS.inline}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="día" fontSize={10} />
+                  <YAxis fontSize={10} />
+                  <Tooltip formatter={(value) => formatChartValue(value)} />
+                  <Legend />
+                  <Bar dataKey="Compra" fill={CHART_COLORS.blue} />
+                  <Bar dataKey="Gasto" fill={CHART_COLORS.green} />
+                  <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           ))}
         </div>

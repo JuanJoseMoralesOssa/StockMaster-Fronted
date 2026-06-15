@@ -4,7 +4,6 @@ import RenderingWithMode from './RenderingWithMode'
 import DashboardHeader from './components/DashboardHeader'
 import KpiCards from './components/KpiCards'
 import InventoryKpis from './components/InventoryKpis'
-import ActionButtons from './components/ActionButtons'
 import EmptyState from './components/EmptyState'
 import SummaryTypeToggle from './components/SummaryTypeToggle'
 import { Alert } from '../../components/ui'
@@ -13,7 +12,6 @@ import { getTodayFormatted } from './utils/dateHelpers'
 
 export default function DashboardInner() {
   const {
-    loading,
     error,
     filters,
     analytics,
@@ -24,7 +22,6 @@ export default function DashboardInner() {
     summaryType,
     changeSummaryType,
     fetchData,
-    resetFilters,
     clearResults,
   } = useDashboard()
 
@@ -42,7 +39,7 @@ export default function DashboardInner() {
 
   return (
     <div className="min-h-full w-full bg-(--color-bg-page) p-5 sm:p-6 md:p-8">
-      <div className="mx-auto w-full max-w-[1440px]">
+      <div className="mx-auto w-full max-w-360 xl:max-w-400 2xl:max-w-440">
         <DashboardHeader
           title="Reporte de Operaciones"
           subtitle="Consulta y analiza resultados por período, proveedor o producto"
@@ -60,7 +57,7 @@ export default function DashboardInner() {
         <hr className="border-t border-(--color-border) mb-8 -mt-2" />
 
         <div className="mb-8 overflow-visible rounded-lg border border-(--color-border) bg-(--color-bg-surface) shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-(--color-border) px-5 pt-5 pb-3">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-(--color-border) px-5 pt-5 pb-3">
             <ModeToggleDashboard
               dashboardMode={dashboardMode}
               handleModeChange={handleModeChange}
@@ -76,14 +73,7 @@ export default function DashboardInner() {
                 fetchData()
               }}
             >
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-end">
-                <div className="min-w-0 flex-1">
-                  <Filters />
-                </div>
-                <div className="shrink-0">
-                  <ActionButtons onClear={resetFilters} loading={loading} />
-                </div>
-              </div>
+              <Filters />
 
               {error && (
                 <Alert variant="danger" title="No se pudo cargar el reporte">

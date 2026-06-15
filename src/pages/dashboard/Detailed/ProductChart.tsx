@@ -141,67 +141,61 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
-          <h2 className="text-lg font-medium mb-4">Distribución Mensual de Pagos a Proveedores</h2>
-          <div className={CHART_HEIGHTS.large}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyDataArray} margin={CHART_MARGINS.withBottomLabels}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} fontSize={10} />
-                <YAxis fontSize={10} />
-                <Tooltip formatter={(value) => formatChartValue(value)} />
-                <Legend />
-                <Bar dataKey="Total" name="Total Compras" fill={CHART_COLORS.purchase} />
-                <Bar dataKey="Pagado" name="Total Pagado" fill={CHART_COLORS.paid} />
-                <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <h2 className="text-lg xl:text-xl font-medium mb-4">Distribución Mensual de Pagos a Proveedores</h2>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
+            <BarChart data={monthlyDataArray} margin={CHART_MARGINS.withBottomLabels}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} fontSize={10} />
+              <YAxis fontSize={10} />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
+              <Legend />
+              <Bar dataKey="Total" name="Total Compras" fill={CHART_COLORS.purchase} />
+              <Bar dataKey="Pagado" name="Total Pagado" fill={CHART_COLORS.paid} />
+              <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
-          <h2 className="text-lg font-medium mb-4">Panorama General de Pagos a Proveedores</h2>
-          <div className={CHART_HEIGHTS.large}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieChartData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius="70%"
-                />
-                <Tooltip formatter={(value) => formatChartValue(value)} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <h2 className="text-lg xl:text-xl font-medium mb-4">Panorama General de Pagos a Proveedores</h2>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
+            <PieChart>
+              <Pie
+                data={pieChartData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius="70%"
+              />
+              <Tooltip formatter={(value) => formatChartValue(value)} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       {/* Gráficas por Proveedor */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4">Distribución Mensual de Pagos por Proveedor</h2>
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <h2 className="text-xl xl:text-2xl font-semibold mb-4">Distribución Mensual de Pagos por Proveedor</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {Object.entries(dataBySupplier).map(([personId, supplierData]) => {
             const supplierName = suppliersMap.get(parseInt(personId)) || 'Proveedor Desconocido'
             return (
               <div key={personId} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
                 <h3 className="text-lg font-medium mb-4 text-center">{supplierName}</h3>
-                <div className={CHART_HEIGHTS.medium}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={supplierData} margin={CHART_MARGINS.standard}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" angle={-45} textAnchor="end" height={60} fontSize={10} />
-                      <YAxis fontSize={10} />
-                      <Tooltip formatter={(value) => formatChartValue(value)} />
-                      <Legend />
-                      <Bar dataKey="Total" name="Total" fill={CHART_COLORS.purchase} />
-                      <Bar dataKey="Pagado" name="Pagado" fill={CHART_COLORS.paid} />
-                      <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={CHART_HEIGHTS.medium}>
+                  <BarChart data={supplierData} margin={CHART_MARGINS.standard}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" angle={-45} textAnchor="end" height={60} fontSize={10} />
+                    <YAxis fontSize={10} />
+                    <Tooltip formatter={(value) => formatChartValue(value)} />
+                    <Legend />
+                    <Bar dataKey="Total" name="Total" fill={CHART_COLORS.purchase} />
+                    <Bar dataKey="Pagado" name="Pagado" fill={CHART_COLORS.paid} />
+                    <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             )
           })}
@@ -228,24 +222,22 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
                 {monthsWithData.map(([month, dailyData]) => (
                   <div key={`${personId}-${month}`} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
                     <h4 className="text-md font-medium mb-3 text-center text-(--color-text-secondary)">{month}</h4>
-                    <div className={CHART_HEIGHTS.small}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={dailyData} margin={CHART_MARGINS.compact}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="day" angle={-45} textAnchor="end" height={40} fontSize={10} />
-                          <YAxis fontSize={10} />
-                          <Tooltip
-                            formatter={(value) => formatChartValue(value)}
-                            labelStyle={{ fontSize: '12px' }}
-                            contentStyle={{ fontSize: '12px' }}
-                          />
-                          <Legend iconSize={8} />
-                          <Bar dataKey="Total" name="Total" fill={CHART_COLORS.purchase} />
-                          <Bar dataKey="Pagado" name="Pagado" fill={CHART_COLORS.paid} />
-                          <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
+                    <ResponsiveContainer width="100%" height={CHART_HEIGHTS.small}>
+                      <BarChart data={dailyData} margin={CHART_MARGINS.compact}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="day" angle={-45} textAnchor="end" height={40} fontSize={10} />
+                        <YAxis fontSize={10} />
+                        <Tooltip
+                          formatter={(value) => formatChartValue(value)}
+                          labelStyle={{ fontSize: '12px' }}
+                          contentStyle={{ fontSize: '12px' }}
+                        />
+                        <Legend iconSize={8} />
+                        <Bar dataKey="Total" name="Total" fill={CHART_COLORS.purchase} />
+                        <Bar dataKey="Pagado" name="Pagado" fill={CHART_COLORS.paid} />
+                        <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 ))}
               </div>

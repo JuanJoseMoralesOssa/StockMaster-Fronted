@@ -108,6 +108,14 @@ export function useDashboardData() {
         setError('La fecha de inicio no puede ser posterior a la fecha de fin.')
         return
       }
+      const daysDiff = Math.ceil(
+        (new Date(filters.endDate).getTime() - new Date(filters.startDate).getTime()) /
+          (1000 * 60 * 60 * 24),
+      )
+      if (daysDiff > 365) {
+        setError('El rango de fechas no puede superar 365 días.')
+        return
+      }
       if (filters.supplierId && isNaN(Number(filters.supplierId))) {
         setError('Por favor, selecciona un proveedor válido.')
         return

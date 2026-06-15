@@ -166,7 +166,7 @@ function GenericPage<T extends object, TFilter extends object = object, CreateIn
 
   return (
     <PageContextProvider value={contextValue}>
-      <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 py-5 sm:px-6 md:gap-6 md:px-8 md:py-6">
+      <section className="mx-auto flex w-full max-w-360 xl:max-w-400 2xl:max-w-440 flex-col gap-5 px-4 py-5 sm:px-6 md:gap-6 md:px-8 md:py-6">
         {children || (
           <>
             <PageHeader config={config} />
