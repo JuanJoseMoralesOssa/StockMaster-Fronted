@@ -187,6 +187,25 @@ export default function ScanPurchase() {
     await detectCropForFile(file, { showMessages: true });
   };
 
+  const handleCropEditorToggle = async () => {
+    if (editingCrop) {
+      setEditingCrop(false);
+      return;
+    }
+
+    if (hasVisibleCrop(crop)) {
+      setEditingCrop(true);
+      return;
+    }
+
+    if (!file || suggestingCrop) {
+      setEditingCrop(true);
+      return;
+    }
+
+    await detectCropForFile(file, { showMessages: true });
+  };
+
   const handleProcess = async () => {
     if (!file) return;
     setScanFeedback(null);
@@ -396,7 +415,8 @@ export default function ScanPurchase() {
                 <Button
                   variant={editingCrop ? "secondary" : "outline"}
                   leftIcon={<Crop className="h-4 w-4" />}
-                  onClick={() => setEditingCrop((prev) => !prev)}
+                  loading={!editingCrop && suggestingCrop}
+                  onClick={handleCropEditorToggle}
                 >
                   Recortar foto
                 </Button>
