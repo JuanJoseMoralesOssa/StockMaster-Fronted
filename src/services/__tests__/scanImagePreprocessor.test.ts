@@ -5,6 +5,7 @@ import {
   SCAN_IMAGE_JPEG_QUALITY,
   SCAN_IMAGE_MAX_DIMENSION,
   SCAN_IMAGE_OUTPUT_TYPE,
+  suggestScanImageCropFromPixels,
 } from "../scanImagePreprocessor";
 
 const originalCreateElement = document.createElement.bind(document);
@@ -164,5 +165,63 @@ describe("optimizeScanImage", () => {
       400,
     );
     vi.stubGlobal("Image", originalImage);
+  });
+
+  it("suggests the J.A.A.G form crop from blue ink instead of lower background", () => {
+    const width = 200;
+    const height = 300;
+    const pixels = new Uint8ClampedArray(width * height * 4);
+
+    for (let index = 0; index < pixels.length; index += 4) {
+      pixels[index] = 185;
+      pixels[index + 1] = 165;
+      pixels[index + 2] = 135;
+      pixels[index + 3] = 255;
+    }
+
+    const paintPixel = (
+      x: number,
+      y: number,
+      color: [number, number, number],
+    ) => {
+      const offset = (y * width + x) * 4;
+      pixels[offset] = color[0];
+      pixels[offset + 1] = color[1];
+      pixels[offset + 2] = color[2];
+      pixels[offset + 3] = 255;
+    };
+    const paintLine = (
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+      color: [number, number, number],
+    ) => {
+      for (let y = y1; y <= y2; y += 1) {
+        for (let x = x1; x <= x2; x += 1) {
+          paintPixel(x, y, color);
+        }
+      }
+    };
+
+    const ink: [number, number, number] = [55, 76, 125];
+    paintLine(8, 42, 188, 45, ink);
+    paintLine(8, 135, 188, 138, ink);
+    paintLine(8, 42, 11, 138, ink);
+    paintLine(185, 42, 188, 138, ink);
+    paintLine(35, 72, 170, 75, ink);
+    paintLine(45, 92, 180, 95, ink);
+    paintLine(20, 115, 150, 118, ink);
+
+    // Blue-ish lower distractor, similar to clothing in the sample photo.
+    paintLine(0, 230, 35, 260, [30, 45, 95]);
+
+    const crop = suggestScanImageCropFromPixels(pixels, width, height);
+
+    expect(crop).not.toBeNull();
+    expect(crop?.top).toBeLessThan(0.18);
+    expect(crop?.bottom).toBeGreaterThan(0.45);
+    expect(crop?.left).toBeLessThan(0.08);
+    expect(crop?.right).toBeLessThan(0.08);
   });
 });

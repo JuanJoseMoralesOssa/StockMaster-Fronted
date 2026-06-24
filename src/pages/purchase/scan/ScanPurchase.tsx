@@ -22,6 +22,7 @@ import { todayBogota } from "../../../utils/date";
 import {
   normalizeScanImageCrop,
   ScanImageCrop,
+  suggestScanImageCrop,
 } from "../../../services/scanImagePreprocessor";
 
 type Step = "upload" | "processing" | "review";
@@ -68,6 +69,7 @@ export default function ScanPurchase() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState<ScanImageCrop>(EMPTY_CROP);
   const [editingCrop, setEditingCrop] = useState(false);
+  const [suggestingCrop, setSuggestingCrop] = useState(false);
   const [result, setResult] = useState<ExtractionResult | null>(null);
 
   // Review state (same shape the manual create form uses)
@@ -108,6 +110,7 @@ export default function ScanPurchase() {
     setPreviewUrl(URL.createObjectURL(selected));
     setCrop(EMPTY_CROP);
     setEditingCrop(false);
+    setSuggestingCrop(false);
   };
 
   const updateCropSide = (side: keyof ScanImageCrop, value: number) => {
@@ -117,6 +120,24 @@ export default function ScanPurchase() {
   const resetCrop = () => {
     setCrop(EMPTY_CROP);
     setEditingCrop(false);
+  };
+
+  const applyRecommendedCrop = async () => {
+    if (!file || suggestingCrop) return;
+    setSuggestingCrop(true);
+    try {
+      const suggestedCrop = await suggestScanImageCrop(file);
+      if (!suggestedCrop) {
+        showWarning("No encontré el formulario con suficiente claridad");
+        return;
+      }
+      setCrop(suggestedCrop);
+      setEditingCrop(true);
+    } catch {
+      showWarning("No se pudo calcular el recorte sugerido");
+    } finally {
+      setSuggestingCrop(false);
+    }
   };
 
   const handleProcess = async () => {
@@ -241,51 +262,53 @@ export default function ScanPurchase() {
 
           {previewUrl ? (
             <div className="flex flex-col gap-3">
-              <div className="relative overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg-surface)">
-                <img
-                  src={previewUrl}
-                  alt="Vista previa del formulario"
-                  className="max-h-96 w-full object-contain"
-                />
-                {editingCrop && (
-                  <div className="pointer-events-none absolute inset-0">
-                    <div
-                      className="absolute left-0 right-0 top-0 bg-black/45"
-                      style={{ height: `${cropPercent(crop.top)}%` }}
-                    />
-                    <div
-                      className="absolute bottom-0 left-0 right-0 bg-black/45"
-                      style={{ height: `${cropPercent(crop.bottom)}%` }}
-                    />
-                    <div
-                      className="absolute bg-black/45"
-                      style={{
-                        bottom: `${cropPercent(crop.bottom)}%`,
-                        left: 0,
-                        top: `${cropPercent(crop.top)}%`,
-                        width: `${cropPercent(crop.left)}%`,
-                      }}
-                    />
-                    <div
-                      className="absolute bg-black/45"
-                      style={{
-                        bottom: `${cropPercent(crop.bottom)}%`,
-                        right: 0,
-                        top: `${cropPercent(crop.top)}%`,
-                        width: `${cropPercent(crop.right)}%`,
-                      }}
-                    />
-                    <div
-                      className="absolute border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.45)]"
-                      style={{
-                        bottom: `${cropPercent(crop.bottom)}%`,
-                        left: `${cropPercent(crop.left)}%`,
-                        right: `${cropPercent(crop.right)}%`,
-                        top: `${cropPercent(crop.top)}%`,
-                      }}
-                    />
-                  </div>
-                )}
+              <div className="flex justify-center rounded-lg border border-(--color-border) bg-(--color-bg-surface)">
+                <div className="relative overflow-hidden">
+                  <img
+                    src={previewUrl}
+                    alt="Vista previa del formulario"
+                    className="block max-h-96 max-w-full object-contain"
+                  />
+                  {editingCrop && (
+                    <div className="pointer-events-none absolute inset-0">
+                      <div
+                        className="absolute left-0 right-0 top-0 bg-black/45"
+                        style={{ height: `${cropPercent(crop.top)}%` }}
+                      />
+                      <div
+                        className="absolute bottom-0 left-0 right-0 bg-black/45"
+                        style={{ height: `${cropPercent(crop.bottom)}%` }}
+                      />
+                      <div
+                        className="absolute bg-black/45"
+                        style={{
+                          bottom: `${cropPercent(crop.bottom)}%`,
+                          left: 0,
+                          top: `${cropPercent(crop.top)}%`,
+                          width: `${cropPercent(crop.left)}%`,
+                        }}
+                      />
+                      <div
+                        className="absolute bg-black/45"
+                        style={{
+                          bottom: `${cropPercent(crop.bottom)}%`,
+                          right: 0,
+                          top: `${cropPercent(crop.top)}%`,
+                          width: `${cropPercent(crop.right)}%`,
+                        }}
+                      />
+                      <div
+                        className="absolute border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.45)]"
+                        style={{
+                          bottom: `${cropPercent(crop.bottom)}%`,
+                          left: `${cropPercent(crop.left)}%`,
+                          right: `${cropPercent(crop.right)}%`,
+                          top: `${cropPercent(crop.top)}%`,
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -295,6 +318,14 @@ export default function ScanPurchase() {
                   onClick={() => setEditingCrop((prev) => !prev)}
                 >
                   Recortar foto
+                </Button>
+                <Button
+                  variant="outline"
+                  leftIcon={<ScanLine className="h-4 w-4" />}
+                  loading={suggestingCrop}
+                  onClick={applyRecommendedCrop}
+                >
+                  Recorte sugerido
                 </Button>
                 {hasVisibleCrop(crop) && (
                   <Button
