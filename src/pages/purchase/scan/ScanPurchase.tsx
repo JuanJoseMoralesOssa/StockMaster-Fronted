@@ -9,7 +9,7 @@ import {
   ScanLine,
   RotateCcw,
 } from "lucide-react";
-import { Alert, Button, Input, Label } from "../../../components/ui";
+import { Alert, Badge, Button, Input, Label } from "../../../components/ui";
 import DocumentDetailsTable from "../../components/common/DocumentDetailsTable";
 import PurchaseDetails from "../../../types/PurchaseDetails";
 import Purchase from "../../../types/Purchase";
@@ -329,42 +329,13 @@ export default function ScanPurchase() {
     setStep("upload");
   };
 
-  const optimizationDebug = optimizationMetadata && (
-    <div className="rounded-lg border border-(--color-border) bg-(--color-bg-subtle) p-3 text-xs text-(--color-text-secondary)">
-      <div className="font-medium text-(--color-text-primary)">
-        Debug imagen enviada
-      </div>
-      <div className="mt-2 grid gap-1 sm:grid-cols-2">
-        <span>
-          Original: {optimizationMetadata.original.width}x
-          {optimizationMetadata.original.height} ·{" "}
-          {formatBytes(optimizationMetadata.original.sizeBytes)}
-        </span>
-        <span>
-          Enviada: {optimizationMetadata.output.width}x
-          {optimizationMetadata.output.height} ·{" "}
-          {formatBytes(optimizationMetadata.output.sizeBytes)} ·{" "}
-          {optimizationMetadata.output.type}
-        </span>
-        <span>
-          Crop px: x {optimizationMetadata.cropRect.x}, y{" "}
-          {optimizationMetadata.cropRect.y}
-        </span>
-        <span>
-          Area crop: {optimizationMetadata.cropRect.width}x
-          {optimizationMetadata.cropRect.height} · calidad{" "}
-          {Math.round(optimizationMetadata.output.quality * 100)}%
-        </span>
-      </div>
-      {optimizedPreviewUrl && (
-        <img
-          src={optimizedPreviewUrl}
-          alt="Imagen enviada al backend"
-          className="mt-3 max-h-64 w-full rounded-md border border-(--color-border) bg-(--color-bg-surface) object-contain"
-        />
-      )}
-    </div>
-  );
+  const adjustCurrentImage = () => {
+    setResult(null);
+    setDetails([]);
+    setScanFeedback(null);
+    setStep("upload");
+    setEditingCrop(true);
+  };
 
   const applySupplierToAll = (personId: number, name: string) => {
     setDetails((prev) =>
@@ -397,7 +368,54 @@ export default function ScanPurchase() {
     await runSave({ date, purchase_details: visible });
   };
 
-  const hasDetectedDetails = details.some((detail) => !detail.toDelete);
+  const visibleDetails = details.filter((detail) => !detail.toDelete);
+  const hasDetectedDetails = visibleDetails.length > 0;
+  const visibleReviewReasons =
+    hasDetectedDetails && result
+      ? result.reviewReasons.filter(
+          (reason) => reason !== "No se detectaron valores de productos",
+        )
+      : [];
+  const detectedWeightKg = visibleDetails.reduce(
+    (sum, detail) => sum + Number(detail.weight_kg ?? 0),
+    0,
+  );
+  const optimizationDebug = optimizationMetadata && (
+    <details className="rounded-lg border border-(--color-border) bg-(--color-bg-subtle) p-3 text-xs text-(--color-text-secondary)">
+      <summary className="cursor-pointer select-none font-medium text-(--color-text-primary)">
+        Imagen enviada al servidor
+      </summary>
+      <div className="mt-2 grid gap-1 sm:grid-cols-2">
+        <span>
+          Original: {optimizationMetadata.original.width}x
+          {optimizationMetadata.original.height} ·{" "}
+          {formatBytes(optimizationMetadata.original.sizeBytes)}
+        </span>
+        <span>
+          Enviada: {optimizationMetadata.output.width}x
+          {optimizationMetadata.output.height} ·{" "}
+          {formatBytes(optimizationMetadata.output.sizeBytes)} ·{" "}
+          {optimizationMetadata.output.type}
+        </span>
+        <span>
+          Crop px: x {optimizationMetadata.cropRect.x}, y{" "}
+          {optimizationMetadata.cropRect.y}
+        </span>
+        <span>
+          Area crop: {optimizationMetadata.cropRect.width}x
+          {optimizationMetadata.cropRect.height} · calidad{" "}
+          {Math.round(optimizationMetadata.output.quality * 100)}%
+        </span>
+      </div>
+      {optimizedPreviewUrl && (
+        <img
+          src={optimizedPreviewUrl}
+          alt="Imagen enviada al backend"
+          className="mt-3 max-h-64 w-full rounded-md border border-(--color-border) bg-(--color-bg-surface) object-contain"
+        />
+      )}
+    </details>
+  );
 
   return (
     <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-5 sm:px-6 md:py-6">
@@ -562,10 +580,13 @@ export default function ScanPurchase() {
               )}
 
               {cropDiagnostics && (
-                <div className="rounded-lg border border-(--color-border) bg-(--color-bg-subtle) p-3 text-xs text-(--color-text-secondary)">
+                <details className="rounded-lg border border-(--color-border) bg-(--color-bg-subtle) p-3 text-xs text-(--color-text-secondary)">
+                  <summary className="cursor-pointer select-none font-medium text-(--color-text-primary)">
+                    Diagnóstico del recorte
+                  </summary>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <span className="font-medium text-(--color-text-primary)">
-                      Debug recorte:{" "}
+                    <span>
+                      Estado:{" "}
                       {cropDiagnostics.valid ? "detectado" : "sin detectar"}
                     </span>
                     <span>
@@ -587,7 +608,7 @@ export default function ScanPurchase() {
                       {cropPercent(crop.right)}%
                     </p>
                   )}
-                </div>
+                </details>
               )}
 
               {optimizationDebug}
@@ -646,10 +667,68 @@ export default function ScanPurchase() {
 
       {step === "review" && result && (
         <div className="flex flex-col gap-6">
+          <div className="rounded-lg border border-(--color-border) bg-(--color-bg-surface) p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-base font-medium text-(--color-text-primary)">
+                    Resultado del escaneo
+                  </h2>
+                  <Badge
+                    variant={hasDetectedDetails ? "success" : "warning"}
+                    withDot
+                  >
+                    {hasDetectedDetails ? "Valores detectados" : "Sin valores"}
+                  </Badge>
+                  {hasDetectedDetails && result.needsReview && (
+                    <Badge variant="warning" withDot>
+                      Requiere revisión
+                    </Badge>
+                  )}
+                </div>
+                <p className="mt-1 text-sm text-(--color-text-secondary)">
+                  {hasDetectedDetails
+                    ? `${visibleDetails.length} producto${visibleDetails.length === 1 ? "" : "s"} · ${detectedWeightKg.toFixed(3)} kg`
+                    : "El modelo leyó la imagen, pero no encontró pesos para crear una compra."}
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={adjustCurrentImage}>
+                Ajustar imagen
+              </Button>
+            </div>
+
+            <div className="mt-3 grid gap-2 text-xs text-(--color-text-secondary) sm:grid-cols-3">
+              <span>Fecha: {result.date.value ?? "Sin detectar"}</span>
+              <span>
+                Total formulario: {result.librasTotal.value ?? "Sin detectar"}
+              </span>
+              <span>
+                Proveedor: {result.supplier.rawName || "Sin detectar"}
+              </span>
+            </div>
+          </div>
+
           {optimizationDebug}
 
           {details.length === 0 && (
-            <Alert variant="info" title="Imagen procesada sin valores">
+            <Alert
+              variant="info"
+              title="Imagen procesada, sin valores para guardar"
+              action={
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={resetToUpload}>
+                    Escanear otra
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={adjustCurrentImage}
+                  >
+                    Revisar recorte
+                  </Button>
+                </div>
+              }
+            >
               <p className="text-sm">
                 La imagen sí llegó al servidor y fue leída por el modelo, pero
                 no se detectaron pesos en Pieles, Sebo o Hueso. No se creó
@@ -658,17 +737,17 @@ export default function ScanPurchase() {
             </Alert>
           )}
 
-          {result.reviewReasons.length > 0 && (
+          {hasDetectedDetails && visibleReviewReasons.length > 0 && (
             <Alert variant="warning" title="Revisa los datos detectados">
               <ul className="list-disc pl-4 text-sm">
-                {result.reviewReasons.map((reason, i) => (
+                {visibleReviewReasons.map((reason, i) => (
                   <li key={i}>{reason}</li>
                 ))}
               </ul>
             </Alert>
           )}
 
-          {result.supplier.needsReview && (
+          {hasDetectedDetails && result.supplier.needsReview && (
             <Alert variant="info" title="Proveedor por confirmar">
               <p className="text-sm">
                 Texto leído: <strong>{result.supplier.rawName || "—"}</strong>.
@@ -720,16 +799,20 @@ export default function ScanPurchase() {
             />
           )}
 
-          <div className="flex flex-col gap-2 border-t border-(--color-border) pt-4 sm:flex-row sm:justify-end">
-            <Button variant="outline" onClick={resetToUpload} disabled={saving}>
-              Escanear otra
-            </Button>
-            {hasDetectedDetails && (
+          {hasDetectedDetails && (
+            <div className="flex flex-col gap-2 border-t border-(--color-border) pt-4 sm:flex-row sm:justify-end">
+              <Button
+                variant="outline"
+                onClick={resetToUpload}
+                disabled={saving}
+              >
+                Escanear otra
+              </Button>
               <Button variant="primary" loading={saving} onClick={handleSave}>
                 Guardar compra
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </section>
