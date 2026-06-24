@@ -13,6 +13,19 @@ export interface ScanImagePreprocessOptions {
   crop?: ScanImageCrop;
 }
 
+export interface ScanImageCropDiagnostics {
+  blueDetected: boolean;
+  paperDetected: boolean;
+  valid: boolean;
+  reason: string;
+  bluePixelsInside: number;
+}
+
+export interface ScanImageCropAnalysis {
+  crop: ScanImageCrop | null;
+  diagnostics: ScanImageCropDiagnostics;
+}
+
 interface CropRect {
   x: number;
   y: number;
@@ -215,11 +228,24 @@ function getBoundsFromScores(
   return start === -1 ? null : { start, end };
 }
 
-export function suggestScanImageCropFromPixels(
+function buildCropAnalysis(
+  crop: ScanImageCrop | null,
+  diagnostics: Omit<ScanImageCropDiagnostics, "valid"> & { valid?: boolean },
+): ScanImageCropAnalysis {
+  return {
+    crop,
+    diagnostics: {
+      ...diagnostics,
+      valid: diagnostics.valid ?? Boolean(crop),
+    },
+  };
+}
+
+export function analyzeScanImageCropFromPixels(
   pixels: Uint8ClampedArray,
   width: number,
   height: number,
-): ScanImageCrop | null {
+): ScanImageCropAnalysis {
   const blueRowScores = new Array<number>(height).fill(0);
   const blueColScores = new Array<number>(width).fill(0);
   const paperRowScores = new Array<number>(height).fill(0);
@@ -247,12 +273,26 @@ export function suggestScanImageCropFromPixels(
   const blueRowBand =
     getBoundsFromScores(blueRowScores, Math.max(2, width * 0.012)) ??
     getBoundsFromScores(blueRowScores, Math.max(1, width * 0.006));
-  if (!blueRowBand) return null;
+  if (!blueRowBand) {
+    return buildCropAnalysis(null, {
+      blueDetected: false,
+      paperDetected: false,
+      reason: "No se detecto el borde azul horizontal del formulario",
+      bluePixelsInside: 0,
+    });
+  }
 
   const blueColBand =
     getBoundsFromScores(blueColScores, Math.max(2, height * 0.006)) ??
     getBoundsFromScores(blueColScores, Math.max(1, height * 0.003));
-  if (!blueColBand) return null;
+  if (!blueColBand) {
+    return buildCropAnalysis(null, {
+      blueDetected: false,
+      paperDetected: false,
+      reason: "No se detecto el borde azul vertical del formulario",
+      bluePixelsInside: 0,
+    });
+  }
 
   const paperColScoresInBlueArea = new Array<number>(width).fill(0);
   const paperRowScoresInBlueArea = new Array<number>(height).fill(0);
@@ -288,7 +328,15 @@ export function suggestScanImageCropFromPixels(
       paperColScoresInBlueArea,
       Math.max(2, (yEnd - yStart) * 0.2),
     ) ?? getBoundsFromScores(paperColScores, Math.max(2, height * 0.08));
-  if (!paperRowBand || !paperColBand) return null;
+  if (!paperRowBand || !paperColBand) {
+    return buildCropAnalysis(null, {
+      blueDetected: true,
+      paperDetected: false,
+      reason:
+        "No se detecto suficiente papel del formulario alrededor del azul",
+      bluePixelsInside: 0,
+    });
+  }
 
   const horizontalPadding = Math.round(width * 0.015);
   const verticalPadding = Math.round(height * 0.015);
@@ -311,7 +359,14 @@ export function suggestScanImageCropFromPixels(
       }
     }
   }
-  if (bluePixelsInside < Math.max(24, width * height * 0.001)) return null;
+  if (bluePixelsInside < Math.max(24, width * height * 0.001)) {
+    return buildCropAnalysis(null, {
+      blueDetected: true,
+      paperDetected: true,
+      reason: "El azul detectado no alcanza para validar el formulario",
+      bluePixelsInside,
+    });
+  }
 
   const rect = {
     x,
@@ -321,7 +376,27 @@ export function suggestScanImageCropFromPixels(
   };
 
   const crop = rectToCrop(rect, width, height);
-  return Object.values(crop).some((value) => value > 0.02) ? crop : null;
+  const visibleCrop = Object.values(crop).some((value) => value > 0.02)
+    ? crop
+    : null;
+
+  return buildCropAnalysis(visibleCrop, {
+    blueDetected: true,
+    paperDetected: true,
+    valid: Boolean(visibleCrop),
+    reason: visibleCrop
+      ? "Formulario detectado"
+      : "El formulario ocupa casi toda la imagen; no se aplico recorte",
+    bluePixelsInside,
+  });
+}
+
+export function suggestScanImageCropFromPixels(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+): ScanImageCrop | null {
+  return analyzeScanImageCropFromPixels(pixels, width, height).crop;
 }
 
 function blobToFile(blob: Blob, originalFile: File): File {
@@ -362,6 +437,12 @@ async function decodeImage(
 export async function suggestScanImageCrop(
   file: File,
 ): Promise<ScanImageCrop | null> {
+  return (await analyzeScanImageCrop(file)).crop;
+}
+
+export async function analyzeScanImageCrop(
+  file: File,
+): Promise<ScanImageCropAnalysis> {
   const image = await decodeImage(file);
   const sourceWidth =
     "naturalWidth" in image ? image.naturalWidth : image.width;
@@ -376,14 +457,19 @@ export async function suggestScanImageCrop(
   const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context) {
     if ("close" in image) image.close();
-    return null;
+    return buildCropAnalysis(null, {
+      blueDetected: false,
+      paperDetected: false,
+      reason: "No se pudo leer la imagen para calcular el recorte",
+      bluePixelsInside: 0,
+    });
   }
 
   context.drawImage(image, 0, 0, width, height);
   if ("close" in image) image.close();
 
   const imageData = context.getImageData(0, 0, width, height);
-  return suggestScanImageCropFromPixels(imageData.data, width, height);
+  return analyzeScanImageCropFromPixels(imageData.data, width, height);
 }
 
 export async function optimizeScanImage(

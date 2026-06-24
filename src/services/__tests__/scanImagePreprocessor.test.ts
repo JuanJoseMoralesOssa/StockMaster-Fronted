@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  analyzeScanImageCropFromPixels,
   optimizeScanImage,
   SCAN_IMAGE_JPEG_QUALITY,
   SCAN_IMAGE_MAX_DIMENSION,
@@ -272,5 +273,45 @@ describe("optimizeScanImage", () => {
     expect(crop).not.toBeNull();
     expect(crop?.top).toBeLessThan(0.18);
     expect(crop?.bottom).toBeGreaterThan(0.5);
+  });
+
+  it("returns crop diagnostics when the form is detected", () => {
+    const { pixels, width, height } = buildSyntheticJaagImage([
+      0xf1, 0xef, 0xe3,
+    ]);
+
+    const analysis = analyzeScanImageCropFromPixels(pixels, width, height);
+
+    expect(analysis.crop).not.toBeNull();
+    expect(analysis.diagnostics).toMatchObject({
+      blueDetected: true,
+      paperDetected: true,
+      valid: true,
+      reason: "Formulario detectado",
+    });
+    expect(analysis.diagnostics.bluePixelsInside).toBeGreaterThan(24);
+  });
+
+  it("returns failure diagnostics when no form colors are found", () => {
+    const width = 120;
+    const height = 80;
+    const pixels = new Uint8ClampedArray(width * height * 4);
+    for (let index = 0; index < pixels.length; index += 4) {
+      pixels[index] = 90;
+      pixels[index + 1] = 70;
+      pixels[index + 2] = 55;
+      pixels[index + 3] = 255;
+    }
+
+    const analysis = analyzeScanImageCropFromPixels(pixels, width, height);
+
+    expect(analysis.crop).toBeNull();
+    expect(analysis.diagnostics).toMatchObject({
+      blueDetected: false,
+      paperDetected: false,
+      valid: false,
+      reason: "No se detecto el borde azul horizontal del formulario",
+      bluePixelsInside: 0,
+    });
   });
 });

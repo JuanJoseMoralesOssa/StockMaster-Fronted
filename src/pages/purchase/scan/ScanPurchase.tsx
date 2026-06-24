@@ -20,9 +20,10 @@ import { useToast } from "../../../hooks/useToast";
 import { ExtractionResult } from "../../../types/FormExtraction";
 import { todayBogota } from "../../../utils/date";
 import {
+  analyzeScanImageCrop,
   normalizeScanImageCrop,
   ScanImageCrop,
-  suggestScanImageCrop,
+  ScanImageCropDiagnostics,
 } from "../../../services/scanImagePreprocessor";
 
 type Step = "upload" | "processing" | "review";
@@ -69,6 +70,8 @@ export default function ScanPurchase() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState<ScanImageCrop>(EMPTY_CROP);
+  const [cropDiagnostics, setCropDiagnostics] =
+    useState<ScanImageCropDiagnostics | null>(null);
   const [editingCrop, setEditingCrop] = useState(false);
   const [suggestingCrop, setSuggestingCrop] = useState(false);
   const [result, setResult] = useState<ExtractionResult | null>(null);
@@ -110,23 +113,31 @@ export default function ScanPurchase() {
     const requestId = ++cropRequestRef.current;
     setSuggestingCrop(true);
     try {
-      const suggestedCrop = await suggestScanImageCrop(selected);
+      const analysis = await analyzeScanImageCrop(selected);
       if (requestId !== cropRequestRef.current) return;
+      setCropDiagnostics(analysis.diagnostics);
 
-      if (!suggestedCrop) {
+      if (!analysis.crop) {
         setCrop(EMPTY_CROP);
         setEditingCrop(false);
         if (options.showMessages) {
-          showWarning("No encontré el formulario con suficiente claridad");
+          showWarning(analysis.diagnostics.reason);
         }
         return;
       }
 
-      setCrop(suggestedCrop);
+      setCrop(analysis.crop);
       setEditingCrop(true);
     } catch {
       if (requestId !== cropRequestRef.current) return;
       setCrop(EMPTY_CROP);
+      setCropDiagnostics({
+        blueDetected: false,
+        paperDetected: false,
+        valid: false,
+        reason: "No se pudo calcular el recorte sugerido",
+        bluePixelsInside: 0,
+      });
       setEditingCrop(false);
       if (options.showMessages) {
         showWarning("No se pudo calcular el recorte sugerido");
@@ -145,6 +156,7 @@ export default function ScanPurchase() {
     setFile(selected);
     setPreviewUrl(URL.createObjectURL(selected));
     setCrop(EMPTY_CROP);
+    setCropDiagnostics(null);
     setEditingCrop(false);
     setSuggestingCrop(false);
     void detectCropForFile(selected);
@@ -157,6 +169,7 @@ export default function ScanPurchase() {
   const resetCrop = () => {
     cropRequestRef.current += 1;
     setCrop(EMPTY_CROP);
+    setCropDiagnostics(null);
     setEditingCrop(false);
     setSuggestingCrop(false);
   };
@@ -398,6 +411,35 @@ export default function ScanPurchase() {
                       />
                     </label>
                   ))}
+                </div>
+              )}
+
+              {cropDiagnostics && (
+                <div className="rounded-lg border border-(--color-border) bg-(--color-bg-subtle) p-3 text-xs text-(--color-text-secondary)">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className="font-medium text-(--color-text-primary)">
+                      Debug recorte:{" "}
+                      {cropDiagnostics.valid ? "detectado" : "sin detectar"}
+                    </span>
+                    <span>
+                      Papel: {cropDiagnostics.paperDetected ? "si" : "no"}
+                    </span>
+                    <span>
+                      Azul: {cropDiagnostics.blueDetected ? "si" : "no"}
+                    </span>
+                    <span>
+                      Pixeles azules: {cropDiagnostics.bluePixelsInside}
+                    </span>
+                  </div>
+                  <p className="mt-1">{cropDiagnostics.reason}</p>
+                  {hasVisibleCrop(crop) && (
+                    <p className="mt-1">
+                      Arriba {cropPercent(crop.top)}% · Abajo{" "}
+                      {cropPercent(crop.bottom)}% · Izquierda{" "}
+                      {cropPercent(crop.left)}% · Derecha{" "}
+                      {cropPercent(crop.right)}%
+                    </p>
+                  )}
                 </div>
               )}
             </div>
