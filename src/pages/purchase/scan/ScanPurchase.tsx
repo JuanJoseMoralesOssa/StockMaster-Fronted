@@ -113,28 +113,6 @@ export default function ScanPurchase() {
     };
   }, [optimizedPreviewUrl]);
 
-  const { execute: runExtraction } = useApiRequest(
-    (img: File, scanCrop?: ScanImageCrop) =>
-      formExtractionService.extractFromImage(img, {
-        crop: scanCrop,
-        onOptimizedImage: (optimized) => {
-          setOptimizationMetadata(optimized.metadata);
-          setOptimizedPreviewUrl((previousUrl) => {
-            if (previousUrl) URL.revokeObjectURL(previousUrl);
-            return URL.createObjectURL(optimized.file);
-          });
-        },
-      }),
-    {
-      errorMessage: "No se pudo leer el formulario. Intenta con otra foto.",
-      onError: (error) => {
-        extractionErrorRef.current =
-          extractErrorInfo(error).message ??
-          "No se pudo leer el formulario. Intenta con otra foto.";
-      },
-    },
-  );
-
   const { loading: saving, execute: runSave } = useApiRequest(
     (data: Purchase) => purchaseService.createWithDetails(data),
     {
@@ -241,6 +219,31 @@ export default function ScanPurchase() {
     await detectCropForFile(file, { showMessages: true });
   };
 
+  const runExtraction = async (
+    img: File,
+    scanCrop?: ScanImageCrop,
+  ): Promise<ExtractionResult | null> => {
+    try {
+      return await formExtractionService.extractFromImage(img, {
+        crop: scanCrop,
+        onOptimizedImage: (optimized) => {
+          setOptimizationMetadata(optimized.metadata);
+          setOptimizedPreviewUrl((previousUrl) => {
+            if (previousUrl) URL.revokeObjectURL(previousUrl);
+            return URL.createObjectURL(optimized.file);
+          });
+        },
+      });
+    } catch (error) {
+      const message =
+        extractErrorInfo(error).message ??
+        "No se pudo leer el formulario. Intenta con otra foto.";
+      extractionErrorRef.current = message;
+      showError(message);
+      return null;
+    }
+  };
+
   const handleProcess = async () => {
     if (!file) return;
     extractionErrorRef.current = null;
@@ -292,7 +295,7 @@ export default function ScanPurchase() {
     if (!res) {
       const message =
         extractionErrorRef.current ??
-        "La imagen fue enviada, pero el servidor no devolvió una lectura válida.";
+        "La solicitud terminó sin respuesta de extracción ni error capturado. Revisa la consola del backend para este intento.";
       setScanFeedback({
         variant: "danger",
         title: "No se pudo procesar la imagen",
