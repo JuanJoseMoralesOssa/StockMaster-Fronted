@@ -19,6 +19,7 @@ import { useApiRequest } from "../../../hooks/useApiRequest";
 import { useToast } from "../../../hooks/useToast";
 import { ExtractionResult } from "../../../types/FormExtraction";
 import { todayBogota } from "../../../utils/date";
+import { extractErrorInfo } from "../../../utils/error";
 import {
   analyzeScanImageCrop,
   normalizeScanImageCrop,
@@ -77,6 +78,7 @@ export default function ScanPurchase() {
   const { showError, showWarning } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cropRequestRef = useRef(0);
+  const extractionErrorRef = useRef<string | null>(null);
 
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
@@ -125,7 +127,11 @@ export default function ScanPurchase() {
       }),
     {
       errorMessage: "No se pudo leer el formulario. Intenta con otra foto.",
-      onError: () => undefined,
+      onError: (error) => {
+        extractionErrorRef.current =
+          extractErrorInfo(error).message ??
+          "No se pudo leer el formulario. Intenta con otra foto.";
+      },
     },
   );
 
@@ -237,6 +243,7 @@ export default function ScanPurchase() {
 
   const handleProcess = async () => {
     if (!file) return;
+    extractionErrorRef.current = null;
     setScanFeedback(null);
     setOptimizationMetadata(null);
     setOptimizedPreviewUrl((previousUrl) => {
@@ -283,11 +290,13 @@ export default function ScanPurchase() {
     }
 
     if (!res) {
+      const message =
+        extractionErrorRef.current ??
+        "La imagen fue enviada, pero el servidor no devolvió una lectura válida.";
       setScanFeedback({
         variant: "danger",
         title: "No se pudo procesar la imagen",
-        message:
-          "La imagen fue enviada, pero el servidor no devolvió una lectura válida. Revisa el backend o intenta otra foto.",
+        message,
       });
       setStep("upload");
       return;
