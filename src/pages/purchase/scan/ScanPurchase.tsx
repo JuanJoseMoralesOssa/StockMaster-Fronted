@@ -63,6 +63,7 @@ export default function ScanPurchase() {
   const navigate = useNavigate();
   const { showError, showWarning } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cropRequestRef = useRef(0);
 
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
@@ -102,6 +103,41 @@ export default function ScanPurchase() {
     },
   );
 
+  const detectCropForFile = async (
+    selected: File,
+    options: { showMessages?: boolean } = {},
+  ) => {
+    const requestId = ++cropRequestRef.current;
+    setSuggestingCrop(true);
+    try {
+      const suggestedCrop = await suggestScanImageCrop(selected);
+      if (requestId !== cropRequestRef.current) return;
+
+      if (!suggestedCrop) {
+        setCrop(EMPTY_CROP);
+        setEditingCrop(false);
+        if (options.showMessages) {
+          showWarning("No encontré el formulario con suficiente claridad");
+        }
+        return;
+      }
+
+      setCrop(suggestedCrop);
+      setEditingCrop(true);
+    } catch {
+      if (requestId !== cropRequestRef.current) return;
+      setCrop(EMPTY_CROP);
+      setEditingCrop(false);
+      if (options.showMessages) {
+        showWarning("No se pudo calcular el recorte sugerido");
+      }
+    } finally {
+      if (requestId === cropRequestRef.current) {
+        setSuggestingCrop(false);
+      }
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
@@ -111,6 +147,7 @@ export default function ScanPurchase() {
     setCrop(EMPTY_CROP);
     setEditingCrop(false);
     setSuggestingCrop(false);
+    void detectCropForFile(selected);
   };
 
   const updateCropSide = (side: keyof ScanImageCrop, value: number) => {
@@ -118,26 +155,15 @@ export default function ScanPurchase() {
   };
 
   const resetCrop = () => {
+    cropRequestRef.current += 1;
     setCrop(EMPTY_CROP);
     setEditingCrop(false);
+    setSuggestingCrop(false);
   };
 
   const applyRecommendedCrop = async () => {
     if (!file || suggestingCrop) return;
-    setSuggestingCrop(true);
-    try {
-      const suggestedCrop = await suggestScanImageCrop(file);
-      if (!suggestedCrop) {
-        showWarning("No encontré el formulario con suficiente claridad");
-        return;
-      }
-      setCrop(suggestedCrop);
-      setEditingCrop(true);
-    } catch {
-      showWarning("No se pudo calcular el recorte sugerido");
-    } finally {
-      setSuggestingCrop(false);
-    }
+    await detectCropForFile(file, { showMessages: true });
   };
 
   const handleProcess = async () => {
@@ -325,7 +351,7 @@ export default function ScanPurchase() {
                   loading={suggestingCrop}
                   onClick={applyRecommendedCrop}
                 >
-                  Recorte sugerido
+                  Recalcular recorte
                 </Button>
                 {hasVisibleCrop(crop) && (
                   <Button
