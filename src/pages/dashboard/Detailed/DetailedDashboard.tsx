@@ -45,6 +45,7 @@ function DetailedDashboard() {
               results={productsResults}
               products={products}
               filters={filters}
+              selectedFilter={selectedFilter}
             />
           </ErrorBoundary>
         )}
@@ -58,6 +59,7 @@ function DetailedDashboard() {
               results={suppliersResults}
               suppliers={suppliers}
               filters={filters}
+              selectedFilter={selectedFilter}
             />
           </ErrorBoundary>
         )}

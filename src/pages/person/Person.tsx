@@ -3,32 +3,40 @@ import Person from '../../types/Person'
 import { personPageConfig } from '../../config/personPageConfig'
 import { PersonFilters, personService } from '../../services/PersonService'
 import { useApiRequest } from '../../hooks/useApiRequest'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 function PersonPage() {
     const navigate = useNavigate()
+    const createPerson = useCallback(
+        (data: Partial<Person>) => personService.create(data as Omit<Person, 'id'>),
+        []
+    )
+    const updatePerson = useCallback(
+        (id: number | string, data: Partial<Person>) => personService.update(Number(id), data as Person),
+        []
+    )
+    const updatePersonPartial = useCallback(
+        (id: number | string, data: Partial<Person>) => personService.updatePartial(Number(id), data),
+        []
+    )
+
     const createReq = useApiRequest<Person, [Partial<Person>]>(
-        (data) => personService.create(data as Omit<Person, 'id'>),
+        createPerson,
         { successMessage: 'Proveedor creado exitosamente', showSuccessToast: true }
     )
 
     const updateReq = useApiRequest<Person, [number | string, Partial<Person>]>(
-        (id, data) => personService.update(Number(id), data as Person),
+        updatePerson,
         { successMessage: 'Proveedor actualizado', showSuccessToast: true }
     )
 
     const updatePartialReq = useApiRequest<Person, [number | string, Partial<Person>]>(
-        (id, data) => personService.updatePartial(Number(id), data),
+        updatePersonPartial,
         { successMessage: 'Proveedor actualizado', showSuccessToast: true }
     )
 
-    const deleteReq = useApiRequest<void, [number | string]>(
-        (id) => personService.delete(Number(id)),
-        { successMessage: 'Proveedor eliminado', showSuccessToast: true }
-    )
-
-    const createServiceHooks = (service: unknown) => {
+    const createServiceHooks = useCallback((service: unknown) => {
         const svc = service as typeof personService
         return {
             getAllPaginated: svc.getAllPaginated.bind(svc),
@@ -48,11 +56,10 @@ function PersonPage() {
                 return res
             },
             delete: async (id: number | string) => {
-                const res = await deleteReq.execute(Number(id))
-                if (res === null) throw new Error('No se pudo eliminar el proveedor')
+                await personService.delete(Number(id))
             }
         }
-    }
+    }, [createReq.execute, updateReq.execute, updatePartialReq.execute])
 
     const pageConfig = useMemo(() => ({
         ...personPageConfig,

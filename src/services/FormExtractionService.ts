@@ -1,6 +1,10 @@
-import { httpClient } from './httpClient'
-import { Config } from '../config/Config'
-import { ExtractionResult } from '../types/FormExtraction'
+import { httpClient } from "./httpClient";
+import { Config } from "../config/Config";
+import { ExtractionResult } from "../types/FormExtraction";
+import {
+  optimizeScanImage,
+  ScanImagePreprocessOptions,
+} from "./scanImagePreprocessor";
 
 /**
  * Sends a photo of a J.A.A.G receipt form to the backend, which reads it with a
@@ -8,19 +12,33 @@ import { ExtractionResult } from '../types/FormExtraction'
  * The image is processed in memory and never persisted.
  */
 export class FormExtractionService {
-  private readonly url = `${Config.LOGIC_URL}purchases/extract`
+  private readonly url = `${Config.LOGIC_URL}purchases/extract`;
 
-  async extractFromImage(file: File): Promise<ExtractionResult> {
-    const formData = new FormData()
-    formData.append('image', file)
+  async extractFromImage(
+    file: File,
+    options: ScanImagePreprocessOptions = {},
+  ): Promise<ExtractionResult> {
+    const optimizedFile = await optimizeScanImage(file, options);
+    const formData = new FormData();
+    formData.append("image", optimizedFile);
 
-    const response = await httpClient.post<ExtractionResult>(this.url, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      // Vision extraction can take a few seconds — allow more than the default timeout.
-      timeout: 60000,
-    })
-    return response.data
+    const response = await httpClient.post<ExtractionResult>(
+      this.url,
+      formData,
+      {
+        // Vision extraction can take a few seconds, but should fail fast enough
+        // to return control to the review screen instead of leaving a long spinner.
+        timeout: 25000,
+        transformRequest: [
+          (data, headers) => {
+            headers.setContentType(false);
+            return data;
+          },
+        ],
+      },
+    );
+    return response.data;
   }
 }
 
-export const formExtractionService = new FormExtractionService()
+export const formExtractionService = new FormExtractionService();

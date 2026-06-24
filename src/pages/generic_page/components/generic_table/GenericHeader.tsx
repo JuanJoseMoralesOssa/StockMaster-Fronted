@@ -74,8 +74,8 @@ function GenericHeaderInner<T>({
       </div>
 
       <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
-        {extraActions}
         {renderCustomButton ? renderCustomButton(openModal) : defaultButton}
+        {extraActions}
       </div>
 
       <Modal open={open} onClose={closeModal} title={modalTitle} description={modalDescription} className={modalClassName}>

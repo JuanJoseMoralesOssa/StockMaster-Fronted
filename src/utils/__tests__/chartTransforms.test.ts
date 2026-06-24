@@ -5,6 +5,7 @@ import {
   groupDailyByEntityAndMonth,
   sumTotals,
   paymentStateLabel,
+  matchesPaymentStatus,
   processDailyEntries,
   processMonthlyEntries,
   groupDailyEntriesByMonth,
@@ -87,6 +88,24 @@ describe('paymentStateLabel', () => {
   it('returns percentage label when total > 0', () => {
     const label = paymentStateLabel(200, 100)
     expect(label).toBe('50.00% Pagado')
+  })
+})
+
+describe('matchesPaymentStatus', () => {
+  it('keeps all rows for the all filter', () => {
+    expect(matchesPaymentStatus({ Total: 0, Pendiente: 0 }, 'all')).toBe(true)
+    expect(matchesPaymentStatus({ Total: 100, Pendiente: 40 }, 'all')).toBe(true)
+  })
+
+  it('matches rows with pending debt', () => {
+    expect(matchesPaymentStatus({ Total: 100, Pendiente: 40 }, 'withDebt')).toBe(true)
+    expect(matchesPaymentStatus({ Total: 100, Pendiente: 0 }, 'withDebt')).toBe(false)
+  })
+
+  it('matches fully paid rows only when there were purchases', () => {
+    expect(matchesPaymentStatus({ Total: 100, Pendiente: 0 }, 'fullyPaid')).toBe(true)
+    expect(matchesPaymentStatus({ Total: 100, Pendiente: -10 }, 'fullyPaid')).toBe(true)
+    expect(matchesPaymentStatus({ Total: 0, Pendiente: 0 }, 'fullyPaid')).toBe(false)
   })
 })
 

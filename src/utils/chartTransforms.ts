@@ -7,6 +7,8 @@ export interface FinancialTotals {
   Pendiente: number
 }
 
+export type PaymentStatusFilter = 'all' | 'withDebt' | 'fullyPaid'
+
 export interface MonthlyFinancial extends FinancialTotals {
   name: string
   entityId: number
@@ -165,6 +167,16 @@ export function sumTotals(monthlyData: Record<string, MonthlyFinancial>): Financ
 export function paymentStateLabel(total: number, paid: number): string {
   if (total === 0) return 'Sin movimientos'
   return `${((paid / total) * 100).toFixed(2)}% Pagado`
+}
+
+/** Matches the dashboard payment-status filter against an aggregated row. */
+export function matchesPaymentStatus(
+  totals: Pick<FinancialTotals, 'Total' | 'Pendiente'>,
+  filter: PaymentStatusFilter,
+): boolean {
+  if (filter === 'all') return true
+  if (filter === 'withDebt') return totals.Pendiente > 0
+  return totals.Total > 0 && totals.Pendiente <= 0
 }
 
 /**

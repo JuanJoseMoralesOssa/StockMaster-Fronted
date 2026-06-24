@@ -114,9 +114,15 @@ export function useApiRequest<T, Args extends unknown[] = []>(
           attempt += 1
           const axiosError = error as AxiosError<{ message?: string; error?: { message?: string } } | undefined>
           const backendMessage = axiosError.response?.data?.message ?? axiosError.response?.data?.error?.message
-          const message = backendMessage ?? (error instanceof Error ? error.message : errorMessage ?? 'Ha ocurrido un error al procesar la solicitud.')
-
+          const isTimeout = axiosError.code === 'ECONNABORTED' || /timeout/i.test(axiosError.message)
           const isNetwork = axiosError.code === 'ERR_NETWORK' || axiosError.message === 'Network Error'
+          const message = backendMessage
+            ?? ((isTimeout || isNetwork) && errorMessage
+              ? errorMessage
+              : error instanceof Error
+                ? error.message
+                : errorMessage ?? 'Ha ocurrido un error al procesar la solicitud.')
+
           if (isNetwork && attempt <= retries) {
             const delay = baseDelay * Math.pow(2, attempt - 1)
             await new Promise(res => setTimeout(res, delay))

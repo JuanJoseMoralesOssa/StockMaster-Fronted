@@ -26,6 +26,10 @@ import {
   aggregateByMonthAndEntity,
   groupMonthlyByEntity,
   groupDailyByEntityAndMonth,
+  DailyFinancial,
+  matchesPaymentStatus,
+  MonthlyFinancial,
+  PaymentStatusFilter,
   sumTotals,
   paymentStateLabel,
   TransactionWithEntity,
@@ -44,9 +48,10 @@ interface ProductChartProps {
   results: ProductReportRow[]
   suppliers: Person[]
   filters: Filters
+  selectedFilter: PaymentStatusFilter
 }
 
-const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters }) => {
+const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters, selectedFilter }) => {
   // Keep the long daily-distribution section open on desktop but collapsed on
   // phones, where it would otherwise dominate the scroll.
   const isDesktop = useMediaQuery('(min-width: 1024px)')
@@ -69,13 +74,37 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
     [mapped, suppliersMap],
   )
 
-  const monthlyDataArray = useMemo(() => Object.values(monthlyData), [monthlyData])
+  const filteredMonthlyData = useMemo<Record<string, MonthlyFinancial>>(
+    () => Object.fromEntries(
+      Object.entries(monthlyData).filter(([, month]) => matchesPaymentStatus(month, selectedFilter)),
+    ),
+    [monthlyData, selectedFilter],
+  )
 
-  const dataBySupplier = useMemo(() => groupMonthlyByEntity(monthlyData), [monthlyData])
+  const monthlyDataArray = useMemo(() => Object.values(filteredMonthlyData), [filteredMonthlyData])
 
-  const dailyDataBySupplier = useMemo(() => groupDailyByEntityAndMonth(mapped), [mapped])
+  const dataBySupplier = useMemo(() => groupMonthlyByEntity(filteredMonthlyData), [filteredMonthlyData])
 
-  const totals = useMemo(() => sumTotals(monthlyData), [monthlyData])
+  const dailyDataBySupplier = useMemo<Record<number, Record<string, DailyFinancial[]>>>(() => {
+    const grouped = groupDailyByEntityAndMonth(mapped)
+    return Object.fromEntries(
+      Object.entries(grouped)
+        .map(([entityId, months]) => [
+          entityId,
+          Object.fromEntries(
+            Object.entries(months)
+              .map(([month, days]) => [
+                month,
+                days.filter(day => matchesPaymentStatus(day, selectedFilter)),
+              ])
+              .filter(([, days]) => days.length > 0),
+          ),
+        ])
+        .filter(([, months]) => Object.keys(months).length > 0),
+    )
+  }, [mapped, selectedFilter])
+
+  const totals = useMemo(() => sumTotals(filteredMonthlyData), [filteredMonthlyData])
 
   const pieTotal = totals.Pagado + totals.Pendiente
   const pieChartData = [

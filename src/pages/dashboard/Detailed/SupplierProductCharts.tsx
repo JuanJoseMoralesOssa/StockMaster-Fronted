@@ -3,10 +3,15 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import Person from '../../../types/Person'
 import Product from '../../../types/Product'
 import { DashboardResult } from '../../../types/DashboardResults'
-import { EXPENSE, PURCHASE } from '../../../constants/cts'
 import { FileSpreadsheet, ChevronDown } from 'lucide-react'
 import { formatChartValue, formatChartPercent, downloadCsvFile, CHART_HEIGHTS, CHART_MARGINS, CHART_COLORS } from './chart.utils'
-import { processDailyEntries, processMonthlyEntries, groupDailyEntriesByMonth } from '../../../utils/chartTransforms'
+import {
+  groupDailyEntriesByMonth,
+  matchesPaymentStatus,
+  PaymentStatusFilter,
+  processDailyEntries,
+  processMonthlyEntries,
+} from '../../../utils/chartTransforms'
 import { Button } from '../../../components/ui'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 
@@ -19,7 +24,7 @@ interface SupplierAndProductProps {
   results: DashboardResult[]
   supplier: Person
   product: Product
-  selectedFilter: string
+  selectedFilter: PaymentStatusFilter
   filters: { startDate: string; endDate: string; supplierId: string; productId: string }
 }
 
@@ -37,16 +42,26 @@ function SupplierProductCharts({
   const supplierName = supplier?.name || 'Desconocido'
   const productName = product.name || 'Producto Seleccionado'
 
-  const dailyData = useMemo(() => processDailyEntries(results), [results])
-  const monthlyData = useMemo(() => processMonthlyEntries(results), [results])
+  const dailyData = useMemo(
+    () => processDailyEntries(results)
+      .filter(day => matchesPaymentStatus({ Total: day.compra, Pendiente: day.pendiente }, selectedFilter)),
+    [results, selectedFilter],
+  )
+  const monthlyData = useMemo(
+    () => processMonthlyEntries(results)
+      .filter(month => matchesPaymentStatus({ Total: month.total, Pendiente: month.pendiente }, selectedFilter)),
+    [results, selectedFilter],
+  )
   const dailyByMonth = useMemo(() => groupDailyEntriesByMonth(dailyData), [dailyData])
 
-  const productPurchases = results.filter((result) => result.type === PURCHASE)
-  const productExpenses = results.filter((result) => result.type === EXPENSE)
-  const totalPurchases = productPurchases.reduce((acc, purchase) => acc + purchase.weight_kg, 0)
-  const totalExpenses = productExpenses.reduce((acc, expense) => acc + expense.weight_kg, 0)
+  const totalPurchases = dailyData.reduce((acc, day) => acc + day.compra, 0)
+  const totalExpenses = dailyData.reduce((acc, day) => acc + day.gasto, 0)
   const pendingAmount = totalPurchases - totalExpenses
-  const paymentStatus = pendingAmount === 0 ? 'Completo' : `${((totalExpenses / totalPurchases) * 100).toFixed(2)}% Pagado`
+  const paymentStatus = pendingAmount === 0 && totalPurchases > 0
+    ? 'Completo'
+    : totalPurchases > 0
+      ? `${((totalExpenses / totalPurchases) * 100).toFixed(2)}% Pagado`
+      : 'Sin compras'
 
   const exportToCsv = () => {
     const rows = dailyData.map(day => {
@@ -116,26 +131,14 @@ function SupplierProductCharts({
             <div className="flex gap-4 items-center justify-center md:justify-between">
               <h3 className="text-sm font-medium text-(--color-text-secondary)">Con deuda</h3>
               <p className="text-xl font-bold text-(--color-text-primary)">
-                {
-                  results.filter(s => {
-                    const totalOwed = (s.type === PURCHASE ? s.weight_kg : 0) -
-                      (s.type === EXPENSE ? s.weight_kg : 0)
-                    return totalOwed > 0
-                  }).length
-                }
+                {dailyData.filter(day => day.pendiente > 0).length}
               </p>
             </div>}
           {(selectedFilter === 'all' || selectedFilter === 'fullyPaid') &&
             <div className="flex gap-4 items-center justify-center md:justify-between">
               <h3 className="text-sm font-medium text-(--color-text-secondary)">Pagados</h3>
               <p className="text-xl font-bold text-(--color-text-primary)">
-                {
-                  results.filter(s => {
-                    const totalOwed = (s.type === PURCHASE ? s.weight_kg : 0) -
-                      (s.type === EXPENSE ? s.weight_kg : 0)
-                    return totalOwed <= 0
-                  }).length
-                }
+                {dailyData.filter(day => day.compra > 0 && day.pendiente <= 0).length}
               </p>
             </div>}
         </div>

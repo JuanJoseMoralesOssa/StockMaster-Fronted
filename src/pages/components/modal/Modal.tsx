@@ -18,7 +18,7 @@ export const Modal = ({
     title,
     description,
     children,
-    className = 'sm:max-w-lg'
+    className = 'sm:max-w-lg xl:max-w-2xl'
 }: ModalProps) => {
     const dialogRef = useRef<HTMLDivElement>(null)
     const closeButtonRef = useRef<HTMLButtonElement>(null)
