@@ -10,6 +10,60 @@ import {
 
 const originalCreateElement = document.createElement.bind(document);
 
+function buildSyntheticJaagImage(paperColor: [number, number, number]) {
+  const width = 200;
+  const height = 300;
+  const pixels = new Uint8ClampedArray(width * height * 4);
+
+  for (let index = 0; index < pixels.length; index += 4) {
+    pixels[index] = 185;
+    pixels[index + 1] = 165;
+    pixels[index + 2] = 135;
+    pixels[index + 3] = 255;
+  }
+
+  const paintPixel = (
+    x: number,
+    y: number,
+    color: [number, number, number],
+  ) => {
+    const offset = (y * width + x) * 4;
+    pixels[offset] = color[0];
+    pixels[offset + 1] = color[1];
+    pixels[offset + 2] = color[2];
+    pixels[offset + 3] = 255;
+  };
+  const paintLine = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    color: [number, number, number],
+  ) => {
+    for (let y = y1; y <= y2; y += 1) {
+      for (let x = x1; x <= x2; x += 1) {
+        paintPixel(x, y, color);
+      }
+    }
+  };
+
+  const borderBlue: [number, number, number] = [0x86, 0x92, 0xa2];
+
+  paintLine(6, 38, 192, 140, paperColor);
+  paintLine(8, 42, 188, 44, borderBlue);
+  paintLine(8, 135, 188, 138, borderBlue);
+  paintLine(8, 42, 10, 138, borderBlue);
+  paintLine(186, 42, 188, 138, borderBlue);
+  paintLine(35, 72, 170, 74, [0x84, 0x89, 0x91]);
+  paintLine(45, 92, 180, 94, [0x89, 0x8f, 0x93]);
+  paintLine(20, 115, 150, 117, borderBlue);
+
+  // Blue-ish lower distractor, similar to clothing in the sample photo.
+  paintLine(0, 230, 35, 260, [30, 45, 95]);
+
+  return { pixels, width, height };
+}
+
 describe("optimizeScanImage", () => {
   let drawImage: ReturnType<typeof vi.fn>;
   let close: ReturnType<typeof vi.fn>;
@@ -168,65 +222,41 @@ describe("optimizeScanImage", () => {
   });
 
   it("suggests the J.A.A.G form crop from paper and blue border palettes", () => {
-    const width = 200;
-    const height = 300;
-    const pixels = new Uint8ClampedArray(width * height * 4);
-
-    for (let index = 0; index < pixels.length; index += 4) {
-      pixels[index] = 185;
-      pixels[index + 1] = 165;
-      pixels[index + 2] = 135;
-      pixels[index + 3] = 255;
-    }
-
-    const paintPixel = (
-      x: number,
-      y: number,
-      color: [number, number, number],
-    ) => {
-      const offset = (y * width + x) * 4;
-      pixels[offset] = color[0];
-      pixels[offset + 1] = color[1];
-      pixels[offset + 2] = color[2];
-      pixels[offset + 3] = 255;
-    };
-    const paintLine = (
-      x1: number,
-      y1: number,
-      x2: number,
-      y2: number,
-      color: [number, number, number],
-    ) => {
-      for (let y = y1; y <= y2; y += 1) {
-        for (let x = x1; x <= x2; x += 1) {
-          paintPixel(x, y, color);
-        }
-      }
-    };
-
     const litPaper: [number, number, number] = [0xf1, 0xef, 0xe3];
     const shadowPaper: [number, number, number] = [0xd0, 0xc9, 0xb9];
-    const borderBlue: [number, number, number] = [0x86, 0x92, 0xa2];
+    const sample = buildSyntheticJaagImage(litPaper);
+    for (let y = 96; y <= 140; y += 1) {
+      for (let x = 6; x <= 192; x += 1) {
+        const offset = (y * sample.width + x) * 4;
+        sample.pixels[offset] = shadowPaper[0];
+        sample.pixels[offset + 1] = shadowPaper[1];
+        sample.pixels[offset + 2] = shadowPaper[2];
+      }
+    }
 
-    paintLine(6, 38, 192, 140, litPaper);
-    paintLine(6, 96, 192, 140, shadowPaper);
-    paintLine(8, 42, 188, 44, borderBlue);
-    paintLine(8, 135, 188, 138, borderBlue);
-    paintLine(8, 42, 10, 138, borderBlue);
-    paintLine(186, 42, 188, 138, borderBlue);
-    paintLine(35, 72, 170, 74, [0x84, 0x89, 0x91]);
-    paintLine(45, 92, 180, 94, [0x89, 0x8f, 0x93]);
-    paintLine(20, 115, 150, 117, borderBlue);
-
-    // Blue-ish lower distractor, similar to clothing in the sample photo.
-    paintLine(0, 230, 35, 260, [30, 45, 95]);
-
-    const crop = suggestScanImageCropFromPixels(pixels, width, height);
+    const crop = suggestScanImageCropFromPixels(
+      sample.pixels,
+      sample.width,
+      sample.height,
+    );
 
     expect(crop).not.toBeNull();
     expect(crop?.top).toBeLessThan(0.18);
     expect(crop?.bottom).toBeGreaterThan(0.45);
     expect(crop?.left).toBeLessThan(0.08);
     expect(crop?.right).toBeLessThan(0.08);
+  });
+
+  it.each([
+    ["fully lit paper", [0xf6, 0xf6, 0xea] as [number, number, number]],
+    ["fully shadowed paper", [0xce, 0xc8, 0xba] as [number, number, number]],
+  ])("suggests crop for %s", (_name, paperColor) => {
+    const { pixels, width, height } = buildSyntheticJaagImage(paperColor);
+
+    const crop = suggestScanImageCropFromPixels(pixels, width, height);
+
+    expect(crop).not.toBeNull();
+    expect(crop?.top).toBeLessThan(0.18);
+    expect(crop?.bottom).toBeGreaterThan(0.45);
   });
 });

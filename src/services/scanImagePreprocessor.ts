@@ -185,13 +185,22 @@ function isNearAnyPaletteColor(
 
 function looksLikeJaagPaper(red: number, green: number, blue: number): boolean {
   const brightness = (red + green + blue) / 3;
-  const warmEnough = red >= blue - 4 && green >= blue - 14;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const saturation = max - min;
+  const warmNeutral =
+    red >= blue - 8 &&
+    green >= blue - 20 &&
+    red >= green - 18 &&
+    Math.abs(red - green) <= 34;
 
   return (
-    brightness >= 175 &&
-    brightness <= 250 &&
-    warmEnough &&
-    isNearAnyPaletteColor(red, green, blue, JAAG_PAPER_COLORS, 38)
+    brightness >= 145 &&
+    brightness <= 252 &&
+    saturation <= 62 &&
+    warmNeutral &&
+    (isNearAnyPaletteColor(red, green, blue, JAAG_PAPER_COLORS, 52) ||
+      brightness >= 182)
   );
 }
 
