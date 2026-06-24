@@ -167,7 +167,7 @@ describe("optimizeScanImage", () => {
     vi.stubGlobal("Image", originalImage);
   });
 
-  it("suggests the J.A.A.G form crop from blue ink instead of lower background", () => {
+  it("suggests the J.A.A.G form crop from paper and blue border palettes", () => {
     const width = 200;
     const height = 300;
     const pixels = new Uint8ClampedArray(width * height * 4);
@@ -204,14 +204,19 @@ describe("optimizeScanImage", () => {
       }
     };
 
-    const ink: [number, number, number] = [55, 76, 125];
-    paintLine(8, 42, 188, 45, ink);
-    paintLine(8, 135, 188, 138, ink);
-    paintLine(8, 42, 11, 138, ink);
-    paintLine(185, 42, 188, 138, ink);
-    paintLine(35, 72, 170, 75, ink);
-    paintLine(45, 92, 180, 95, ink);
-    paintLine(20, 115, 150, 118, ink);
+    const litPaper: [number, number, number] = [0xf1, 0xef, 0xe3];
+    const shadowPaper: [number, number, number] = [0xd0, 0xc9, 0xb9];
+    const borderBlue: [number, number, number] = [0x86, 0x92, 0xa2];
+
+    paintLine(6, 38, 192, 140, litPaper);
+    paintLine(6, 96, 192, 140, shadowPaper);
+    paintLine(8, 42, 188, 44, borderBlue);
+    paintLine(8, 135, 188, 138, borderBlue);
+    paintLine(8, 42, 10, 138, borderBlue);
+    paintLine(186, 42, 188, 138, borderBlue);
+    paintLine(35, 72, 170, 74, [0x84, 0x89, 0x91]);
+    paintLine(45, 92, 180, 94, [0x89, 0x8f, 0x93]);
+    paintLine(20, 115, 150, 117, borderBlue);
 
     // Blue-ish lower distractor, similar to clothing in the sample photo.
     paintLine(0, 230, 35, 260, [30, 45, 95]);

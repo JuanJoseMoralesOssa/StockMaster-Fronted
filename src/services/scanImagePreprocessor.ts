@@ -20,6 +20,24 @@ interface CropRect {
   height: number;
 }
 
+type Rgb = readonly [number, number, number];
+
+const JAAG_PAPER_COLORS: Rgb[] = [
+  [0xf1, 0xef, 0xe3],
+  [0xf6, 0xf6, 0xea],
+  [0xea, 0xea, 0xdc],
+  [0xf2, 0xf2, 0xe6],
+  [0xcf, 0xc5, 0xb8],
+  [0xce, 0xc8, 0xba],
+  [0xd0, 0xc9, 0xb9],
+];
+
+const JAAG_FORM_BLUE_COLORS: Rgb[] = [
+  [0x86, 0x92, 0xa2],
+  [0x84, 0x89, 0x91],
+  [0x89, 0x8f, 0x93],
+];
+
 function getOutputFilename(filename: string): string {
   const base = filename.replace(/\.[^.]*$/, "") || "scan";
   return `${base}.jpg`;
@@ -138,14 +156,59 @@ function findBestBand(scores: number[], threshold: number) {
   return { start: bestStart, end: bestEnd, total: bestTotal };
 }
 
-function looksLikeJaagInk(red: number, green: number, blue: number): boolean {
-  const brightness = (red + green + blue) / 3;
-  const max = Math.max(red, green, blue);
-  const min = Math.min(red, green, blue);
-  const contrast = max - min;
-  const blueLeaning = blue >= red + 8 && blue >= green - 8;
+function colorDistanceSquared(
+  red: number,
+  green: number,
+  blue: number,
+  target: Rgb,
+) {
+  return (
+    Math.pow(red - target[0], 2) +
+    Math.pow(green - target[1], 2) +
+    Math.pow(blue - target[2], 2)
+  );
+}
 
-  return brightness > 25 && brightness < 185 && contrast > 18 && blueLeaning;
+function isNearAnyPaletteColor(
+  red: number,
+  green: number,
+  blue: number,
+  palette: Rgb[],
+  maxDistance: number,
+): boolean {
+  const maxDistanceSquared = maxDistance * maxDistance;
+  return palette.some(
+    (color) =>
+      colorDistanceSquared(red, green, blue, color) <= maxDistanceSquared,
+  );
+}
+
+function looksLikeJaagPaper(red: number, green: number, blue: number): boolean {
+  const brightness = (red + green + blue) / 3;
+  const warmEnough = red >= blue - 4 && green >= blue - 14;
+
+  return (
+    brightness >= 175 &&
+    brightness <= 250 &&
+    warmEnough &&
+    isNearAnyPaletteColor(red, green, blue, JAAG_PAPER_COLORS, 38)
+  );
+}
+
+function looksLikeJaagFormBlue(
+  red: number,
+  green: number,
+  blue: number,
+): boolean {
+  const brightness = (red + green + blue) / 3;
+  const neutralBlueGray = blue >= red + 4 && blue >= green + 2;
+
+  return (
+    brightness >= 95 &&
+    brightness <= 175 &&
+    neutralBlueGray &&
+    isNearAnyPaletteColor(red, green, blue, JAAG_FORM_BLUE_COLORS, 45)
+  );
 }
 
 export function suggestScanImageCropFromPixels(
@@ -153,8 +216,10 @@ export function suggestScanImageCropFromPixels(
   width: number,
   height: number,
 ): ScanImageCrop | null {
-  const rowScores = new Array<number>(height).fill(0);
-  const colScores = new Array<number>(width).fill(0);
+  const blueRowScores = new Array<number>(height).fill(0);
+  const blueColScores = new Array<number>(width).fill(0);
+  const paperRowScores = new Array<number>(height).fill(0);
+  const paperColScores = new Array<number>(width).fill(0);
 
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -163,41 +228,80 @@ export function suggestScanImageCropFromPixels(
       const green = pixels[offset + 1];
       const blue = pixels[offset + 2];
 
-      if (looksLikeJaagInk(red, green, blue)) {
-        rowScores[y] += 1;
-        colScores[x] += 1;
+      if (looksLikeJaagFormBlue(red, green, blue)) {
+        blueRowScores[y] += 1;
+        blueColScores[x] += 1;
+      }
+
+      if (looksLikeJaagPaper(red, green, blue)) {
+        paperRowScores[y] += 1;
+        paperColScores[x] += 1;
       }
     }
   }
 
-  const rowBand =
-    findBestBand(rowScores, Math.max(2, width * 0.015)) ??
-    findBestBand(rowScores, Math.max(1, width * 0.008));
-  if (!rowBand) return null;
+  const blueRowBand =
+    findBestBand(blueRowScores, Math.max(2, width * 0.012)) ??
+    findBestBand(blueRowScores, Math.max(1, width * 0.006));
+  if (!blueRowBand) return null;
 
-  const colScoresInBand = new Array<number>(width).fill(0);
-  for (let y = rowBand.start; y <= rowBand.end; y += 1) {
+  const paperColScoresInBlueArea = new Array<number>(width).fill(0);
+  const paperRowScoresInBlueArea = new Array<number>(height).fill(0);
+  const yStart = Math.max(0, blueRowBand.start - Math.round(height * 0.08));
+  const yEnd = Math.min(
+    height - 1,
+    blueRowBand.end + Math.round(height * 0.08),
+  );
+
+  for (let y = yStart; y <= yEnd; y += 1) {
     for (let x = 0; x < width; x += 1) {
       const offset = (y * width + x) * 4;
       if (
-        looksLikeJaagInk(pixels[offset], pixels[offset + 1], pixels[offset + 2])
+        looksLikeJaagPaper(
+          pixels[offset],
+          pixels[offset + 1],
+          pixels[offset + 2],
+        )
       ) {
-        colScoresInBand[x] += 1;
+        paperColScoresInBlueArea[x] += 1;
+        paperRowScoresInBlueArea[y] += 1;
       }
     }
   }
 
-  const colBand =
-    findBestBand(colScoresInBand, Math.max(2, height * 0.01)) ??
-    findBestBand(colScores, Math.max(1, height * 0.008));
-  if (!colBand) return null;
+  const paperRowBand =
+    findBestBand(paperRowScoresInBlueArea, Math.max(2, width * 0.28)) ??
+    findBestBand(paperRowScores, Math.max(2, width * 0.2));
+  const paperColBand =
+    findBestBand(
+      paperColScoresInBlueArea,
+      Math.max(2, (yEnd - yStart) * 0.35),
+    ) ?? findBestBand(paperColScores, Math.max(2, height * 0.12));
+  if (!paperRowBand || !paperColBand) return null;
 
-  const horizontalPadding = Math.round(width * 0.035);
-  const verticalPadding = Math.round(height * 0.045);
-  const x = Math.max(0, colBand.start - horizontalPadding);
-  const y = Math.max(0, rowBand.start - verticalPadding);
-  const right = Math.min(width - 1, colBand.end + horizontalPadding);
-  const bottom = Math.min(height - 1, rowBand.end + verticalPadding);
+  const horizontalPadding = Math.round(width * 0.015);
+  const verticalPadding = Math.round(height * 0.015);
+  const x = Math.max(0, paperColBand.start - horizontalPadding);
+  const y = Math.max(0, paperRowBand.start - verticalPadding);
+  const right = Math.min(width - 1, paperColBand.end + horizontalPadding);
+  const bottom = Math.min(height - 1, paperRowBand.end + verticalPadding);
+  let bluePixelsInside = 0;
+  for (let row = y; row <= bottom; row += 1) {
+    for (let col = x; col <= right; col += 1) {
+      const offset = (row * width + col) * 4;
+      if (
+        looksLikeJaagFormBlue(
+          pixels[offset],
+          pixels[offset + 1],
+          pixels[offset + 2],
+        )
+      ) {
+        bluePixelsInside += 1;
+      }
+    }
+  }
+  if (bluePixelsInside < Math.max(24, width * height * 0.001)) return null;
+
   const rect = {
     x,
     y,
