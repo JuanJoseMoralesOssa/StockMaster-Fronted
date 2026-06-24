@@ -10,7 +10,10 @@ import {
 
 const originalCreateElement = document.createElement.bind(document);
 
-function buildSyntheticJaagImage(paperColor: [number, number, number]) {
+function buildSyntheticJaagImage(
+  paperColor: [number, number, number],
+  borderBlue: [number, number, number] = [0x86, 0x92, 0xa2],
+) {
   const width = 200;
   const height = 300;
   const pixels = new Uint8ClampedArray(width * height * 4);
@@ -46,8 +49,6 @@ function buildSyntheticJaagImage(paperColor: [number, number, number]) {
       }
     }
   };
-
-  const borderBlue: [number, number, number] = [0x86, 0x92, 0xa2];
 
   paintLine(6, 38, 192, 140, paperColor);
   paintLine(8, 42, 188, 44, borderBlue);
@@ -252,6 +253,19 @@ describe("optimizeScanImage", () => {
     ["fully shadowed paper", [0xce, 0xc8, 0xba] as [number, number, number]],
   ])("suggests crop for %s", (_name, paperColor) => {
     const { pixels, width, height } = buildSyntheticJaagImage(paperColor);
+
+    const crop = suggestScanImageCropFromPixels(pixels, width, height);
+
+    expect(crop).not.toBeNull();
+    expect(crop?.top).toBeLessThan(0.18);
+    expect(crop?.bottom).toBeGreaterThan(0.45);
+  });
+
+  it("suggests crop when the form blue is lit", () => {
+    const { pixels, width, height } = buildSyntheticJaagImage(
+      [0xf6, 0xf6, 0xea],
+      [0x9f, 0xab, 0xb8],
+    );
 
     const crop = suggestScanImageCropFromPixels(pixels, width, height);
 

@@ -36,6 +36,7 @@ const JAAG_FORM_BLUE_COLORS: Rgb[] = [
   [0x86, 0x92, 0xa2],
   [0x84, 0x89, 0x91],
   [0x89, 0x8f, 0x93],
+  [0x9f, 0xab, 0xb8],
 ];
 
 function getOutputFilename(filename: string): string {
@@ -210,13 +211,18 @@ function looksLikeJaagFormBlue(
   blue: number,
 ): boolean {
   const brightness = (red + green + blue) / 3;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const saturation = max - min;
   const neutralBlueGray = blue >= red + 4 && blue >= green + 2;
 
   return (
     brightness >= 95 &&
-    brightness <= 175 &&
+    brightness <= 205 &&
+    saturation >= 10 &&
+    saturation <= 60 &&
     neutralBlueGray &&
-    isNearAnyPaletteColor(red, green, blue, JAAG_FORM_BLUE_COLORS, 45)
+    isNearAnyPaletteColor(red, green, blue, JAAG_FORM_BLUE_COLORS, 50)
   );
 }
 
