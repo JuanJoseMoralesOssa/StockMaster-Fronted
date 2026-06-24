@@ -31,6 +31,19 @@ export class FormExtractionService {
     onOptimizedImage?.(optimized);
     const formData = new FormData();
     formData.append("image", optimized.file);
+    formData.append(
+      "optimizedSizeBytes",
+      String(optimized.metadata.output.sizeBytes),
+    );
+    formData.append("optimizedWidth", String(optimized.metadata.output.width));
+    formData.append(
+      "optimizedHeight",
+      String(optimized.metadata.output.height),
+    );
+    formData.append("cropX", String(optimized.metadata.cropRect.x));
+    formData.append("cropY", String(optimized.metadata.cropRect.y));
+    formData.append("cropWidth", String(optimized.metadata.cropRect.width));
+    formData.append("cropHeight", String(optimized.metadata.cropRect.height));
 
     const response = await httpClient.post<ExtractionResult>(
       this.url,

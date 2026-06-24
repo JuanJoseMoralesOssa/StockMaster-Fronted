@@ -397,6 +397,8 @@ export default function ScanPurchase() {
     await runSave({ date, purchase_details: visible });
   };
 
+  const hasDetectedDetails = details.some((detail) => !detail.toDelete);
+
   return (
     <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-5 sm:px-6 md:py-6">
       <header className="flex items-center gap-3">
@@ -647,12 +649,11 @@ export default function ScanPurchase() {
           {optimizationDebug}
 
           {details.length === 0 && (
-            <Alert variant="warning" title="No se encontraron valores">
+            <Alert variant="info" title="Imagen procesada sin valores">
               <p className="text-sm">
-                La imagen sí fue procesada, pero no se detectaron pesos en los
-                campos Pieles, Sebo o Hueso. Puedes escanear otra foto o volver
-                a intentar con más luz y el formulario completo dentro del
-                recorte.
+                La imagen sí llegó al servidor y fue leída por el modelo, pero
+                no se detectaron pesos en Pieles, Sebo o Hueso. No se creó
+                ninguna compra.
               </p>
             </Alert>
           )}
@@ -693,35 +694,41 @@ export default function ScanPurchase() {
             </Alert>
           )}
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="scan-date" required>
-              Fecha
-            </Label>
-            <Input
-              type="date"
-              id="scan-date"
-              name="date"
-              value={date}
-              required
-              onChange={(e) => setDate(e.target.value)}
-              className="sm:w-56"
-            />
-          </div>
+          {hasDetectedDetails && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="scan-date" required>
+                Fecha
+              </Label>
+              <Input
+                type="date"
+                id="scan-date"
+                name="date"
+                value={date}
+                required
+                onChange={(e) => setDate(e.target.value)}
+                className="sm:w-56"
+              />
+            </div>
+          )}
 
-          <DocumentDetailsTable<PurchaseDetails>
-            details={details}
-            setDetails={setDetails}
-            mode="add"
-            title="Detalles de la compra"
-          />
+          {hasDetectedDetails && (
+            <DocumentDetailsTable<PurchaseDetails>
+              details={details}
+              setDetails={setDetails}
+              mode="add"
+              title="Detalles de la compra"
+            />
+          )}
 
           <div className="flex flex-col gap-2 border-t border-(--color-border) pt-4 sm:flex-row sm:justify-end">
             <Button variant="outline" onClick={resetToUpload} disabled={saving}>
               Escanear otra
             </Button>
-            <Button variant="primary" loading={saving} onClick={handleSave}>
-              Guardar compra
-            </Button>
+            {hasDetectedDetails && (
+              <Button variant="primary" loading={saving} onClick={handleSave}>
+                Guardar compra
+              </Button>
+            )}
           </div>
         </div>
       )}

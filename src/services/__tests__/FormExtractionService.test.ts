@@ -51,6 +51,13 @@ describe("FormExtractionService", () => {
     mock.onPost(/purchases\/extract$/).reply((config) => {
       expect(config.data).toBeInstanceOf(FormData);
       expect((config.data as FormData).get("image")).toBe(optimized);
+      expect((config.data as FormData).get("optimizedSizeBytes")).toBe("9");
+      expect((config.data as FormData).get("optimizedWidth")).toBe("100");
+      expect((config.data as FormData).get("optimizedHeight")).toBe("80");
+      expect((config.data as FormData).get("cropX")).toBe("0");
+      expect((config.data as FormData).get("cropY")).toBe("0");
+      expect((config.data as FormData).get("cropWidth")).toBe("100");
+      expect((config.data as FormData).get("cropHeight")).toBe("80");
       expect(config.headers?.["Content-Type"]).toBe(false);
 
       return [
