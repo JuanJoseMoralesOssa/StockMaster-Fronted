@@ -27,9 +27,15 @@ import {
 } from "../../../services/scanImagePreprocessor";
 
 type Step = "upload" | "processing" | "review";
-const EXTRACTION_UI_TIMEOUT_MS = 30000;
+const EXTRACTION_UI_TIMEOUT_MS = 28000;
 const MIN_PROCESSING_VISIBLE_MS = 700;
 const EMPTY_CROP: ScanImageCrop = { left: 0, top: 0, right: 0, bottom: 0 };
+
+interface ScanFeedback {
+  variant: "info" | "warning" | "danger";
+  title: string;
+  message: string;
+}
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -74,6 +80,7 @@ export default function ScanPurchase() {
     useState<ScanImageCropDiagnostics | null>(null);
   const [editingCrop, setEditingCrop] = useState(false);
   const [suggestingCrop, setSuggestingCrop] = useState(false);
+  const [scanFeedback, setScanFeedback] = useState<ScanFeedback | null>(null);
   const [result, setResult] = useState<ExtractionResult | null>(null);
 
   // Review state (same shape the manual create form uses)
@@ -157,6 +164,7 @@ export default function ScanPurchase() {
     setPreviewUrl(URL.createObjectURL(selected));
     setCrop(EMPTY_CROP);
     setCropDiagnostics(null);
+    setScanFeedback(null);
     setEditingCrop(false);
     setSuggestingCrop(false);
     void detectCropForFile(selected);
@@ -181,6 +189,7 @@ export default function ScanPurchase() {
 
   const handleProcess = async () => {
     if (!file) return;
+    setScanFeedback(null);
     setStep("processing");
     await waitForPaint();
     const processingStartedAt = Date.now();
@@ -208,14 +217,25 @@ export default function ScanPurchase() {
     );
 
     if (res === timeoutResult) {
-      showError(
-        "El escaneo está tardando demasiado. Intenta de nuevo en unos segundos.",
-      );
+      const message =
+        "El escaneo está tardando demasiado. Intenta de nuevo en unos segundos.";
+      setScanFeedback({
+        variant: "warning",
+        title: "El procesamiento no terminó a tiempo",
+        message,
+      });
+      showError(message);
       setStep("upload");
       return;
     }
 
     if (!res) {
+      setScanFeedback({
+        variant: "danger",
+        title: "No se pudo procesar la imagen",
+        message:
+          "La imagen fue enviada, pero el servidor no devolvió una lectura válida. Revisa el backend o intenta otra foto.",
+      });
       setStep("upload");
       return;
     }
@@ -223,12 +243,24 @@ export default function ScanPurchase() {
     setResult(res);
     setDate(res.date?.value ?? todayBogota());
     setDetails(buildDetails(res));
+    if (res.details.length === 0) {
+      setScanFeedback({
+        variant: "warning",
+        title: "Imagen procesada sin valores",
+        message:
+          "El servidor respondió, pero no encontró valores de Pieles, Sebo o Hueso en el formulario.",
+      });
+      showWarning(
+        "Imagen procesada, pero no encontré valores en el formulario",
+      );
+    }
     setStep("review");
   };
 
   const resetToUpload = () => {
     setResult(null);
     setDetails([]);
+    setScanFeedback(null);
     setStep("upload");
   };
 
@@ -289,6 +321,16 @@ export default function ScanPurchase() {
             automáticamente y podrás revisarla antes de guardar. La imagen no se
             almacena.
           </p>
+
+          {scanFeedback && (
+            <Alert
+              variant={scanFeedback.variant}
+              title={scanFeedback.title}
+              onDismiss={() => setScanFeedback(null)}
+            >
+              <p>{scanFeedback.message}</p>
+            </Alert>
+          )}
 
           <input
             ref={fileInputRef}
@@ -496,6 +538,17 @@ export default function ScanPurchase() {
 
       {step === "review" && result && (
         <div className="flex flex-col gap-6">
+          {details.length === 0 && (
+            <Alert variant="warning" title="No se encontraron valores">
+              <p className="text-sm">
+                La imagen sí fue procesada, pero no se detectaron pesos en los
+                campos Pieles, Sebo o Hueso. Puedes escanear otra foto o volver
+                a intentar con más luz y el formulario completo dentro del
+                recorte.
+              </p>
+            </Alert>
+          )}
+
           {result.reviewReasons.length > 0 && (
             <Alert variant="warning" title="Revisa los datos detectados">
               <ul className="list-disc pl-4 text-sm">
