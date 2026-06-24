@@ -309,6 +309,28 @@ describe("optimizeScanImage", () => {
     expect(crop?.bottom).toBeGreaterThan(0.5);
   });
 
+  it("anchors the top crop to the blue border when lit background looks like paper", () => {
+    const { pixels, width, height } = buildSyntheticJaagImage([
+      0xf1, 0xef, 0xe3,
+    ]);
+
+    for (let y = 0; y < 36; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const offset = (y * width + x) * 4;
+        pixels[offset] = 0xf6;
+        pixels[offset + 1] = 0xf6;
+        pixels[offset + 2] = 0xea;
+        pixels[offset + 3] = 255;
+      }
+    }
+
+    const crop = suggestScanImageCropFromPixels(pixels, width, height);
+
+    expect(crop).not.toBeNull();
+    expect(crop?.top).toBeGreaterThanOrEqual(0.08);
+    expect(crop?.top).toBeLessThan(0.16);
+  });
+
   it("returns crop diagnostics when the form is detected", () => {
     const { pixels, width, height } = buildSyntheticJaagImage([
       0xf1, 0xef, 0xe3,

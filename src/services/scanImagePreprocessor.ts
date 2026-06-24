@@ -362,8 +362,19 @@ export function analyzeScanImageCropFromPixels(
 
   const horizontalPadding = Math.round(width * 0.015);
   const verticalPadding = Math.round(height * 0.015);
+  const maxExpectedPaperAboveBlue = Math.round(height * 0.06);
+  const blueAnchoredTop = Math.max(
+    0,
+    blueRowBand.start - Math.round(height * 0.04),
+  );
+  const paperStartsTooFarAboveBlue =
+    blueRowBand.start - paperRowBand.start > maxExpectedPaperAboveBlue;
   const x = Math.max(0, paperColBand.start - horizontalPadding);
-  const y = Math.max(0, paperRowBand.start - verticalPadding);
+  const y = Math.max(
+    0,
+    (paperStartsTooFarAboveBlue ? blueAnchoredTop : paperRowBand.start) -
+      verticalPadding,
+  );
   const right = Math.min(width - 1, paperColBand.end + horizontalPadding);
   const bottom = Math.min(height - 1, paperRowBand.end + verticalPadding);
   let bluePixelsInside = 0;
