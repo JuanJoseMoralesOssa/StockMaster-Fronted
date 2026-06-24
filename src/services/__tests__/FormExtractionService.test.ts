@@ -3,14 +3,14 @@ import MockAdapter from "axios-mock-adapter";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { formExtractionService } from "../FormExtractionService";
 import { httpClient } from "../httpClient";
-import { optimizeScanImage } from "../scanImagePreprocessor";
+import { optimizeScanImageWithMetadata } from "../scanImagePreprocessor";
 
 vi.mock("../scanImagePreprocessor", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("../scanImagePreprocessor")>();
   return {
     ...actual,
-    optimizeScanImage: vi.fn(),
+    optimizeScanImageWithMetadata: vi.fn(),
   };
 });
 
@@ -33,7 +33,20 @@ describe("FormExtractionService", () => {
     const optimized = new File(["optimized"], "receipt.jpg", {
       type: "image/jpeg",
     });
-    vi.mocked(optimizeScanImage).mockResolvedValue(optimized);
+    vi.mocked(optimizeScanImageWithMetadata).mockResolvedValue({
+      file: optimized,
+      metadata: {
+        original: { width: 100, height: 80, sizeBytes: 8, type: "image/png" },
+        cropRect: { x: 0, y: 0, width: 100, height: 80 },
+        output: {
+          width: 100,
+          height: 80,
+          sizeBytes: 9,
+          type: "image/jpeg",
+          quality: 0.82,
+        },
+      },
+    });
 
     mock.onPost(/purchases\/extract$/).reply((config) => {
       expect(config.data).toBeInstanceOf(FormData);
@@ -61,7 +74,7 @@ describe("FormExtractionService", () => {
 
     await formExtractionService.extractFromImage(original);
 
-    expect(optimizeScanImage).toHaveBeenCalledWith(original, {});
+    expect(optimizeScanImageWithMetadata).toHaveBeenCalledWith(original, {});
   });
 
   it("passes crop options to the image optimizer", async () => {
@@ -72,7 +85,20 @@ describe("FormExtractionService", () => {
       type: "image/jpeg",
     });
     const crop = { left: 0.1, top: 0.2, right: 0.1, bottom: 0.3 };
-    vi.mocked(optimizeScanImage).mockResolvedValue(optimized);
+    vi.mocked(optimizeScanImageWithMetadata).mockResolvedValue({
+      file: optimized,
+      metadata: {
+        original: { width: 100, height: 80, sizeBytes: 8, type: "image/png" },
+        cropRect: { x: 10, y: 16, width: 80, height: 40 },
+        output: {
+          width: 80,
+          height: 40,
+          sizeBytes: 9,
+          type: "image/jpeg",
+          quality: 0.82,
+        },
+      },
+    });
 
     mock.onPost(/purchases\/extract$/).reply(200, {
       date: { value: null, confidence: 0, needsReview: true },
@@ -91,6 +117,8 @@ describe("FormExtractionService", () => {
 
     await formExtractionService.extractFromImage(original, { crop });
 
-    expect(optimizeScanImage).toHaveBeenCalledWith(original, { crop });
+    expect(optimizeScanImageWithMetadata).toHaveBeenCalledWith(original, {
+      crop,
+    });
   });
 });

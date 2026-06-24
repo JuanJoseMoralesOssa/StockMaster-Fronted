@@ -2,9 +2,14 @@ import { httpClient } from "./httpClient";
 import { Config } from "../config/Config";
 import { ExtractionResult } from "../types/FormExtraction";
 import {
-  optimizeScanImage,
+  optimizeScanImageWithMetadata,
+  ScanImageOptimizationResult,
   ScanImagePreprocessOptions,
 } from "./scanImagePreprocessor";
+
+export interface FormExtractionOptions extends ScanImagePreprocessOptions {
+  onOptimizedImage?: (result: ScanImageOptimizationResult) => void;
+}
 
 /**
  * Sends a photo of a J.A.A.G receipt form to the backend, which reads it with a
@@ -16,11 +21,16 @@ export class FormExtractionService {
 
   async extractFromImage(
     file: File,
-    options: ScanImagePreprocessOptions = {},
+    options: FormExtractionOptions = {},
   ): Promise<ExtractionResult> {
-    const optimizedFile = await optimizeScanImage(file, options);
+    const { onOptimizedImage, ...preprocessOptions } = options;
+    const optimized = await optimizeScanImageWithMetadata(
+      file,
+      preprocessOptions,
+    );
+    onOptimizedImage?.(optimized);
     const formData = new FormData();
-    formData.append("image", optimizedFile);
+    formData.append("image", optimized.file);
 
     const response = await httpClient.post<ExtractionResult>(
       this.url,

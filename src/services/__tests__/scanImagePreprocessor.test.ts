@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   analyzeScanImageCropFromPixels,
   optimizeScanImage,
+  optimizeScanImageWithMetadata,
   SCAN_IMAGE_JPEG_QUALITY,
   SCAN_IMAGE_MAX_DIMENSION,
   SCAN_IMAGE_OUTPUT_TYPE,
@@ -183,6 +184,39 @@ describe("optimizeScanImage", () => {
       1800,
       675,
     );
+  });
+
+  it("returns optimization metadata for the image sent to the backend", async () => {
+    const original = new File(["original"], "metadata.png", {
+      type: "image/png",
+    });
+
+    const result = await optimizeScanImageWithMetadata(original, {
+      crop: { left: 0.1, top: 0.2, right: 0.1, bottom: 0.2 },
+    });
+
+    expect(result.file.name).toBe("metadata.jpg");
+    expect(result.metadata).toEqual({
+      original: {
+        width: 2800,
+        height: 1400,
+        sizeBytes: original.size,
+        type: "image/png",
+      },
+      cropRect: {
+        x: 280,
+        y: 280,
+        width: 2240,
+        height: 840,
+      },
+      output: {
+        width: SCAN_IMAGE_MAX_DIMENSION,
+        height: 675,
+        sizeBytes: result.file.size,
+        type: SCAN_IMAGE_OUTPUT_TYPE,
+        quality: SCAN_IMAGE_JPEG_QUALITY,
+      },
+    });
   });
 
   it("falls back to an image element when createImageBitmap rejects", async () => {

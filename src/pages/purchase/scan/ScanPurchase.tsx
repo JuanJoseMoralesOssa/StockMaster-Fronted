@@ -24,6 +24,7 @@ import {
   normalizeScanImageCrop,
   ScanImageCrop,
   ScanImageCropDiagnostics,
+  ScanImageOptimizationMetadata,
 } from "../../../services/scanImagePreprocessor";
 
 type Step = "upload" | "processing" | "review";
@@ -47,6 +48,11 @@ const waitForPaint = () =>
 const cropPercent = (value: number) => Math.round(value * 100);
 const hasVisibleCrop = (crop: ScanImageCrop) =>
   Object.values(crop).some((value) => value > 0);
+const formatBytes = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 /** Build editable purchase-detail rows from the extraction result. */
 function buildDetails(result: ExtractionResult): PurchaseDetails[] {
@@ -75,6 +81,11 @@ export default function ScanPurchase() {
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [optimizedPreviewUrl, setOptimizedPreviewUrl] = useState<string | null>(
+    null,
+  );
+  const [optimizationMetadata, setOptimizationMetadata] =
+    useState<ScanImageOptimizationMetadata | null>(null);
   const [crop, setCrop] = useState<ScanImageCrop>(EMPTY_CROP);
   const [cropDiagnostics, setCropDiagnostics] =
     useState<ScanImageCropDiagnostics | null>(null);
@@ -94,9 +105,24 @@ export default function ScanPurchase() {
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    return () => {
+      if (optimizedPreviewUrl) URL.revokeObjectURL(optimizedPreviewUrl);
+    };
+  }, [optimizedPreviewUrl]);
+
   const { execute: runExtraction } = useApiRequest(
     (img: File, scanCrop?: ScanImageCrop) =>
-      formExtractionService.extractFromImage(img, { crop: scanCrop }),
+      formExtractionService.extractFromImage(img, {
+        crop: scanCrop,
+        onOptimizedImage: (optimized) => {
+          setOptimizationMetadata(optimized.metadata);
+          setOptimizedPreviewUrl((previousUrl) => {
+            if (previousUrl) URL.revokeObjectURL(previousUrl);
+            return URL.createObjectURL(optimized.file);
+          });
+        },
+      }),
     {
       errorMessage: "No se pudo leer el formulario. Intenta con otra foto.",
       onError: () => undefined,
@@ -160,8 +186,11 @@ export default function ScanPurchase() {
     const selected = e.target.files?.[0];
     if (!selected) return;
     if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (optimizedPreviewUrl) URL.revokeObjectURL(optimizedPreviewUrl);
     setFile(selected);
     setPreviewUrl(URL.createObjectURL(selected));
+    setOptimizedPreviewUrl(null);
+    setOptimizationMetadata(null);
     setCrop(EMPTY_CROP);
     setCropDiagnostics(null);
     setScanFeedback(null);
@@ -209,6 +238,11 @@ export default function ScanPurchase() {
   const handleProcess = async () => {
     if (!file) return;
     setScanFeedback(null);
+    setOptimizationMetadata(null);
+    setOptimizedPreviewUrl((previousUrl) => {
+      if (previousUrl) URL.revokeObjectURL(previousUrl);
+      return null;
+    });
     setStep("processing");
     await waitForPaint();
     const processingStartedAt = Date.now();
@@ -282,6 +316,43 @@ export default function ScanPurchase() {
     setScanFeedback(null);
     setStep("upload");
   };
+
+  const optimizationDebug = optimizationMetadata && (
+    <div className="rounded-lg border border-(--color-border) bg-(--color-bg-subtle) p-3 text-xs text-(--color-text-secondary)">
+      <div className="font-medium text-(--color-text-primary)">
+        Debug imagen enviada
+      </div>
+      <div className="mt-2 grid gap-1 sm:grid-cols-2">
+        <span>
+          Original: {optimizationMetadata.original.width}x
+          {optimizationMetadata.original.height} ·{" "}
+          {formatBytes(optimizationMetadata.original.sizeBytes)}
+        </span>
+        <span>
+          Enviada: {optimizationMetadata.output.width}x
+          {optimizationMetadata.output.height} ·{" "}
+          {formatBytes(optimizationMetadata.output.sizeBytes)} ·{" "}
+          {optimizationMetadata.output.type}
+        </span>
+        <span>
+          Crop px: x {optimizationMetadata.cropRect.x}, y{" "}
+          {optimizationMetadata.cropRect.y}
+        </span>
+        <span>
+          Area crop: {optimizationMetadata.cropRect.width}x
+          {optimizationMetadata.cropRect.height} · calidad{" "}
+          {Math.round(optimizationMetadata.output.quality * 100)}%
+        </span>
+      </div>
+      {optimizedPreviewUrl && (
+        <img
+          src={optimizedPreviewUrl}
+          alt="Imagen enviada al backend"
+          className="mt-3 max-h-64 w-full rounded-md border border-(--color-border) bg-(--color-bg-surface) object-contain"
+        />
+      )}
+    </div>
+  );
 
   const applySupplierToAll = (personId: number, name: string) => {
     setDetails((prev) =>
@@ -504,6 +575,8 @@ export default function ScanPurchase() {
                   )}
                 </div>
               )}
+
+              {optimizationDebug}
             </div>
           ) : (
             <button
@@ -553,11 +626,14 @@ export default function ScanPurchase() {
               Extrayendo información del formulario…
             </span>
           </div>
+          {optimizationDebug}
         </div>
       )}
 
       {step === "review" && result && (
         <div className="flex flex-col gap-6">
+          {optimizationDebug}
+
           {details.length === 0 && (
             <Alert variant="warning" title="No se encontraron valores">
               <p className="text-sm">

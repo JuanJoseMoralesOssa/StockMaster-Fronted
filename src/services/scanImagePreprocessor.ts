@@ -13,6 +13,28 @@ export interface ScanImagePreprocessOptions {
   crop?: ScanImageCrop;
 }
 
+export interface ScanImageOptimizationMetadata {
+  original: {
+    width: number;
+    height: number;
+    sizeBytes: number;
+    type: string;
+  };
+  cropRect: CropRect;
+  output: {
+    width: number;
+    height: number;
+    sizeBytes: number;
+    type: string;
+    quality: number;
+  };
+}
+
+export interface ScanImageOptimizationResult {
+  file: File;
+  metadata: ScanImageOptimizationMetadata;
+}
+
 export interface ScanImageCropDiagnostics {
   blueDetected: boolean;
   paperDetected: boolean;
@@ -476,6 +498,13 @@ export async function optimizeScanImage(
   file: File,
   options: ScanImagePreprocessOptions = {},
 ): Promise<File> {
+  return (await optimizeScanImageWithMetadata(file, options)).file;
+}
+
+export async function optimizeScanImageWithMetadata(
+  file: File,
+  options: ScanImagePreprocessOptions = {},
+): Promise<ScanImageOptimizationResult> {
   const image = await decodeImage(file);
   const sourceWidth =
     "naturalWidth" in image ? image.naturalWidth : image.width;
@@ -521,5 +550,24 @@ export async function optimizeScanImage(
     );
   });
 
-  return blobToFile(blob, file);
+  const optimizedFile = blobToFile(blob, file);
+  return {
+    file: optimizedFile,
+    metadata: {
+      original: {
+        width: sourceWidth,
+        height: sourceHeight,
+        sizeBytes: file.size,
+        type: file.type,
+      },
+      cropRect,
+      output: {
+        width,
+        height,
+        sizeBytes: optimizedFile.size,
+        type: optimizedFile.type,
+        quality: SCAN_IMAGE_JPEG_QUALITY,
+      },
+    },
+  };
 }
