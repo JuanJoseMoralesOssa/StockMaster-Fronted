@@ -33,6 +33,9 @@ const JAAG_PAPER_COLORS: Rgb[] = [
 ];
 
 const JAAG_FORM_BLUE_COLORS: Rgb[] = [
+  [0x37, 0x4c, 0x7d],
+  [0x45, 0x5a, 0x82],
+  [0x60, 0x6f, 0x88],
   [0x86, 0x92, 0xa2],
   [0x84, 0x89, 0x91],
   [0x89, 0x8f, 0x93],
@@ -125,38 +128,6 @@ function smoothScores(scores: number[]): number[] {
   });
 }
 
-function findBestBand(scores: number[], threshold: number) {
-  const smoothed = smoothScores(scores);
-  let bestStart = -1;
-  let bestEnd = -1;
-  let bestTotal = 0;
-  let start = -1;
-  let total = 0;
-
-  for (let index = 0; index <= smoothed.length; index += 1) {
-    const active = index < smoothed.length && smoothed[index] >= threshold;
-    if (active) {
-      if (start === -1) start = index;
-      total += smoothed[index];
-      continue;
-    }
-
-    if (start !== -1) {
-      const end = index - 1;
-      if (total > bestTotal) {
-        bestStart = start;
-        bestEnd = end;
-        bestTotal = total;
-      }
-      start = -1;
-      total = 0;
-    }
-  }
-
-  if (bestStart === -1) return null;
-  return { start: bestStart, end: bestEnd, total: bestTotal };
-}
-
 function colorDistanceSquared(
   red: number,
   green: number,
@@ -214,16 +185,34 @@ function looksLikeJaagFormBlue(
   const max = Math.max(red, green, blue);
   const min = Math.min(red, green, blue);
   const saturation = max - min;
-  const neutralBlueGray = blue >= red + 4 && blue >= green + 2;
+  const neutralBlueGray = blue >= red + 4 && blue >= green - 8;
 
   return (
-    brightness >= 95 &&
+    brightness >= 45 &&
     brightness <= 205 &&
-    saturation >= 10 &&
-    saturation <= 60 &&
+    saturation >= 8 &&
+    saturation <= 95 &&
     neutralBlueGray &&
-    isNearAnyPaletteColor(red, green, blue, JAAG_FORM_BLUE_COLORS, 50)
+    isNearAnyPaletteColor(red, green, blue, JAAG_FORM_BLUE_COLORS, 58)
   );
+}
+
+function getBoundsFromScores(
+  scores: number[],
+  threshold: number,
+): { start: number; end: number } | null {
+  const smoothed = smoothScores(scores);
+  let start = -1;
+  let end = -1;
+
+  for (let index = 0; index < smoothed.length; index += 1) {
+    if (smoothed[index] >= threshold) {
+      if (start === -1) start = index;
+      end = index;
+    }
+  }
+
+  return start === -1 ? null : { start, end };
 }
 
 export function suggestScanImageCropFromPixels(
@@ -256,12 +245,19 @@ export function suggestScanImageCropFromPixels(
   }
 
   const blueRowBand =
-    findBestBand(blueRowScores, Math.max(2, width * 0.012)) ??
-    findBestBand(blueRowScores, Math.max(1, width * 0.006));
+    getBoundsFromScores(blueRowScores, Math.max(2, width * 0.012)) ??
+    getBoundsFromScores(blueRowScores, Math.max(1, width * 0.006));
   if (!blueRowBand) return null;
+
+  const blueColBand =
+    getBoundsFromScores(blueColScores, Math.max(2, height * 0.006)) ??
+    getBoundsFromScores(blueColScores, Math.max(1, height * 0.003));
+  if (!blueColBand) return null;
 
   const paperColScoresInBlueArea = new Array<number>(width).fill(0);
   const paperRowScoresInBlueArea = new Array<number>(height).fill(0);
+  const xStart = Math.max(0, blueColBand.start - Math.round(width * 0.08));
+  const xEnd = Math.min(width - 1, blueColBand.end + Math.round(width * 0.08));
   const yStart = Math.max(0, blueRowBand.start - Math.round(height * 0.08));
   const yEnd = Math.min(
     height - 1,
@@ -269,7 +265,7 @@ export function suggestScanImageCropFromPixels(
   );
 
   for (let y = yStart; y <= yEnd; y += 1) {
-    for (let x = 0; x < width; x += 1) {
+    for (let x = xStart; x <= xEnd; x += 1) {
       const offset = (y * width + x) * 4;
       if (
         looksLikeJaagPaper(
@@ -285,13 +281,13 @@ export function suggestScanImageCropFromPixels(
   }
 
   const paperRowBand =
-    findBestBand(paperRowScoresInBlueArea, Math.max(2, width * 0.28)) ??
-    findBestBand(paperRowScores, Math.max(2, width * 0.2));
+    getBoundsFromScores(paperRowScoresInBlueArea, Math.max(2, width * 0.16)) ??
+    getBoundsFromScores(paperRowScores, Math.max(2, width * 0.14));
   const paperColBand =
-    findBestBand(
+    getBoundsFromScores(
       paperColScoresInBlueArea,
-      Math.max(2, (yEnd - yStart) * 0.35),
-    ) ?? findBestBand(paperColScores, Math.max(2, height * 0.12));
+      Math.max(2, (yEnd - yStart) * 0.2),
+    ) ?? getBoundsFromScores(paperColScores, Math.max(2, height * 0.08));
   if (!paperRowBand || !paperColBand) return null;
 
   const horizontalPadding = Math.round(width * 0.015);

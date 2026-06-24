@@ -52,7 +52,7 @@ function buildSyntheticJaagImage(
 
   paintLine(6, 38, 192, 140, paperColor);
   paintLine(8, 42, 188, 44, borderBlue);
-  paintLine(8, 135, 188, 138, borderBlue);
+  paintLine(8, 135, 188, 138, [0x37, 0x4c, 0x7d]);
   paintLine(8, 42, 10, 138, borderBlue);
   paintLine(186, 42, 188, 138, borderBlue);
   paintLine(35, 72, 170, 74, [0x84, 0x89, 0x91]);
@@ -243,7 +243,7 @@ describe("optimizeScanImage", () => {
 
     expect(crop).not.toBeNull();
     expect(crop?.top).toBeLessThan(0.18);
-    expect(crop?.bottom).toBeGreaterThan(0.45);
+    expect(crop?.bottom).toBeGreaterThan(0.5);
     expect(crop?.left).toBeLessThan(0.08);
     expect(crop?.right).toBeLessThan(0.08);
   });
@@ -258,7 +258,7 @@ describe("optimizeScanImage", () => {
 
     expect(crop).not.toBeNull();
     expect(crop?.top).toBeLessThan(0.18);
-    expect(crop?.bottom).toBeGreaterThan(0.45);
+    expect(crop?.bottom).toBeGreaterThan(0.5);
   });
 
   it("suggests crop when the form blue is lit", () => {
@@ -271,6 +271,6 @@ describe("optimizeScanImage", () => {
 
     expect(crop).not.toBeNull();
     expect(crop?.top).toBeLessThan(0.18);
-    expect(crop?.bottom).toBeGreaterThan(0.45);
+    expect(crop?.bottom).toBeGreaterThan(0.5);
   });
 });
