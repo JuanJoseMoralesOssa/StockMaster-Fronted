@@ -322,7 +322,19 @@ export default function ScanPurchase() {
     setStep("review");
   };
 
-  const resetToUpload = () => {
+  const scanAnotherImage = () => {
+    cropRequestRef.current += 1;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (optimizedPreviewUrl) URL.revokeObjectURL(optimizedPreviewUrl);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setFile(null);
+    setPreviewUrl(null);
+    setOptimizedPreviewUrl(null);
+    setOptimizationMetadata(null);
+    setCrop(EMPTY_CROP);
+    setCropDiagnostics(null);
+    setEditingCrop(false);
+    setSuggestingCrop(false);
     setResult(null);
     setDetails([]);
     setScanFeedback(null);
@@ -710,13 +722,17 @@ export default function ScanPurchase() {
 
           {optimizationDebug}
 
-          {details.length === 0 && (
+          {!hasDetectedDetails && (
             <Alert
               variant="info"
               title="Imagen procesada, sin valores para guardar"
               action={
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={resetToUpload}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={scanAnotherImage}
+                  >
                     Escanear otra
                   </Button>
                   <Button
@@ -803,7 +819,7 @@ export default function ScanPurchase() {
             <div className="flex flex-col gap-2 border-t border-(--color-border) pt-4 sm:flex-row sm:justify-end">
               <Button
                 variant="outline"
-                onClick={resetToUpload}
+                onClick={scanAnotherImage}
                 disabled={saving}
               >
                 Escanear otra
