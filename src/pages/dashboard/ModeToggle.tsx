@@ -12,7 +12,7 @@ function ModeToggleDashboard(
   }: Readonly<ModeToggleDashboardProps>
 ) {
   const buttonBase =
-    'flex flex-1 lg:flex-none items-center justify-center gap-1.75 rounded-md px-4.5 py-2 [@media(pointer:coarse)]:py-2.5 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-(--color-focus-ring)'
+    'flex flex-1 lg:flex-none items-center justify-center gap-1.5 rounded-md px-3 sm:px-4.5 py-2 [@media(pointer:coarse)]:py-2.5 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-(--color-focus-ring)'
   const buttonState = (active: boolean) =>
     active
       ? 'bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) shadow-sm'

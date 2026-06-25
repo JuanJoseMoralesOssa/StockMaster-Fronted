@@ -55,7 +55,7 @@ function RankingList({
                 <button
                   type="button"
                   onClick={() => onItemClick(item)}
-                  className="hover:underline text-left text-(--view-accent-text,var(--color-text-link)) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--color-focus-ring) rounded"
+                  className="hover:underline text-left text-(--view-accent-text,var(--color-text-link)) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--color-focus-ring) rounded pointer-coarse:-my-1.5 pointer-coarse:py-1.5"
                 >
                   {item.name}
                 </button>

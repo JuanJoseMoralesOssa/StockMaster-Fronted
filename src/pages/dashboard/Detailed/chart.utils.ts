@@ -39,6 +39,34 @@ export const formatChartValue = (value: unknown): string => {
 export const formatChartPercent = (percent: number | undefined): string =>
   `${((percent ?? 0) * 100).toFixed(0)}%`
 
+const compactNumberFormatter = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+})
+
+/**
+ * Short label for on-chart display (e.g. 1.2M, 12K) so the value is readable
+ * without hovering. Returns '' for 0/non-numeric to avoid cluttering empty bars.
+ */
+export const formatCompactNumber = (value: unknown): string => {
+  const num = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(num) || num === 0) return ''
+  return compactNumberFormatter.format(num)
+}
+
+/**
+ * Shared <LabelList> props that print each bar's value just above it, so the
+ * dashboards are readable at a glance without a hover. Spread onto a LabelList
+ * placed inside a <Bar>; it inherits the bar's dataKey automatically.
+ */
+export const BAR_VALUE_LABEL = {
+  position: 'top',
+  offset: 4,
+  fontSize: 9,
+  className: 'fill-(--color-text-secondary)',
+  formatter: formatCompactNumber,
+} as const
+
 type CsvCell = string | number | boolean | null | undefined
 
 function serializeCsvCell(value: CsvCell, delimiter: string): string {

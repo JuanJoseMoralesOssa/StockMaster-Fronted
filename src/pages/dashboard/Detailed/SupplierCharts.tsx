@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  LabelList,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -21,7 +22,10 @@ import {
   CHART_HEIGHTS,
   CHART_MARGINS,
   CHART_COLORS,
+  BAR_VALUE_LABEL,
 } from './chart.utils'
+import { renderPieValueLabel } from './chartLabels'
+import { MobileChartScroll } from './MobileChartScroll'
 import {
   aggregateByMonthAndEntity,
   groupMonthlyByEntity,
@@ -176,18 +180,26 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg xl:text-xl font-medium mb-4">Distribución Mensual de Pagos</h2>
+          <MobileChartScroll>
           <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
             <BarChart data={monthlyDataArray} margin={CHART_MARGINS.withBottomLabels}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} />
-              <YAxis />
+              <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} fontSize={12} />
+              <YAxis fontSize={12} />
               <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
-              <Bar dataKey="Total" name="Total Pedido" fill={CHART_COLORS.purchase} />
-              <Bar dataKey="Pagado" name="Total Pagado" fill={CHART_COLORS.paid} />
-              <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
+              <Bar dataKey="Total" name="Total Pedido" fill={CHART_COLORS.purchase}>
+                <LabelList {...BAR_VALUE_LABEL} />
+              </Bar>
+              <Bar dataKey="Pagado" name="Total Pagado" fill={CHART_COLORS.paid}>
+                <LabelList {...BAR_VALUE_LABEL} />
+              </Bar>
+              <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending}>
+                <LabelList {...BAR_VALUE_LABEL} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
+          </MobileChartScroll>
         </div>
 
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
@@ -201,6 +213,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
                 cx="50%"
                 cy="50%"
                 outerRadius="70%"
+                label={renderPieValueLabel}
               />
               <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
@@ -225,9 +238,15 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
                     <YAxis fontSize={12} />
                     <Tooltip formatter={(value) => formatChartValue(value)} />
                     <Legend />
-                    <Bar dataKey="Total" name="Total" fill={CHART_COLORS.purchase} />
-                    <Bar dataKey="Pagado" name="Pagado" fill={CHART_COLORS.paid} />
-                    <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
+                    <Bar dataKey="Total" name="Total" fill={CHART_COLORS.purchase}>
+                      <LabelList {...BAR_VALUE_LABEL} />
+                    </Bar>
+                    <Bar dataKey="Pagado" name="Pagado" fill={CHART_COLORS.paid}>
+                      <LabelList {...BAR_VALUE_LABEL} />
+                    </Bar>
+                    <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending}>
+                      <LabelList {...BAR_VALUE_LABEL} />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -255,7 +274,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                 {monthsWithData.map(([month, dailyData]) => (
                   <div key={`${productId}-${month}`} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
-                    <h4 className="text-md font-medium mb-3 text-center text-(--color-text-secondary)">{month}</h4>
+                    <h4 className="text-base font-medium mb-3 text-center text-(--color-text-secondary)">{month}</h4>
                     <ResponsiveContainer width="100%" height={CHART_HEIGHTS.small}>
                       <BarChart data={dailyData} margin={CHART_MARGINS.compact}>
                         <CartesianGrid strokeDasharray="3 3" />

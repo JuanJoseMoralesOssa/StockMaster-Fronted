@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList, ResponsiveContainer, PieChart, Pie } from 'recharts'
 import Person from '../../../types/Person'
 import Product from '../../../types/Product'
 import { DashboardResult } from '../../../types/DashboardResults'
 import { FileSpreadsheet, ChevronDown } from 'lucide-react'
-import { formatChartValue, formatChartPercent, downloadCsvFile, CHART_HEIGHTS, CHART_MARGINS, CHART_COLORS } from './chart.utils'
+import { formatChartValue, formatChartPercent, downloadCsvFile, CHART_HEIGHTS, CHART_MARGINS, CHART_COLORS, BAR_VALUE_LABEL } from './chart.utils'
+import { renderPieValueLabel } from './chartLabels'
+import { MobileChartScroll } from './MobileChartScroll'
 import {
   groupDailyEntriesByMonth,
   matchesPaymentStatus,
@@ -148,21 +150,29 @@ function SupplierProductCharts({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg xl:text-xl font-semibold mb-4 text-(--color-text-primary)">Distribución de Pagos por Mes</h2>
+          <MobileChartScroll>
           <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
             <BarChart
               data={barChartData}
               margin={CHART_MARGINS.inline}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" fontSize={10} />
-              <YAxis fontSize={10} />
+              <XAxis dataKey="name" fontSize={12} />
+              <YAxis fontSize={12} />
               <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
-              <Bar dataKey="Total" fill={CHART_COLORS.blue} />
-              <Bar dataKey="Pagado" fill={CHART_COLORS.green} />
-              <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
+              <Bar dataKey="Total" fill={CHART_COLORS.blue}>
+                <LabelList {...BAR_VALUE_LABEL} />
+              </Bar>
+              <Bar dataKey="Pagado" fill={CHART_COLORS.green}>
+                <LabelList {...BAR_VALUE_LABEL} />
+              </Bar>
+              <Bar dataKey="Pendiente" fill={CHART_COLORS.red}>
+                <LabelList {...BAR_VALUE_LABEL} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
+          </MobileChartScroll>
         </div>
 
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
@@ -176,6 +186,7 @@ function SupplierProductCharts({
                 nameKey="name"
                 outerRadius="70%"
                 dataKey="value"
+                label={renderPieValueLabel}
               />
               <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
@@ -193,7 +204,7 @@ function SupplierProductCharts({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Object.entries(dailyByMonth).map(([month, days]) => (
             <div key={month} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
-              <h3 className="text-md font-medium mb-4 text-center text-(--color-text-primary)">{month}</h3>
+              <h3 className="text-base font-medium mb-4 text-center text-(--color-text-primary)">{month}</h3>
               <ResponsiveContainer width="100%" height={CHART_HEIGHTS.medium}>
                 <BarChart
                   data={days.map(d => ({
