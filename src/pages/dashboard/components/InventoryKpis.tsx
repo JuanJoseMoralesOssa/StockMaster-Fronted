@@ -74,7 +74,7 @@ function InventoryKpis({ data, loading }: Readonly<InventoryKpisProps>) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="min-w-0 bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 shadow-xs"
+          className="min-w-0 bg-(--color-bg-surface) border border-(--color-border) rounded-lg p-4 shadow-xs transition-colors lg:hover:border-(--color-border-strong)"
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-(--color-text-secondary) uppercase tracking-wide">

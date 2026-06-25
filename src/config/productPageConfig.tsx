@@ -42,6 +42,9 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       type: 'text',
       placeholder: 'Ej: Laptop HP 15"',
       required: true,
+      // Campo principal y largo: ocupa la fila completa en el form 2-col de desktop
+      // (deja `stock` solo debajo, y en edición —sin stock— queda full).
+      fullWidth: true,
       validate: (value) => {
         if (value && typeof value === 'string' && value.length < 3) {
           return 'El nombre debe tener al menos 3 caracteres'

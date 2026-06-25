@@ -1,6 +1,10 @@
 export const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
 export const CHART_HEIGHTS = {
+  // `xl` is used for the two primary charts on desktop, where the cards are wide
+  // enough that the extra height lets the bars breathe and the pie grow (its
+  // radius is bound by the smaller of width/height).
+  xl: 420,
   large: 350,
   medium: 280,
   small: 220,

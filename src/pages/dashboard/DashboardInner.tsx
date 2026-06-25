@@ -39,7 +39,7 @@ export default function DashboardInner() {
 
   return (
     <div className="min-h-full w-full bg-(--color-bg-page) p-5 sm:p-6 md:p-8">
-      <div className="mx-auto w-full max-w-360 xl:max-w-400 2xl:max-w-440">
+      <div className="mx-auto w-full max-w-360 xl:max-w-400 2xl:max-w-480">
         <DashboardHeader
           title="Reporte de Operaciones"
           subtitle="Consulta y analiza resultados por período, proveedor o producto"

@@ -51,10 +51,12 @@ export default function ChartDetailTable({
           Exportar CSV
         </Button>
       </div>
-      {/* Only the table scrolls horizontally; the heading and export button stay pinned. */}
-      <div className="overflow-x-auto">
+      {/* The heading and export button stay pinned; on desktop the body scrolls
+          under a sticky header (and sticky TOTAL row) so a long monthly
+          breakdown never pushes the column labels or totals out of view. */}
+      <div className="overflow-x-auto lg:max-h-[60vh] lg:overflow-y-auto">
         <table className="min-w-full divide-y divide-(--color-border)">
-          <thead className="bg-(--color-bg-subtle)">
+          <thead className="bg-(--color-bg-subtle) lg:sticky lg:top-0 lg:z-10">
             <tr>
               <th className={TH}>{firstColumnLabel}</th>
               <th className={TH_NUMERIC}>Total</th>
@@ -75,7 +77,7 @@ export default function ChartDetailTable({
                 </td>
               </tr>
             ))}
-            <tr className="bg-(--color-bg-subtle) font-semibold">
+            <tr className="bg-(--color-bg-subtle) font-semibold lg:sticky lg:bottom-0 lg:z-10">
               <td className={TD}>TOTAL</td>
               <td className={TD_NUMERIC}>{totals.Total.toLocaleString()}</td>
               <td className={`${TD_NUMERIC} text-success-700`}>{totals.Pagado.toLocaleString()}</td>

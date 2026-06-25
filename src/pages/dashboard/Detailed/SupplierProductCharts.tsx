@@ -147,11 +147,11 @@ function SupplierProductCharts({
       </div>
 
       {/* Gráficos principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs xl:col-span-2">
           <h2 className="text-lg xl:text-xl font-semibold mb-4 text-(--color-text-primary)">Distribución de Pagos por Mes</h2>
           <MobileChartScroll>
-          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
+          <ResponsiveContainer width="100%" height={isDesktop ? CHART_HEIGHTS.xl : CHART_HEIGHTS.large}>
             <BarChart
               data={barChartData}
               margin={CHART_MARGINS.inline}
@@ -177,7 +177,7 @@ function SupplierProductCharts({
 
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg xl:text-xl font-semibold mb-4 text-(--color-text-primary)">Panorama General</h2>
-          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
+          <ResponsiveContainer width="100%" height={isDesktop ? CHART_HEIGHTS.xl : CHART_HEIGHTS.large}>
             <PieChart>
               <Pie
                 data={pieData}
@@ -201,7 +201,7 @@ function SupplierProductCharts({
           <span>Distribución Diaria por Mes</span>
           <ChevronDown className="h-5 w-5 text-(--color-text-secondary) transition-transform group-open:rotate-180" aria-hidden="true" />
         </summary>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {Object.entries(dailyByMonth).map(([month, days]) => (
             <div key={month} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
               <h3 className="text-base font-medium mb-4 text-center text-(--color-text-primary)">{month}</h3>

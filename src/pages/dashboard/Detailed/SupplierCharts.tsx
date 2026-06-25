@@ -177,11 +177,11 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+        <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs xl:col-span-2">
           <h2 className="text-lg xl:text-xl font-medium mb-4">Distribución Mensual de Pagos</h2>
           <MobileChartScroll>
-          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
+          <ResponsiveContainer width="100%" height={isDesktop ? CHART_HEIGHTS.xl : CHART_HEIGHTS.large}>
             <BarChart data={monthlyDataArray} margin={CHART_MARGINS.withBottomLabels}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} fontSize={12} />
@@ -204,7 +204,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
 
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
           <h2 className="text-lg xl:text-xl font-medium mb-4">Panorama General de Pagos</h2>
-          <ResponsiveContainer width="100%" height={CHART_HEIGHTS.large}>
+          <ResponsiveContainer width="100%" height={isDesktop ? CHART_HEIGHTS.xl : CHART_HEIGHTS.large}>
             <PieChart>
               <Pie
                 data={pieChartData}
@@ -225,7 +225,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
       {/* Gráficas por Producto */}
       <div className="mb-6">
         <h2 className="text-xl xl:text-2xl font-semibold mb-4">Distribución Mensual de Pagos por Producto</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {Object.entries(dataByProduct).map(([productId, productData]) => {
             const productName = productsMap.get(parseInt(productId)) || 'Desconocido'
             return (
@@ -271,7 +271,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
               <h3 className="text-lg font-semibold mb-4 text-(--view-accent-text,var(--color-text-link)) border-l-4 border-(--view-accent,var(--color-action-bg)) pl-3">
                 {productName}
               </h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                 {monthsWithData.map(([month, dailyData]) => (
                   <div key={`${productId}-${month}`} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
                     <h4 className="text-base font-medium mb-3 text-center text-(--color-text-secondary)">{month}</h4>

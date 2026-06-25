@@ -114,39 +114,50 @@ export default function GenericForm<T extends Record<string, any>>({
     >
       <FormError error={errors.root?.message} />
 
-      {fields.map((field) => (
-        <Controller
-          key={field.name as string}
-          name={field.name as Path<T>}
-          control={control}
-          rules={buildRules(field, getValues)}
-          render={({ field: rhf, fieldState }) => (
-            <FieldWrapper
-              field={field}
-              value={rhf.value ?? field.defaultValue ?? ''}
-              onChange={(e) => {
-                const { type, value } = e.target
-                if (type === 'checkbox') {
-                  rhf.onChange((e.target as HTMLInputElement).checked)
-                } else if (type === 'number') {
-                  rhf.onChange(value === '' ? '' : Number(value))
-                } else {
-                  rhf.onChange(value)
-                }
-              }}
-              onBlur={rhf.onBlur}
-              error={fieldState.error?.message}
-              showPassword={showPasswords[field.name as string]}
-              onTogglePassword={() =>
-                setShowPasswords((p) => ({
-                  ...p,
-                  [field.name as string]: !p[field.name as string],
-                }))
-              }
-            />
-          )}
-        />
-      ))}
+      {/* Una columna en móvil/tablet (ya revisado); en desktop se reparte en dos
+          para reducir el scroll vertical. El segundo eje solo se activa con 2+
+          campos —así un formulario de un solo campo no queda a media columna—.
+          textarea/checkbox y los campos con `fullWidth` ocupan la fila completa. */}
+      <div className={`grid grid-cols-1 gap-4${fields.length > 1 ? ' lg:grid-cols-2' : ''}`}>
+        {fields.map((field) => {
+          const spanFull =
+            field.fullWidth || field.type === 'textarea' || field.type === 'checkbox'
+          return (
+            <div key={field.name as string} className={spanFull ? 'lg:col-span-2' : undefined}>
+              <Controller
+                name={field.name as Path<T>}
+                control={control}
+                rules={buildRules(field, getValues)}
+                render={({ field: rhf, fieldState }) => (
+                  <FieldWrapper
+                    field={field}
+                    value={rhf.value ?? field.defaultValue ?? ''}
+                    onChange={(e) => {
+                      const { type, value } = e.target
+                      if (type === 'checkbox') {
+                        rhf.onChange((e.target as HTMLInputElement).checked)
+                      } else if (type === 'number') {
+                        rhf.onChange(value === '' ? '' : Number(value))
+                      } else {
+                        rhf.onChange(value)
+                      }
+                    }}
+                    onBlur={rhf.onBlur}
+                    error={fieldState.error?.message}
+                    showPassword={showPasswords[field.name as string]}
+                    onTogglePassword={() =>
+                      setShowPasswords((p) => ({
+                        ...p,
+                        [field.name as string]: !p[field.name as string],
+                      }))
+                    }
+                  />
+                )}
+              />
+            </div>
+          )
+        })}
+      </div>
 
       <FormActions
         loading={isSubmitting}

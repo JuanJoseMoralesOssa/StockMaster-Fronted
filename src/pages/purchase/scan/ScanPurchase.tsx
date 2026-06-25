@@ -430,7 +430,7 @@ export default function ScanPurchase() {
   );
 
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-5 sm:px-6 md:py-6">
+    <section className="mx-auto flex w-full max-w-3xl lg:max-w-5xl flex-col gap-6 px-4 py-5 sm:px-6 md:py-6">
       <header className="flex items-center gap-3">
         <Button
           variant="ghost"

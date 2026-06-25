@@ -75,6 +75,9 @@ export interface GenericField<T = object> {
   step?: number
   /** Clases CSS adicionales */
   className?: string
+  /** En desktop el formulario se divide en 2 columnas; este campo ocupa la fila
+   *  completa (textarea y checkbox lo hacen por defecto). */
+  fullWidth?: boolean
 }
 
 /**
