@@ -153,7 +153,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
     }
 
     const numberInputBase =
-        'block h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 text-sm text-(--color-text-primary) transition-colors hover:border-(--color-border-strong) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)'
+        'block h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) transition-colors hover:border-(--color-border-strong) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)'
 
     if (variant === 'card') {
         return (

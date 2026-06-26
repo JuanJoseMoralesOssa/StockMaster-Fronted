@@ -205,6 +205,7 @@ function SupplierProductCharts({
           {Object.entries(dailyByMonth).map(([month, days]) => (
             <div key={month} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
               <h3 className="text-base font-medium mb-4 text-center text-(--color-text-primary)">{month}</h3>
+              <MobileChartScroll>
               <ResponsiveContainer width="100%" height={CHART_HEIGHTS.medium}>
                 <BarChart
                   data={days.map(d => ({
@@ -225,6 +226,7 @@ function SupplierProductCharts({
                   <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
                 </BarChart>
               </ResponsiveContainer>
+              </MobileChartScroll>
             </div>
           ))}
         </div>

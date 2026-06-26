@@ -1,7 +1,7 @@
 import { X, LogOut } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import useAuthStore from '../../../../stores/useAuthStore'
-import { Fragment, useRef } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { getViewAccentStyle } from '../../../../constants/viewAccents'
 import { useGroupedNavItems } from '../../../../hooks/useNavItems'
 import { useFocusTrap } from '../../../../hooks/useFocusTrap'
@@ -20,6 +20,15 @@ const NavbarMobile: React.FC<NavbarMobileProps> = ({ open, setOpen }) => {
 
     const close = () => setOpen(false)
     useFocusTrap(drawerRef, { open, onClose: close })
+
+    // Lock the page body while the drawer is open so the content behind the
+    // scrim doesn't scroll (mirrors Modal.tsx).
+    useEffect(() => {
+        if (!open) return
+        const prevOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => { document.body.style.overflow = prevOverflow }
+    }, [open])
 
     if (!open) return null
 

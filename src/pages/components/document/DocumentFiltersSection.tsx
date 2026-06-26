@@ -6,7 +6,7 @@ import { useProductStore, useSupplierStore } from '@/stores'
 import { DateRangeFilters } from '@/utils/date'
 
 const dateToggleClasses = {
-  active: 'border border-(--view-accent,var(--color-action-bg)) bg-(--view-accent,var(--color-action-bg)) text-white shadow-sm hover:bg-(--view-accent-hover,var(--color-action-bg-hover))',
+  active: 'border border-(--view-accent,var(--color-action-bg)) bg-(--view-accent,var(--color-action-bg)) text-(--color-action-text) shadow-sm hover:bg-(--view-accent-hover,var(--color-action-bg-hover))',
   inactive: 'border border-(--view-accent-border,var(--color-border-strong)) bg-(--color-bg-surface) text-(--view-accent-text,var(--color-text-link)) hover:bg-(--view-accent-soft,var(--color-bg-subtle))',
 }
 
@@ -104,7 +104,7 @@ export default function DocumentFiltersSection({
                   type="date"
                   value={filters.startDate}
                   onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                  className="rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 py-2 text-(--color-text-primary) shadow-xs"
+                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) shadow-xs"
                 />
               </div>
               <div className='flex flex-col'>
@@ -115,7 +115,7 @@ export default function DocumentFiltersSection({
                   type="date"
                   value={filters.endDate}
                   onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                  className="rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 py-2 text-(--color-text-primary) shadow-xs"
+                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) shadow-xs"
                 />
               </div>
             </div>

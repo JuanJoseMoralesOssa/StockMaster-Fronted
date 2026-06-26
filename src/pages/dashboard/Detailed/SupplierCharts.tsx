@@ -69,7 +69,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
   )
 
   const monthlyData = useMemo(
-    () => aggregateByMonthAndEntity(mapped, (id) => productsMap.get(id) ?? 'Desconocido'),
+    () => aggregateByMonthAndEntity(mapped, (id) => productsMap.get(id) ?? `Producto Desconocido #${id}`),
     [mapped, productsMap],
   )
 
@@ -227,10 +227,11 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
         <h2 className="text-xl xl:text-2xl font-semibold mb-4">Distribución Mensual de Pagos por Producto</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {Object.entries(dataByProduct).map(([productId, productData]) => {
-            const productName = productsMap.get(parseInt(productId)) || 'Desconocido'
+            const productName = productsMap.get(parseInt(productId)) || `Producto Desconocido #${productId}`
             return (
               <div key={productId} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
                 <h3 className="text-lg font-medium mb-4 text-center">{productName}</h3>
+                <MobileChartScroll>
                 <ResponsiveContainer width="100%" height={CHART_HEIGHTS.medium}>
                   <BarChart data={productData} margin={CHART_MARGINS.standard}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -249,6 +250,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                </MobileChartScroll>
               </div>
             )
           })}
@@ -262,7 +264,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
           <ChevronDown className="h-5 w-5 text-(--color-text-secondary) transition-transform group-open:rotate-180" aria-hidden="true" />
         </summary>
         {Object.entries(dailyDataByProduct).map(([productId, monthsData]) => {
-          const productName = productsMap.get(parseInt(productId)) || 'Desconocido'
+          const productName = productsMap.get(parseInt(productId)) || `Producto Desconocido #${productId}`
           const monthsWithData = Object.entries(monthsData)
           if (monthsWithData.length === 0) return null
 
@@ -275,6 +277,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
                 {monthsWithData.map(([month, dailyData]) => (
                   <div key={`${productId}-${month}`} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
                     <h4 className="text-base font-medium mb-3 text-center text-(--color-text-secondary)">{month}</h4>
+                    <MobileChartScroll>
                     <ResponsiveContainer width="100%" height={CHART_HEIGHTS.small}>
                       <BarChart data={dailyData} margin={CHART_MARGINS.compact}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -291,6 +294,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
                         <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
                       </BarChart>
                     </ResponsiveContainer>
+                    </MobileChartScroll>
                   </div>
                 ))}
               </div>

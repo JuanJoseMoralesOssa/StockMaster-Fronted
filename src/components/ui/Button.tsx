@@ -34,12 +34,12 @@ const variantClasses: Record<Variant, string> = {
 }
 
 const sizeClasses: Record<Size, string> = {
-  xs: "h-7 px-2 text-xs",
-  sm: "h-8 px-3 text-sm",
+  xs: "h-7 px-2 text-xs [@media(pointer:coarse)]:h-9",
+  sm: "h-8 px-3 text-sm [@media(pointer:coarse)]:h-11",
   md: "h-10 px-4 text-sm [@media(pointer:coarse)]:h-11",
   lg: "h-12 px-6 text-base",
   "icon-sm": "h-8 w-8 p-0",
-  "icon-md": "h-10 w-10 p-0",
+  "icon-md": "h-10 w-10 p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",
 }
 
 export function Button({

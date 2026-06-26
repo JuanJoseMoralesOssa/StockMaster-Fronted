@@ -27,7 +27,7 @@ function RoleSelect({ hasError, ...props }: Readonly<RoleSelectProps>) {
   return (
     <select
       aria-invalid={hasError || undefined}
-      className={`h-input w-full rounded-md border bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring) ${hasError ? 'border-danger-500' : 'border-(--color-border) hover:border-(--color-border-strong)'}`}
+      className={`h-input w-full rounded-md border bg-(--color-bg-surface) px-3 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring) ${hasError ? 'border-danger-500' : 'border-(--color-border) hover:border-(--color-border-strong)'}`}
       {...props}
     />
   )

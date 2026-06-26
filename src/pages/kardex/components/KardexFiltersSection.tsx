@@ -76,7 +76,7 @@ export default function KardexFiltersSection({
             id="kardex-operation-filter"
             value={filters.operation}
             onChange={(event) => setFilters({ ...filters, operation: event.target.value })}
-            className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+            className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
           >
             <option value="">Todas</option>
             {KARDEX_OPERATION_OPTIONS.map((option) => (
@@ -113,7 +113,7 @@ export default function KardexFiltersSection({
                   type="date"
                   value={filters.startDate}
                   onChange={(event) => setFilters({ ...filters, startDate: event.target.value })}
-                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
                 />
               </div>
               <div className="flex flex-col">
@@ -125,7 +125,7 @@ export default function KardexFiltersSection({
                   type="date"
                   value={filters.endDate}
                   onChange={(event) => setFilters({ ...filters, endDate: event.target.value })}
-                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
+                  className="h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-3 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)"
                 />
               </div>
             </div>

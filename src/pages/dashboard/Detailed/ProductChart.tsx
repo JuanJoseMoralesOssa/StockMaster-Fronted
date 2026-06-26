@@ -74,7 +74,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
   )
 
   const monthlyData = useMemo(
-    () => aggregateByMonthAndEntity(mapped, (id) => suppliersMap.get(id) ?? 'Proveedor Desconocido'),
+    () => aggregateByMonthAndEntity(mapped, (id) => suppliersMap.get(id) ?? `Proveedor Desconocido #${id}`),
     [mapped, suppliersMap],
   )
 
@@ -222,10 +222,11 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
         <h2 className="text-xl xl:text-2xl font-semibold mb-4">Distribución Mensual de Pagos por Proveedor</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {Object.entries(dataBySupplier).map(([personId, supplierData]) => {
-            const supplierName = suppliersMap.get(parseInt(personId)) || 'Proveedor Desconocido'
+            const supplierName = suppliersMap.get(parseInt(personId)) || `Proveedor Desconocido #${personId}`
             return (
               <div key={personId} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
                 <h3 className="text-lg font-medium mb-4 text-center">{supplierName}</h3>
+                <MobileChartScroll>
                 <ResponsiveContainer width="100%" height={CHART_HEIGHTS.medium}>
                   <BarChart data={supplierData} margin={CHART_MARGINS.standard}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -244,6 +245,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                </MobileChartScroll>
               </div>
             )
           })}
@@ -257,7 +259,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
           <ChevronDown className="h-5 w-5 text-(--color-text-secondary) transition-transform group-open:rotate-180" aria-hidden="true" />
         </summary>
         {Object.entries(dailyDataBySupplier).map(([personId, monthsData]) => {
-          const supplierName = suppliersMap.get(parseInt(personId)) || 'Proveedor Desconocido'
+          const supplierName = suppliersMap.get(parseInt(personId)) || `Proveedor Desconocido #${personId}`
           const monthsWithData = Object.entries(monthsData)
           if (monthsWithData.length === 0) return null
 
@@ -270,6 +272,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
                 {monthsWithData.map(([month, dailyData]) => (
                   <div key={`${personId}-${month}`} className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs">
                     <h4 className="text-base font-medium mb-3 text-center text-(--color-text-secondary)">{month}</h4>
+                    <MobileChartScroll>
                     <ResponsiveContainer width="100%" height={CHART_HEIGHTS.small}>
                       <BarChart data={dailyData} margin={CHART_MARGINS.compact}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -286,6 +289,7 @@ const ProductChart: React.FC<ProductChartProps> = ({ results, suppliers, filters
                         <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
                       </BarChart>
                     </ResponsiveContainer>
+                    </MobileChartScroll>
                   </div>
                 ))}
               </div>
