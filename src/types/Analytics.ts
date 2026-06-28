@@ -20,13 +20,13 @@ export interface AnalyticsSummary {
   totalTransactions: number
   /** Number of purchase documents ("Compra") in the range. */
   purchaseCount: number
-  /** Number of expense documents ("Gasto") in the range. */
-  expenseCount: number
+  /** Number of payment documents ("Pago") in the range. */
+  paymentCount: number
   /** Total weight ordered (purchases / "Compra") in the range. */
   totalPurchaseWeight: number
-  /** Total weight paid/delivered (expenses / "Gasto") in the range. */
-  totalExpenseWeight: number
-  /** Outstanding weight: purchases minus expenses. */
+  /** Total weight paid/delivered (payments / "Pago") in the range. */
+  totalPaymentWeight: number
+  /** Outstanding weight: purchases minus payments. */
   pendingWeight: number
 }
 
@@ -43,24 +43,24 @@ export interface DashboardSummaryResponse {
 export interface AnalyticsFilters {
   startDate: string
   endDate: string
-  type?: 'purchases' | 'expenses' | 'both'
+  type?: 'purchases' | 'payments' | 'both'
   limit?: number
 }
 
-export interface LowStockProduct {
+export interface LowBalanceProduct {
   productId: number
   productName: string
-  stock: number
+  balance: number
 }
 
 export interface InventorySummaryResponse {
-  /** Sum of current stock (kg) across all products. */
-  totalStock: number
+  /** Sum of current balance (kg) across all products. */
+  totalBalance: number
   productCount: number
-  inStockCount: number
-  outOfStockCount: number
-  /** Products with 0 < stock <= lowStockThreshold. */
-  lowStockCount: number
-  lowStockThreshold: number
-  lowStockProducts: LowStockProduct[]
+  inBalanceCount: number
+  outOfBalanceCount: number
+  /** Products with 0 < balance <= lowBalanceThreshold. */
+  lowBalanceCount: number
+  lowBalanceThreshold: number
+  lowBalanceProducts: LowBalanceProduct[]
 }

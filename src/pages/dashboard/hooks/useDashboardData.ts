@@ -14,7 +14,7 @@ export interface DashboardFilters {
 }
 
 export type SelectedFilter = 'all' | 'withDebt' | 'fullyPaid'
-export type SummaryType = 'both' | 'purchases' | 'expenses'
+export type SummaryType = 'both' | 'purchases' | 'payments'
 
 export function useDashboardData() {
   const [loading, setLoading] = useState(false)
@@ -171,7 +171,7 @@ export function useDashboardData() {
     }
   }, [filters, summaryType, clearResults, refetchAnalytics, refetchPrevAnalytics])
 
-  // Cambiar el tipo (Compras/Gastos/Ambos) refresca los KPIs al instante.
+  // Cambiar el tipo (Compras/Pagos/Ambos) refresca los KPIs al instante.
   const changeSummaryType = useCallback(
     (type: SummaryType) => {
       setSummaryType(type)

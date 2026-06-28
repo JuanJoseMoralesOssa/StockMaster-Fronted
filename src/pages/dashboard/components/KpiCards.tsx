@@ -43,15 +43,15 @@ function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps
   const c = current
   const p = previous
   const purchaseWeight = c?.totalPurchaseWeight ?? 0
-  const expenseWeight = c?.totalExpenseWeight ?? 0
+  const paymentWeight = c?.totalPaymentWeight ?? 0
   const balance = c?.pendingWeight ?? 0
   const suppliers = c?.totalSuppliers ?? 0
-  const docs = (c?.purchaseCount ?? 0) + (c?.expenseCount ?? 0)
+  const docs = (c?.purchaseCount ?? 0) + (c?.paymentCount ?? 0)
   const lines = c?.totalTransactions ?? 0
 
   const hasPrev = !!p
-  const prevDocs = (p?.purchaseCount ?? 0) + (p?.expenseCount ?? 0)
-  const allZero = !!c && purchaseWeight === 0 && expenseWeight === 0 && suppliers === 0 && docs === 0
+  const prevDocs = (p?.purchaseCount ?? 0) + (p?.paymentCount ?? 0)
+  const allZero = !!c && purchaseWeight === 0 && paymentWeight === 0 && suppliers === 0 && docs === 0
 
   const cards: Array<{
     label: string
@@ -68,9 +68,9 @@ function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps
       icon: <TrendingUp className="w-4 h-4" />,
     },
     {
-      label: 'Kg en Gastos',
-      value: kg(expenseWeight),
-      delta: pct(expenseWeight, p?.totalExpenseWeight ?? 0),
+      label: 'Kg en Pagos',
+      value: kg(paymentWeight),
+      delta: pct(paymentWeight, p?.totalPaymentWeight ?? 0),
       icon: <TrendingDown className="w-4 h-4" />,
     },
     {
@@ -78,7 +78,7 @@ function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps
       value: kg(balance),
       delta: pct(balance, p?.pendingWeight ?? 0),
       icon: <Scale className="w-4 h-4" />,
-      hint: 'Compras − Gastos',
+      hint: 'Compras − Pagos',
       valueClass: balance < 0 ? 'text-danger-700' : 'text-(--color-text-primary)',
     },
     {
@@ -92,7 +92,7 @@ function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps
       value: docs.toLocaleString(),
       delta: pct(docs, prevDocs),
       icon: <FileText className="w-4 h-4" />,
-      hint: `${c?.purchaseCount ?? 0} compras · ${c?.expenseCount ?? 0} gastos`,
+      hint: `${c?.purchaseCount ?? 0} compras · ${c?.paymentCount ?? 0} pagos`,
     },
     {
       label: 'Líneas',

@@ -1,9 +1,9 @@
 /**
- * Formas mínimas compartidas por los documentos con detalles (compras y gastos).
+ * Formas mínimas compartidas por los documentos con detalles (compras y pagos).
  * Permiten escribir componentes genéricos (crear/editar/filtrar) una sola vez.
  */
 
-/** Campos mínimos de un detalle de documento (línea de compra/gasto). */
+/** Campos mínimos de un detalle de documento (línea de compra/pago). */
 export type DocumentDetailLike = {
   id?: number
   productId?: number

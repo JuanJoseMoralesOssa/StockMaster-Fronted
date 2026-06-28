@@ -12,7 +12,7 @@ import {
 } from '../chartTransforms'
 
 const PURCHASE = 'Compra'
-const EXPENSE = 'Gasto'
+const PAYMENT = 'Pago'
 
 // Helpers
 const purchase = (date: string, entityId: number, kg: number) => ({
@@ -21,18 +21,18 @@ const purchase = (date: string, entityId: number, kg: number) => ({
   weight_kg: kg,
   entityId,
 })
-const expense = (date: string, entityId: number, kg: number) => ({
+const payment = (date: string, entityId: number, kg: number) => ({
   date,
-  type: EXPENSE,
+  type: PAYMENT,
   weight_kg: kg,
   entityId,
 })
 
 describe('aggregateByMonthAndEntity', () => {
-  it('aggregates purchases and expenses by month + entity', () => {
+  it('aggregates purchases and payments by month + entity', () => {
     const results = [
       purchase('2024-01-15', 1, 100),
-      expense('2024-01-20', 1, 60),
+      payment('2024-01-20', 1, 60),
       purchase('2024-02-10', 1, 50),
     ]
     const getLabel = (id: number) => `Entity ${id}`
@@ -127,7 +127,7 @@ describe('groupDailyByEntityAndMonth', () => {
   it('groups by entity, then month, then day', () => {
     const results = [
       { date: '2024-01-10', type: PURCHASE, weight_kg: 50, entityId: 1 },
-      { date: '2024-01-10', type: EXPENSE, weight_kg: 20, entityId: 1 },
+      { date: '2024-01-10', type: PAYMENT, weight_kg: 20, entityId: 1 },
       { date: '2024-01-15', type: PURCHASE, weight_kg: 30, entityId: 1 },
     ]
     const out = groupDailyByEntityAndMonth(results)
@@ -159,12 +159,12 @@ describe('processDailyEntries', () => {
   it('processes ISO date strings correctly', () => {
     const results = [
       { date: '2024-03-05', type: PURCHASE, weight_kg: 80 },
-      { date: '2024-03-05', type: EXPENSE, weight_kg: 30 },
+      { date: '2024-03-05', type: PAYMENT, weight_kg: 30 },
     ]
     const out = processDailyEntries(results)
     expect(out).toHaveLength(1)
     expect(out[0].compra).toBe(80)
-    expect(out[0].gasto).toBe(30)
+    expect(out[0].pago).toBe(30)
     expect(out[0].pendiente).toBe(50)
     expect(out[0].day).toBe(5)
   })
@@ -188,7 +188,7 @@ describe('processMonthlyEntries', () => {
   it('aggregates by month correctly', () => {
     const results = [
       { date: '2024-01-05', type: PURCHASE, weight_kg: 100 },
-      { date: '2024-01-20', type: EXPENSE, weight_kg: 40 },
+      { date: '2024-01-20', type: PAYMENT, weight_kg: 40 },
       { date: '2024-02-10', type: PURCHASE, weight_kg: 60 },
     ]
     const out = processMonthlyEntries(results)
@@ -203,9 +203,9 @@ describe('processMonthlyEntries', () => {
 describe('groupDailyEntriesByMonth', () => {
   it('groups days under the correct month key', () => {
     const daily = [
-      { day: 5, date: '2024-01-05', compra: 10, gasto: 5, pendiente: 5 },
-      { day: 10, date: '2024-01-10', compra: 20, gasto: 10, pendiente: 10 },
-      { day: 3, date: '2024-02-03', compra: 30, gasto: 15, pendiente: 15 },
+      { day: 5, date: '2024-01-05', compra: 10, pago: 5, pendiente: 5 },
+      { day: 10, date: '2024-01-10', compra: 20, pago: 10, pendiente: 10 },
+      { day: 3, date: '2024-02-03', compra: 30, pago: 15, pendiente: 15 },
     ]
     const out = groupDailyEntriesByMonth(daily)
     expect(Object.keys(out)).toHaveLength(2)

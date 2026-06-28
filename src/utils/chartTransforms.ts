@@ -1,4 +1,4 @@
-import { EXPENSE, PURCHASE } from '../constants/cts'
+import { PAYMENT, PURCHASE } from '../constants/cts'
 import { monthNames, formatMonthName } from '../pages/dashboard/Detailed/chart.utils'
 
 export interface FinancialTotals {
@@ -26,7 +26,7 @@ export interface DailyEntry {
   day: number
   date: string
   compra: number
-  gasto: number
+  pago: number
   pendiente: number
 }
 
@@ -74,7 +74,7 @@ export function aggregateByMonthAndEntity(
     }
 
     if (item.type === PURCHASE) acc[key].Total += item.weight_kg
-    else if (item.type === EXPENSE) acc[key].Pagado += item.weight_kg
+    else if (item.type === PAYMENT) acc[key].Pagado += item.weight_kg
 
     acc[key].Pendiente = acc[key].Total - acc[key].Pagado
     return acc
@@ -136,7 +136,7 @@ export function groupDailyByEntityAndMonth(
     }
 
     if (item.type === PURCHASE) entry.Total += item.weight_kg
-    else if (item.type === EXPENSE) entry.Pagado += item.weight_kg
+    else if (item.type === PAYMENT) entry.Pagado += item.weight_kg
     entry.Pendiente = entry.Total - entry.Pagado
   })
 
@@ -201,13 +201,13 @@ export function processDailyEntries(results: TransactionRecord[]): DailyEntry[] 
     }
 
     if (!dailyMap.has(dateKey)) {
-      dailyMap.set(dateKey, { day, date: dateKey, compra: 0, gasto: 0, pendiente: 0 })
+      dailyMap.set(dateKey, { day, date: dateKey, compra: 0, pago: 0, pendiente: 0 })
     }
 
     const entry = dailyMap.get(dateKey)!
     if (result.type === PURCHASE) entry.compra += result.weight_kg
-    else entry.gasto += result.weight_kg
-    entry.pendiente = entry.compra - entry.gasto
+    else entry.pago += result.weight_kg
+    entry.pendiente = entry.compra - entry.pago
   })
 
   return Array.from(dailyMap.values()).sort((a, b) => a.date.localeCompare(b.date))

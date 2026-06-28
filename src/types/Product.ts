@@ -1,4 +1,4 @@
-import Expense from './Expense'
+import Payment from './Payment'
 import Kardex from './Kardex'
 import Person from './Person'
 import Purchase from './Purchase'
@@ -6,13 +6,13 @@ import Purchase from './Purchase'
 export default interface Product {
   id?: number
   name: string
-  stock?: number
+  balance?: number
   // description: string
   // createdAt: string
 
   purchases?: Purchase[]
-  expenses?: Expense[]
+  payments?: Payment[]
   kardexes?: Kardex[]
   people_purchase_details?: Person[]
-  people_expense_details?: Person[]
+  people_payment_details?: Person[]
 }

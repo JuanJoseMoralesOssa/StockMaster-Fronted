@@ -31,7 +31,7 @@ function InventoryKpisSkeleton() {
 }
 
 /**
- * Current inventory snapshot cards: total stock, low-stock and out-of-stock
+ * Current inventory snapshot cards: total balance, low-balance and out-of-balance
  * counts. Independent of the dashboard date filters.
  */
 function InventoryKpis({ data, loading }: Readonly<InventoryKpisProps>) {
@@ -40,26 +40,26 @@ function InventoryKpis({ data, loading }: Readonly<InventoryKpisProps>) {
 
   const cards = [
     {
-      label: 'Stock Total',
-      value: `${data.totalStock.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`,
-      hint: `${data.inStockCount} de ${data.productCount} productos con existencias`,
+      label: 'Balance Total',
+      value: `${data.totalBalance.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`,
+      hint: `${data.inBalanceCount} de ${data.productCount} productos con existencias`,
       icon: <Boxes className="w-4 h-4" />,
       tone: 'neutral' as const,
     },
     {
-      label: 'Bajo Stock',
-      value: String(data.lowStockCount),
-      hint: data.lowStockThreshold > 0 ? `≤ ${data.lowStockThreshold} kg` : 'umbral no definido',
+      label: 'Bajo Balance',
+      value: String(data.lowBalanceCount),
+      hint: data.lowBalanceThreshold > 0 ? `≤ ${data.lowBalanceThreshold} kg` : 'umbral no definido',
       icon: <AlertTriangle className="w-4 h-4" />,
-      tone: data.lowStockCount > 0 ? ('warn' as const) : ('neutral' as const),
+      tone: data.lowBalanceCount > 0 ? ('warn' as const) : ('neutral' as const),
     },
     {
-      label: 'Agotados',
-      value: String(data.outOfStockCount),
+      label: 'Sin Balance',
+      value: String(data.outOfBalanceCount),
       hint: 'sin existencias',
       icon: <PackageX className="w-4 h-4" />,
-      tone: data.outOfStockCount > 0 ? ('danger' as const) : ('neutral' as const),
-      link: data.outOfStockCount > 0 ? '/productos' : undefined,
+      tone: data.outOfBalanceCount > 0 ? ('danger' as const) : ('neutral' as const),
+      link: data.outOfBalanceCount > 0 ? '/productos' : undefined,
     },
   ]
 

@@ -54,7 +54,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
     },
     {
       key: 'balance',
-      label: 'Saldo',
+      label: 'Balance',
       align: 'right',
       render: (entry) => (
         <span className='inline-flex items-center rounded-md border border-(--view-accent-border,var(--color-border-strong)) bg-(--color-bg-surface) px-2 py-1 text-xs font-semibold text-(--view-accent-text,var(--color-text-link)) shadow-xs'>
@@ -85,8 +85,8 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       render: (entry) => {
         const sourceLabel = entry.sourceKind === 'purchase'
           ? 'Compra'
-          : entry.sourceKind === 'expense'
-            ? 'Gasto'
+          : entry.sourceKind === 'payment'
+            ? 'Pago'
             : 'Sin origen'
         const sourceParts = [
           entry.sourceId ? `#${entry.sourceId}` : '',
@@ -145,7 +145,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
     },
     {
       name: 'balance',
-      label: 'Saldo',
+      label: 'Balance',
       type: 'number',
       required: true,
       defaultValue: 0,
@@ -200,7 +200,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
     }
 
     if (data.balance !== undefined && Number.isNaN(Number(data.balance))) {
-      return 'El saldo debe ser numerico'
+      return 'El balance debe ser numerico'
     }
 
     return undefined

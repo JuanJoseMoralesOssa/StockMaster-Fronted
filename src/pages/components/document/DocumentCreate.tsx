@@ -16,7 +16,7 @@ interface DocumentCreateProps<TDoc, K extends string> {
 }
 
 /**
- * Formulario genérico de creación para documentos con detalles (compras/gastos):
+ * Formulario genérico de creación para documentos con detalles (compras/pagos):
  * fecha + tabla de detalles + guardar vía `createWithDetails`.
  */
 export default function DocumentCreate<

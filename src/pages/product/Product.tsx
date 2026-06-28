@@ -14,21 +14,29 @@ function ProductPage() {
         ...productPageConfig,
         actions: {
             ...productPageConfig.actions,
-            customActions: productPageConfig.actions?.customActions?.map((action) => (
-                action.label === 'Ver Kardex'
-                    ? {
-                        ...action,
-                        onClick: (product: Product) => {
-                            if (!product.id) return
-                            const params = new URLSearchParams({
-                                productId: product.id.toString(),
-                                productName: product.name,
-                            })
-                            navigate(`/kardex?${params.toString()}`)
-                        },
-                    }
-                    : action
-            )),
+            customActions: productPageConfig.actions?.customActions?.map((action) => {
+                if (action.label !== 'Ver Kardex' && action.label !== 'Ver Compras' && action.label !== 'Ver Pagos') {
+                    return action
+                }
+
+                const routeByLabel: Record<string, string> = {
+                    'Ver Kardex': '/kardex',
+                    'Ver Compras': '/compras',
+                    'Ver Pagos': '/pagos',
+                }
+
+                return {
+                    ...action,
+                    onClick: (product: Product) => {
+                        if (!product.id) return
+                        const params = new URLSearchParams({
+                            productId: product.id.toString(),
+                            productName: product.name,
+                        })
+                        navigate(`${routeByLabel[action.label]}?${params.toString()}`)
+                    },
+                }
+            }),
         },
     }), [navigate])
 

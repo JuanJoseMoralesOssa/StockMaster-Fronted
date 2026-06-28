@@ -51,8 +51,8 @@ const navItems: NavItem[] = [
         roles: OFFICE_ADMIN,
     },
     {
-        title: 'Consumos',
-        href: '/gastos',
+        title: 'Pagos',
+        href: '/pagos',
         icon: <DollarSign className='h-5 w-5' />,
         category: 'Operaciones',
         accent: 'amber',

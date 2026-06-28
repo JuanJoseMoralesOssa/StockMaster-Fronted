@@ -1,4 +1,4 @@
-import Expense from './Expense'
+import Payment from './Payment'
 import Product from './Product'
 import Purchase from './Purchase'
 
@@ -6,8 +6,8 @@ export default interface Person {
     id?: number
     name: string
 
-    expenses?: Expense[]
+    payments?: Payment[]
     purchases?: Purchase[]
-    products_expense_details?: Product[]
+    products_payment_details?: Product[]
     products_purchase_details?: Product[]
 }

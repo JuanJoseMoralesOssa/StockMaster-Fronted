@@ -10,11 +10,11 @@ interface UseInventorySummaryReturn {
 }
 
 /**
- * Loads the current inventory snapshot (total stock, low/out-of-stock counts).
+ * Loads the current inventory snapshot (total balance, low/out-of-balance counts).
  * This is a point-in-time value, independent of the dashboard date filters.
  */
 export const useInventorySummary = (
-  lowStockThreshold?: number,
+  lowBalanceThreshold?: number,
 ): UseInventorySummaryReturn => {
   const [data, setData] = useState<InventorySummaryResponse | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -24,7 +24,7 @@ export const useInventorySummary = (
     setLoading(true)
     setError(null)
     try {
-      const response = await analyticsService.getInventorySummary(lowStockThreshold)
+      const response = await analyticsService.getInventorySummary(lowBalanceThreshold)
       setData(response)
     } catch (err) {
       setError(
@@ -34,7 +34,7 @@ export const useInventorySummary = (
     } finally {
       setLoading(false)
     }
-  }, [lowStockThreshold])
+  }, [lowBalanceThreshold])
 
   useEffect(() => {
     // Fetch on mount / when the fetcher changes. The setState inside is the

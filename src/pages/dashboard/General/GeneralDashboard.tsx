@@ -79,7 +79,7 @@ function GeneralDashboard() {
           </h2>
           <SummaryStats
             purchaseWeight={data.summary.totalPurchaseWeight}
-            expenseWeight={data.summary.totalExpenseWeight}
+            paymentWeight={data.summary.totalPaymentWeight}
           />
         </div>
 

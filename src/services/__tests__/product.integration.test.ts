@@ -12,8 +12,8 @@ import { productService } from '../ProductService'
 const BASE = 'http://127.0.0.1:3000'
 
 // ── Datos de prueba ──────────────────────────────────────────────────────────
-const PRODUCT_1 = { id: 1, name: 'Producto A', stock: 50 }
-const PRODUCT_2 = { id: 2, name: 'Producto B', stock: 120 }
+const PRODUCT_1 = { id: 1, name: 'Producto A', balance: 50 }
+const PRODUCT_2 = { id: 2, name: 'Producto B', balance: 120 }
 const PRODUCTS = [PRODUCT_1, PRODUCT_2]
 
 function paginated<T>(data: T[], page = 1, limit = 10) {
@@ -168,13 +168,13 @@ describe('ProductService – delete()', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('ProductService – update() PUT', () => {
   it('envía PUT con los datos y retorna el producto actualizado', async () => {
-    const updated = { id: 1, name: 'Producto Actualizado', stock: 75 }
+    const updated = { id: 1, name: 'Producto Actualizado', balance: 75 }
     mock.onPut(`${BASE}/products/1`).reply(200, updated)
 
     const result = await productService.update(1, { ...updated })
 
     expect(result.name).toBe('Producto Actualizado')
-    expect(result.stock).toBe(75)
+    expect(result.balance).toBe(75)
     expect(mock.history.put).toHaveLength(1)
   })
 
@@ -190,7 +190,7 @@ describe('ProductService – update() PUT', () => {
   it('lanza error si el servidor responde 422', async () => {
     mock.onPut(`${BASE}/products/1`).reply(422, { message: 'Datos inválidos' })
 
-    await expect(productService.update(1, { id: 1, name: '', stock: -1 })).rejects.toThrow()
+    await expect(productService.update(1, { id: 1, name: '', balance: -1 })).rejects.toThrow()
   })
 })
 
@@ -199,19 +199,19 @@ describe('ProductService – update() PUT', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('ProductService – updatePartial() PATCH', () => {
   it('envía PATCH con campos parciales y retorna el producto actualizado', async () => {
-    mock.onPatch(`${BASE}/products/1`).reply(200, { ...PRODUCT_1, stock: 200 })
+    mock.onPatch(`${BASE}/products/1`).reply(200, { ...PRODUCT_1, balance: 200 })
 
-    const result = await productService.updatePartial(1, { stock: 200 })
+    const result = await productService.updatePartial(1, { balance: 200 })
 
-    expect(result.stock).toBe(200)
+    expect(result.balance).toBe(200)
     expect(mock.history.patch).toHaveLength(1)
   })
 
   it('elimina el campo id del payload antes de enviar el PATCH', async () => {
     mock.onPatch(`${BASE}/products/1`).reply(200, PRODUCT_1)
 
-    type Prod = { id?: number; name?: string; stock?: number }
-    await productService.updatePartial(1, { id: 1, stock: 5 } as Prod)
+    type Prod = { id?: number; name?: string; balance?: number }
+    await productService.updatePartial(1, { id: 1, balance: 5 } as Prod)
 
     const payload = JSON.parse(mock.history.patch[0].data)
     expect(payload).not.toHaveProperty('id')
@@ -220,6 +220,6 @@ describe('ProductService – updatePartial() PATCH', () => {
   it('lanza error si el recurso no existe (404)', async () => {
     mock.onPatch(`${BASE}/products/999`).reply(404, { message: 'No encontrado' })
 
-    await expect(productService.updatePartial(999, { stock: 10 })).rejects.toThrow()
+    await expect(productService.updatePartial(999, { balance: 10 })).rejects.toThrow()
   })
 })
