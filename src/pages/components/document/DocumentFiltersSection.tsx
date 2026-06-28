@@ -19,7 +19,7 @@ interface DocumentFiltersSectionProps {
 }
 
 /**
- * Filtros compartidos de documentos (compras/gastos): rango de fechas opcional +
+ * Filtros compartidos de documentos (compras/pagos): rango de fechas opcional +
  * autocomplete de proveedor y producto. Carga los stores de productos/proveedores.
  */
 export default function DocumentFiltersSection({

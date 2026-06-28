@@ -17,7 +17,7 @@ import NotFound from './pages/components/common/NotFound'
 
 // Lazy-load heavy page components to reduce initial bundle size
 const Product = lazy(() => import('./pages/product/Product'))
-const Expense = lazy(() => import('./pages/expense/Expense'))
+const Payment = lazy(() => import('./pages/payment/Payment'))
 const Purchase = lazy(() => import('./pages/purchase/Purchase'))
 const ScanPurchase = lazy(() => import('./pages/purchase/scan/ScanPurchase'))
 const User = lazy(() => import('./pages/user/User'))
@@ -92,7 +92,7 @@ function App() {
                         <Route index element={<DefaultLanding />} />
                         <Route path='productos' element={<PrivateRoute element={<Product />} allowedRoles={OFFICE_ADMIN} />} />
                         <Route path='kardex' element={<PrivateRoute element={<Kardex />} allowedRoles={OFFICE_ADMIN} />} />
-                        <Route path='gastos' element={<PrivateRoute element={<Expense />} allowedRoles={OFFICE_ADMIN} />} />
+                        <Route path='pagos' element={<PrivateRoute element={<Payment />} allowedRoles={OFFICE_ADMIN} />} />
                         <Route path='compras' element={<PrivateRoute element={<Purchase />} allowedRoles={OFFICE_ADMIN} />} />
                         <Route path='compras/escanear' element={<PrivateRoute element={<ScanPurchase />} allowedRoles={OFFICE_ADMIN} />} />
                         <Route path='personas' element={<PrivateRoute element={<Person />} allowedRoles={OFFICE_ADMIN} />} />

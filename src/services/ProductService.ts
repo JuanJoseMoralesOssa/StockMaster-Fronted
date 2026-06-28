@@ -1,10 +1,34 @@
 import Product from '../types/Product'
+import Kardex from '../types/Kardex'
 import { PaginatedResponse } from '../types/PaginatedResponse'
 import { ApiService } from './ApiService'
+import { httpClient } from './httpClient'
+
+/** Ajuste manual de inventario: fijar el balance real ('set') o sumar/restar ('delta'). */
+export interface BalanceAdjustmentInput {
+    mode: 'set' | 'delta'
+    value: number
+    note: string
+}
 
 export class ProductService extends ApiService<Product> {
     constructor() {
         super('products', 'productos')
+    }
+
+    /**
+     * Ajuste manual de balance: el backend actualiza Product.balance y escribe la
+     * fila de kardex (operación "Ajuste manual") de forma atómica. Devuelve el
+     * movimiento de kardex creado (con su producto).
+     */
+    async adjustBalance(productId: number, input: BalanceAdjustmentInput): Promise<Kardex> {
+        try {
+            return await this.handleResponse<Kardex>(
+                httpClient.post(this.getUrl(`${productId}/adjustment`), input),
+            )
+        } catch (error) {
+            this.handleError(error, 'Error al ajustar el balance del producto')
+        }
     }
 
     // Método específico para obtener productos paginados

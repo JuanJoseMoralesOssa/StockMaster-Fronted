@@ -1,7 +1,7 @@
 import { GenericPageConfig } from '../types/GenericConfig'
 import Product from '../types/Product'
 import { productService } from '../services/ProductService'
-import { Package, Search } from 'lucide-react'
+import { Package, Receipt, Search, ShoppingCart } from 'lucide-react'
 import { Button, Input } from '../components/ui'
 
 export interface ProductFilters {
@@ -19,18 +19,18 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       label: 'Nombre del Producto',
     },
     {
-      key: 'stock',
-      label: 'Stock',
+      key: 'balance',
+      label: 'Balance',
       width: 'w-24',
       align: 'right',
       render: (product) => {
-        const stock = product.stock ?? 0
-        const stockClass = stock < 10
+        const balance = product.balance ?? 0
+        const balanceClass = balance < 10
           ? 'text-danger-700 font-semibold'
-          : stock < 50
+          : balance < 50
             ? 'text-warning-700'
             : 'text-success-700'
-        return <span className={stockClass}>{stock}</span>
+        return <span className={balanceClass}>{balance}</span>
       },
     },
   ],
@@ -43,7 +43,7 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       placeholder: 'Ej: Hueso, sebo o piel',
       required: true,
       // Campo principal y largo: ocupa la fila completa en el form 2-col de desktop
-      // (deja `stock` solo debajo, y en edición —sin stock— queda full).
+      // (deja `balance` solo debajo, y en edición —sin balance— queda full).
       fullWidth: true,
       validate: (value) => {
         if (value && typeof value === 'string' && value.length < 3) {
@@ -53,15 +53,15 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       },
     },
     {
-      name: 'stock',
-      label: 'Stock Inicial',
+      name: 'balance',
+      label: 'Balance Inicial',
       type: 'number',
       placeholder: '0',
       required: false,
       min: 0,
       defaultValue: 0,
-      // El backend ignora stock en updates (solo lo modifica la reconciliación
-      // de compras/gastos), así que solo se muestra al crear.
+      // El backend ignora balance en updates (solo lo modifica la reconciliación
+      // de compras/pagos), así que solo se muestra al crear.
       hideOnEdit: true,
     },
   ],
@@ -114,6 +114,24 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
         className: 'text-(--view-accent-text,var(--color-text-link)) focus:text-(--view-accent-text,var(--color-text-link))',
         condition: (product) => product.id !== undefined,
       },
+      {
+        icon: <ShoppingCart className='mr-2 h-4 w-4' />,
+        label: 'Ver Compras',
+        // Default no-op: ProductPage overrides onClick para navegar a
+        // /compras?productId=... (igual que Proveedores con personId).
+        onClick: () => {},
+        className: 'text-(--view-accent-text,var(--color-text-link)) focus:text-(--view-accent-text,var(--color-text-link))',
+        condition: (product) => product.id !== undefined,
+      },
+      {
+        icon: <Receipt className='mr-2 h-4 w-4' />,
+        label: 'Ver Pagos',
+        // Default no-op: ProductPage overrides onClick para navegar a
+        // /pagos?productId=...
+        onClick: () => {},
+        className: 'text-(--view-accent-text,var(--color-text-link)) focus:text-(--view-accent-text,var(--color-text-link))',
+        condition: (product) => product.id !== undefined,
+      },
     ],
   },
 
@@ -123,21 +141,21 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
 
   prepareDataForSubmit: async (data: Partial<Product>, isEdit: boolean) => {
     if (isEdit) {
-      // El backend descarta stock en updates; no lo enviamos para evitar confusión.
-      delete data.stock
+      // El backend descarta balance en updates; no lo enviamos para evitar confusión.
+      delete data.balance
       return data
     }
-    // Asegurar que el stock sea un número
-    if (data.stock !== undefined && data.stock !== null) {
-      data.stock = Number(data.stock)
+    // Asegurar que el balance sea un número
+    if (data.balance !== undefined && data.balance !== null) {
+      data.balance = Number(data.balance)
     }
     return data
   },
 
   validateData: async (data: Partial<Product>) => {
     // Validaciones personalizadas
-    if (data.stock !== undefined && data.stock < 0) {
-      return 'El stock no puede ser negativo'
+    if (data.balance !== undefined && data.balance < 0) {
+      return 'El balance no puede ser negativo'
     }
     return undefined
   },

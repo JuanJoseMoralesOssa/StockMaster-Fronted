@@ -7,7 +7,7 @@ export type GenericService<T, TFilter = object, CreateInput = Partial<T>, Update
   updatePartial: (id: string | number, data: Partial<UpdateInput>) => Promise<T>
   /**
    * `item` es la fila tal como está cargada en la tabla. Los documentos con
-   * bloqueo optimista (compras/gastos) la necesitan para enviar su `version`
+   * bloqueo optimista (compras/pagos) la necesitan para enviar su `version`
    * al backend: DELETE sin version responde 400, y una version obsoleta 409.
    */
   delete: (id: string | number, item?: T) => Promise<void>

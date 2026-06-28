@@ -1,2 +1,2 @@
-export const EXPENSE = 'Gasto'
+export const PAYMENT = 'Pago'
 export const PURCHASE = 'Compra'

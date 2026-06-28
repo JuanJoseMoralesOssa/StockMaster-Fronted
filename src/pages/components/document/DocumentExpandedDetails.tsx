@@ -4,7 +4,7 @@ import { useProductStore, useSupplierStore } from '@/stores'
 import type { DocumentDetailLike } from '@/types/DocumentBase'
 
 /**
- * Vista expandida de los detalles de un documento (compra/gasto).
+ * Vista expandida de los detalles de un documento (compra/pago).
  * Carga los stores de productos/proveedores para resolver los nombres.
  */
 export default function DocumentExpandedDetails<TDetail extends DocumentDetailLike>({

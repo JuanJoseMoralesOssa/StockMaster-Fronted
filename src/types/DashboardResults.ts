@@ -1,7 +1,7 @@
 export interface DashboardResult {
     date: string;
     weight_kg: number;
-    type: "Compra" | "Gasto";
+    type: "Compra" | "Pago";
 }
 
 /** Fila del reporte de una persona: cada entrada es una transacción vinculada a un producto. */

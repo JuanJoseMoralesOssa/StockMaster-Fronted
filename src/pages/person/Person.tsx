@@ -36,7 +36,7 @@ function PersonPage() {
         actions: {
             ...personPageConfig.actions,
             customActions: personPageConfig.actions?.customActions?.map((action) => {
-                if (action.label !== 'Ver Compras' && action.label !== 'Ver Gastos') {
+                if (action.label !== 'Ver Compras' && action.label !== 'Ver Pagos') {
                     return action
                 }
 
@@ -48,7 +48,7 @@ function PersonPage() {
                             personId: person.id.toString(),
                             personName: person.name,
                         })
-                        navigate(`${action.label === 'Ver Compras' ? '/compras' : '/gastos'}?${params.toString()}`)
+                        navigate(`${action.label === 'Ver Compras' ? '/compras' : '/pagos'}?${params.toString()}`)
                     },
                 }
             }),

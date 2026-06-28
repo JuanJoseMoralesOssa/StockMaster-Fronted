@@ -57,12 +57,12 @@ function SupplierProductCharts({
   const dailyByMonth = useMemo(() => groupDailyEntriesByMonth(dailyData), [dailyData])
 
   const totalPurchases = dailyData.reduce((acc, day) => acc + day.compra, 0)
-  const totalExpenses = dailyData.reduce((acc, day) => acc + day.gasto, 0)
-  const pendingAmount = totalPurchases - totalExpenses
+  const totalPayments = dailyData.reduce((acc, day) => acc + day.pago, 0)
+  const pendingAmount = totalPurchases - totalPayments
   const paymentStatus = pendingAmount === 0 && totalPurchases > 0
     ? 'Completo'
     : totalPurchases > 0
-      ? `${((totalExpenses / totalPurchases) * 100).toFixed(2)}% Pagado`
+      ? `${((totalPayments / totalPurchases) * 100).toFixed(2)}% Pagado`
       : 'Sin compras'
 
   const exportToCsv = () => {
@@ -72,14 +72,14 @@ function SupplierProductCharts({
       if (day.pendiente === 0 && day.compra > 0) {
         status = 'Completo'
       } else if (day.compra > 0) {
-        status = `${((day.gasto / day.compra) * 100).toFixed(1)}% Pagado`
+        status = `${((day.pago / day.compra) * 100).toFixed(1)}% Pagado`
       }
 
       return [
         day.date,
         day.day,
         day.compra,
-        day.gasto,
+        day.pago,
         day.pendiente,
         status
       ]
@@ -91,9 +91,9 @@ function SupplierProductCharts({
         [`Periodo: ${filters.startDate} al ${filters.endDate}`],
         [`Generado el: ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`],
         [],
-        ['Fecha', 'Dia', 'Compra', 'Gasto', 'Pendiente', 'Estado'],
+        ['Fecha', 'Dia', 'Compra', 'Pago', 'Pendiente', 'Estado'],
         ...rows,
-        ['TOTAL', '-', totalPurchases, totalExpenses, pendingAmount, paymentStatus],
+        ['TOTAL', '-', totalPurchases, totalPayments, pendingAmount, paymentStatus],
       ],
       `Reporte_Pagos_Proveedores_${filters.startDate}_${filters.endDate}.csv`,
     )
@@ -106,9 +106,9 @@ function SupplierProductCharts({
     Pendiente: month.pendiente
   }))
 
-  const pieTotal = totalExpenses + pendingAmount
+  const pieTotal = totalPayments + pendingAmount
   const pieData = [
-    { name: `Total Pagado (${formatChartPercent(pieTotal ? totalExpenses / pieTotal : 0)})`, value: totalExpenses, fill: CHART_COLORS.green },
+    { name: `Total Pagado (${formatChartPercent(pieTotal ? totalPayments / pieTotal : 0)})`, value: totalPayments, fill: CHART_COLORS.green },
     { name: `Total Pendiente (${formatChartPercent(pieTotal ? pendingAmount / pieTotal : 0)})`, value: pendingAmount, fill: CHART_COLORS.red },
   ]
 
@@ -122,7 +122,7 @@ function SupplierProductCharts({
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pagado</h3>
-          <p className="text-xl sm:text-2xl font-bold text-success-700">{totalExpenses.toLocaleString()}</p>
+          <p className="text-xl sm:text-2xl font-bold text-success-700">{totalPayments.toLocaleString()}</p>
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pendiente</h3>
@@ -211,7 +211,7 @@ function SupplierProductCharts({
                   data={days.map(d => ({
                     día: d.day,
                     Compra: d.compra,
-                    Gasto: d.gasto,
+                    Pago: d.pago,
                     Pendiente: d.pendiente
                   }))}
                   margin={CHART_MARGINS.inline}
@@ -222,7 +222,7 @@ function SupplierProductCharts({
                   <Tooltip formatter={(value) => formatChartValue(value)} />
                   <Legend />
                   <Bar dataKey="Compra" fill={CHART_COLORS.blue} />
-                  <Bar dataKey="Gasto" fill={CHART_COLORS.green} />
+                  <Bar dataKey="Pago" fill={CHART_COLORS.green} />
                   <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
                 </BarChart>
               </ResponsiveContainer>
@@ -256,7 +256,7 @@ function SupplierProductCharts({
                 <th className={TH}>Fecha</th>
                 <th className={TH}>Día</th>
                 <th className={TH_NUMERIC}>Compra</th>
-                <th className={TH_NUMERIC}>Gasto</th>
+                <th className={TH_NUMERIC}>Pago</th>
                 <th className={TH_NUMERIC}>Pendiente</th>
                 <th className={TH}>Estado</th>
               </tr>
@@ -267,7 +267,7 @@ function SupplierProductCharts({
                   <td className={`${TD} font-medium text-(--color-text-primary)`}>{day.date}</td>
                   <td className={`${TD} text-(--color-text-primary)`}>{day.day}</td>
                   <td className={`${TD_NUMERIC} text-(--color-text-primary)`}>{day.compra.toLocaleString()}</td>
-                  <td className={`${TD_NUMERIC} text-success-700`}>{day.gasto.toLocaleString()}</td>
+                  <td className={`${TD_NUMERIC} text-success-700`}>{day.pago.toLocaleString()}</td>
                   <td className={`${TD_NUMERIC} text-danger-700`}>{day.pendiente.toLocaleString()}</td>
                   <td className={TD}>
                     {day.pendiente === 0 && day.compra > 0 ? (
@@ -276,7 +276,7 @@ function SupplierProductCharts({
                       </span>
                     ) : day.compra > 0 ? (
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning-50 text-warning-700">
-                        {((day.gasto / day.compra) * 100).toFixed(1)}% Pagado
+                        {((day.pago / day.compra) * 100).toFixed(1)}% Pagado
                       </span>
                     ) : (
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-(--color-bg-subtle) text-(--color-text-secondary)">
@@ -291,7 +291,7 @@ function SupplierProductCharts({
                 <td className={`${TD} text-(--color-text-primary)`}>TOTAL</td>
                 <td className={`${TD} text-(--color-text-primary)`}>-</td>
                 <td className={`${TD_NUMERIC} text-(--color-text-primary)`}>{totalPurchases.toLocaleString()}</td>
-                <td className={`${TD_NUMERIC} text-success-700`}>{totalExpenses.toLocaleString()}</td>
+                <td className={`${TD_NUMERIC} text-success-700`}>{totalPayments.toLocaleString()}</td>
                 <td className={`${TD_NUMERIC} text-danger-700`}>{pendingAmount.toLocaleString()}</td>
                 <td className={TD}>
                   {paymentStatus === 'Completo' ? (

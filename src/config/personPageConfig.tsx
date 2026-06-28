@@ -56,7 +56,7 @@ export const personPageConfig: GenericPageConfig<Person, PersonFilters> = {
       },
       {
         icon: <Phone className='mr-2 h-4 w-4' />,
-        label: 'Ver Gastos',
+        label: 'Ver Pagos',
         onClick: () => undefined,
         className: 'text-(--view-accent-text,var(--color-text-link)) focus:text-(--view-accent-text,var(--color-text-link))',
       },

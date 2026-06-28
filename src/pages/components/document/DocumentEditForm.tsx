@@ -36,7 +36,7 @@ interface DocumentEditFormProps<TDoc, K extends string> {
 }
 
 /**
- * Formulario genérico de edición para documentos con detalles (compras/gastos):
+ * Formulario genérico de edición para documentos con detalles (compras/pagos):
  * fecha + tabla de detalles + guardar vía `updateWithDetails` (optimistic locking).
  */
 export default function DocumentEditForm<

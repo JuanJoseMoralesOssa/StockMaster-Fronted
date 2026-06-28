@@ -8,10 +8,10 @@ interface SummaryTypeToggleProps {
 const OPTIONS: { value: SummaryType; label: string }[] = [
   { value: 'both', label: 'Ambos' },
   { value: 'purchases', label: 'Compras' },
-  { value: 'expenses', label: 'Gastos' },
+  { value: 'payments', label: 'Pagos' },
 ]
 
-/** Segmented control to scope the dashboard KPIs to Compras / Gastos / Ambos. */
+/** Segmented control to scope the dashboard KPIs to Compras / Pagos / Ambos. */
 function SummaryTypeToggle({ value, onChange }: Readonly<SummaryTypeToggleProps>) {
   const buttonBase =
     'flex-1 lg:flex-none rounded-md px-2.5 sm:px-3.5 py-1.5 [@media(pointer:coarse)]:py-2.5 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-(--color-focus-ring)'

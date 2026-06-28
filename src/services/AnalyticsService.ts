@@ -61,11 +61,11 @@ export class AnalyticsService {
     }
   }
 
-  async getInventorySummary(lowStockThreshold?: number): Promise<InventorySummaryResponse> {
+  async getInventorySummary(lowBalanceThreshold?: number): Promise<InventorySummaryResponse> {
     try {
       const query =
-        lowStockThreshold != null
-          ? `?lowStockThreshold=${lowStockThreshold}`
+        lowBalanceThreshold != null
+          ? `?lowBalanceThreshold=${lowBalanceThreshold}`
           : ''
       const response = await httpClient.get(
         `${this.getUrl('inventory-summary')}${query}`,
