@@ -46,7 +46,7 @@ export const paymentPageConfig = buildDocumentPageConfig<
         onCreated={onItemCreated}
       />
     ),
-    renderEditForm: (item, onSuccess, onItemUpdated) => (
+    renderEditForm: (item, onSuccess, onItemUpdated, onItemDeleted) => (
       <DocumentEditForm<'payment_details', PaymentDetails, Payment>
         key={item.id}
         initialDocument={item}
@@ -57,10 +57,12 @@ export const paymentPageConfig = buildDocumentPageConfig<
           missingId: 'Error al editar el pago: ID no definido',
           missingDate: 'Error al editar el pago: Fecha no definida',
           success: 'Pago actualizado exitosamente',
+          deleted: 'Pago eliminado porque no tenía productos',
           error: 'Error al actualizar el pago',
         }}
         onSuccess={onSuccess}
         onItemUpdated={onItemUpdated}
+        onItemDeleted={onItemDeleted}
       />
     ),
   },

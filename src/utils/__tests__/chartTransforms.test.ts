@@ -172,7 +172,7 @@ describe('processDailyEntries', () => {
   it('keeps UTC midnight ISO dates on their calendar day', () => {
     const results = [
       { date: '2024-03-05T00:00:00.000Z', type: PURCHASE, weight_kg: 80 },
-      { date: '2024-03-05T00:00:00.000Z', type: EXPENSE, weight_kg: 30 },
+      { date: '2024-03-05T00:00:00.000Z', type: PAYMENT, weight_kg: 30 },
     ]
     const out = processDailyEntries(results)
 
