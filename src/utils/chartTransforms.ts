@@ -1,5 +1,6 @@
 import { PAYMENT, PURCHASE } from '../constants/cts'
-import { monthNames, formatMonthName } from '../pages/dashboard/Detailed/chart.utils'
+import { monthNames } from '../pages/dashboard/Detailed/chart.utils'
+import { getCalendarDateParts, toCalendarDate } from './date'
 
 export interface FinancialTotals {
   Total: number
@@ -49,6 +50,17 @@ export interface TransactionWithEntity extends TransactionRecord {
   entityName?: string
 }
 
+function monthNameFromDate(value: string): string {
+  const parts = getCalendarDateParts(value)
+  if (!parts) return ''
+  return `${monthNames[Number(parts.month) - 1]} ${parts.year}`
+}
+
+function dayFromDate(value: string): number {
+  const parts = getCalendarDateParts(value)
+  return parts ? Number(parts.day) : 1
+}
+
 /**
  * Aggregates transactions by (month, entityId) and computes Total/Pagado/Pendiente.
  * Works for both supplier-grouped (ProductChart) and product-grouped (SupplierCharts) views.
@@ -58,8 +70,7 @@ export function aggregateByMonthAndEntity(
   getEntityLabel: (entityId: number) => string,
 ): Record<string, MonthlyFinancial> {
   return results.reduce((acc: Record<string, MonthlyFinancial>, item) => {
-    const date = new Date(item.date)
-    const monthName = formatMonthName(date)
+    const monthName = monthNameFromDate(item.date)
     const key = `${monthName}-${item.entityId}`
     const label = getEntityLabel(item.entityId)
 
@@ -121,10 +132,8 @@ export function groupDailyByEntityAndMonth(
   const daily: Record<number, Record<string, DailyFinancial[]>> = {}
 
   results.forEach((item) => {
-    const date = new Date(item.date ?? '')
-    date.setTime(date.getTime() + new Date().getTimezoneOffset() * 60000)
-    const monthName = formatMonthName(date)
-    const dayString = `Día ${date.getDate()}`
+    const monthName = monthNameFromDate(item.date)
+    const dayString = `Día ${dayFromDate(item.date)}`
 
     if (!daily[item.entityId]) daily[item.entityId] = {}
     if (!daily[item.entityId][monthName]) daily[item.entityId][monthName] = []
@@ -190,14 +199,8 @@ export function processDailyEntries(results: TransactionRecord[]): DailyEntry[] 
     let dateKey = ''
     let day = 1
     if (result.date) {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(result.date)) {
-        dateKey = result.date
-        day = parseInt(result.date.split('-')[2], 10)
-      } else {
-        const d = new Date(result.date)
-        dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-        day = d.getDate()
-      }
+      dateKey = toCalendarDate(result.date)
+      day = dayFromDate(result.date)
     }
 
     if (!dailyMap.has(dateKey)) {
@@ -218,8 +221,7 @@ export function processMonthlyEntries(results: TransactionRecord[]): MonthlyEntr
   const monthlyMap = new Map<string, MonthlyEntry>()
 
   results.forEach((result) => {
-    const date = new Date(result.date)
-    const key = `${monthNames[date.getMonth()]} ${date.getFullYear()}`
+    const key = monthNameFromDate(result.date)
 
     if (!monthlyMap.has(key)) {
       monthlyMap.set(key, { month: key, total: 0, pagado: 0, pendiente: 0 })
@@ -239,8 +241,7 @@ export function groupDailyEntriesByMonth(dailyData: DailyEntry[]): Record<string
   const grouped: Record<string, DailyEntry[]> = {}
 
   dailyData.forEach((day) => {
-    const date = new Date(day.date)
-    const key = `${monthNames[date.getMonth()]} ${date.getFullYear()}`
+    const key = monthNameFromDate(day.date)
     if (!grouped[key]) grouped[key] = []
     grouped[key].push(day)
   })

@@ -27,27 +27,8 @@ afterEach(() => { mock.restore() })
 // GET
 // ─────────────────────────────────────────────────────────────────────────────
 describe('KardexService – getAll()', () => {
-  it('retorna un array de kardex con los campos requeridos para la tabla', async () => {
-    mock.onGet(`${BASE}/kardexes/all`).reply(200, KARDEXES)
-
-    const result = await kardexService.getAll()
-
-    expect(result).toBeInstanceOf(Array)
-    expect(result).toHaveLength(2)
-    expect(result[0]).toHaveProperty('id')
-    expect(result[0]).toHaveProperty('date')
-    expect(result[0]).toHaveProperty('input')
-    expect(result[0]).toHaveProperty('output')
-    expect(result[0]).toHaveProperty('balance')
-    expect(result[0]).toHaveProperty('productId')
-  })
-
-  it('retorna array vacío cuando no hay registros', async () => {
-    mock.onGet(`${BASE}/kardexes/all`).reply(200, [])
-
-    const result = await kardexService.getAll()
-
-    expect(result).toHaveLength(0)
+  it('lanza error: el kardex no expone /all (es append-only y paginado)', async () => {
+    await expect(kardexService.getAll()).rejects.toThrow()
   })
 })
 
@@ -86,17 +67,6 @@ describe('KardexService – getById()', () => {
     mock.onGet(`${BASE}/kardexes/999`).reply(404, { message: 'No encontrado' })
 
     await expect(kardexService.getById(999)).rejects.toThrow()
-  })
-})
-
-describe('KardexService – getKardexByProducts()', () => {
-  it('retorna kardex filtrados por producto', async () => {
-    mock.onGet(new RegExp(`${BASE}/kardexes`)).reply(200, KARDEXES)
-
-    const result = await kardexService.getKardexByProducts()
-
-    expect(result).toBeInstanceOf(Array)
-    expect(result).toHaveLength(2)
   })
 })
 

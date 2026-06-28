@@ -1,10 +1,10 @@
 import { GenericPageConfig } from '../types/GenericConfig'
 import Kardex from '../types/Kardex'
 import { kardexService } from '../services/KardexService'
-import { coerceNumericFields } from '../utils/form'
-import { formatLocalDate, toCalendarDate } from '../utils/date'
+import { formatLocalDate } from '../utils/date'
 import KardexFiltersSection from '../pages/kardex/components/KardexFiltersSection'
-import { KARDEX_OPERATION_OPTIONS, KardexFilters, buildInitialKardexFilters } from '../pages/kardex/kardexFilters'
+import KardexAdjustmentForm from '../pages/kardex/components/KardexAdjustmentForm'
+import { KARDEX_OPERATION_OPTIONS, KARDEX_OPERATION_MANUAL, KardexFilters, buildInitialKardexFilters } from '../pages/kardex/kardexFilters'
 
 // Re-export para los consumidores existentes del config (p. ej. Kardex.tsx).
 export type { KardexFilters }
@@ -38,6 +38,16 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       ),
     },
     {
+      key: 'supplier',
+      label: 'Proveedor',
+      render: (entry) =>
+        entry.supplierName ? (
+          <span className='text-(--color-text-primary)'>{entry.supplierName}</span>
+        ) : (
+          <span className='text-(--color-text-muted)'>—</span>
+        ),
+    },
+    {
       key: 'input',
       label: 'Entrada',
       align: 'right',
@@ -68,11 +78,15 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       label: 'Operacion',
       render: (entry) => {
         const label = KARDEX_OPERATION_OPTIONS.find((op) => op.value === entry.operation)?.label ?? 'N/A'
-        const tone = entry.operation === 1 || entry.operation === 4
-          ? 'border border-success-200 bg-success-50 text-success-700'
-          : entry.operation === 3
-            ? 'border border-danger-200 bg-danger-50 text-danger-700'
-            : 'border border-warning-200 bg-warning-50 text-warning-700'
+        // El ajuste manual se distingue con tono de marca; el resto sigue la
+        // dirección del movimiento (entrada = verde, salida = rojo).
+        const tone = entry.operation === KARDEX_OPERATION_MANUAL
+          ? 'border border-(--view-accent-border,var(--color-border-strong)) bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link))'
+          : entry.input > 0
+            ? 'border border-success-200 bg-success-50 text-success-700'
+            : entry.output > 0
+              ? 'border border-danger-200 bg-danger-50 text-danger-700'
+              : 'border border-warning-200 bg-warning-50 text-warning-700'
         return (
           <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold shadow-xs ${tone}`}>
             {label}
@@ -88,7 +102,9 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
           ? 'Compra'
           : entry.sourceKind === 'payment'
             ? 'Pago'
-            : 'Sin origen'
+            : entry.operation === KARDEX_OPERATION_MANUAL
+              ? 'Ajuste manual'
+              : 'Sin origen'
         const sourceParts = [
           entry.sourceId ? `#${entry.sourceId}` : '',
           entry.sourceDetailId ? `Detalle #${entry.sourceDetailId}` : '',
@@ -100,63 +116,32 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
             {sourceParts.length > 0 && (
               <span className='font-normal text-(--color-text-muted)'>{sourceParts.join(' - ')}</span>
             )}
+            {entry.note && (
+              <span className='font-normal text-(--color-text-muted)'>{entry.note}</span>
+            )}
           </span>
         )
       },
     },
   ],
 
-  formFields: [
-    {
-      name: 'date',
-      label: 'Fecha',
-      type: 'date',
-      required: true,
-    },
-    {
-      name: 'productId',
-      label: 'ID de Producto',
-      type: 'number',
-      required: true,
-      min: 1,
-    },
-    {
-      name: 'operation',
-      label: 'Operacion',
-      type: 'select',
-      required: true,
-      options: KARDEX_OPERATION_OPTIONS,
-      defaultValue: 1,
-    },
-    {
-      name: 'input',
-      label: 'Entrada',
-      type: 'number',
-      required: true,
-      min: 0,
-      defaultValue: 0,
-    },
-    {
-      name: 'output',
-      label: 'Salida',
-      type: 'number',
-      required: true,
-      min: 0,
-      defaultValue: 0,
-    },
-    {
-      name: 'balance',
-      label: 'Balance',
-      type: 'number',
-      required: true,
-      defaultValue: 0,
-    },
-  ],
+  // El kardex es de solo lectura (append-only generado por el sistema). La única
+  // mutación permitida es el "Ajuste de inventario", que crea el movimiento vía
+  // POST /products/{id}/adjustment (ver KardexAdjustmentForm). Por eso no hay
+  // campos de formulario genérico ni edición/eliminación.
+  formFields: [],
 
   actions: {
-    canEdit: true,
-    canDelete: true,
+    canEdit: false,
+    canDelete: false,
   },
+
+  createButtonText: 'Ajustar inventario',
+  createModalTitle: 'Ajuste de inventario',
+  createModalDescription: 'Corrige el balance de un producto (conteo físico, merma, etc.). Queda registrado como un movimiento de kardex.',
+  renderCustomForm: (onSuccess, onItemCreated) => (
+    <KardexAdjustmentForm onSuccess={onSuccess} onItemCreated={onItemCreated} />
+  ),
 
   renderCustomFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
     <KardexFiltersSection
@@ -169,45 +154,4 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
   ),
 
   service: kardexService,
-
-  prepareDataForSubmit: async (data: Partial<Kardex>, isEdit: boolean) => {
-    const preparedData = coerceNumericFields(
-      { ...data },
-      ['input', 'output', 'balance', 'productId', 'operation'],
-    )
-
-    if (preparedData.date) {
-      preparedData.date = toCalendarDate(preparedData.date)
-    }
-
-    if (!isEdit) {
-      if (preparedData.operation === undefined) preparedData.operation = 1
-    }
-
-    return preparedData
-  },
-
-  validateData: async (data: Partial<Kardex>) => {
-    if (data.productId !== undefined && data.productId <= 0) {
-      return 'Debe indicar un ID de producto valido'
-    }
-
-    if (data.input !== undefined && data.input < 0) {
-      return 'La entrada no puede ser negativa'
-    }
-
-    if (data.output !== undefined && data.output < 0) {
-      return 'La salida no puede ser negativa'
-    }
-
-    if (data.balance !== undefined && Number.isNaN(Number(data.balance))) {
-      return 'El balance debe ser numerico'
-    }
-
-    return undefined
-  },
-
-  createSuccessMessage: 'Registro de kardex creado exitosamente',
-  updateSuccessMessage: 'Registro de kardex actualizado exitosamente',
-  deleteSuccessMessage: 'Registro de kardex eliminado exitosamente',
 }

@@ -8,7 +8,9 @@ function PurchasePage() {
     const [searchParams] = useSearchParams()
     const personId = searchParams.get('personId') ?? ''
     const personName = searchParams.get('personName') ?? ''
-    const hasPersonFilter = personId.trim() !== ''
+    const productId = searchParams.get('productId') ?? ''
+    const productName = searchParams.get('productName') ?? ''
+    const hasFilter = personId.trim() !== '' || productId.trim() !== ''
 
     const pageConfig = useMemo(() => ({
         ...purchasePageConfig,
@@ -16,12 +18,14 @@ function PurchasePage() {
             ...buildInitialDateRangeFilters(),
             personId,
             personName,
+            productId,
+            productName,
         } as DateRangeFilters,
         clearFilterState: buildInitialDateRangeFilters(),
-        initialFiltersActive: hasPersonFilter,
-    }), [hasPersonFilter, personId, personName])
+        initialFiltersActive: hasFilter,
+    }), [hasFilter, personId, personName, productId, productName])
 
-    return <GenericPage config={pageConfig} key={personId ? `supplier-${personId}` : 'all-purchases'} />
+    return <GenericPage config={pageConfig} key={`purchases-${personId || 'all'}-${productId || 'all'}`} />
 }
 
 export default PurchasePage

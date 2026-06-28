@@ -27,17 +27,13 @@ export class KardexService extends ApiService<Kardex> {
     }
   }
 
-  async getKardexByProducts(productId?: number): Promise<Kardex[]> {
-    try {
-      const params = new URLSearchParams()
-      if (productId != null) params.append('productId', productId.toString())
-      const query = params.toString() ? `?${params.toString()}` : ''
-      return await this.handleResponse<Kardex[]>(
-        httpClient.get(`${this.getUrl()}/all${query}`),
-      )
-    } catch (error) {
-      this.handleError(error, 'Error al obtener el kardex del producto')
-    }
+  // El kardex no expone `/kardexes/all` (es append-only y siempre paginado).
+  // Sobrescribimos el getAll() heredado para que un uso accidental falle claro
+  // en lugar de pegarle a un 404. Usa getAllPaginated()/getAllPaginatedFiltered().
+  override async getAll(): Promise<Kardex[]> {
+    throw new Error(
+      'Kardex no expone /all; usa getAllPaginated() o getAllPaginatedFiltered()',
+    )
   }
 
   async getAllPaginatedFiltered(

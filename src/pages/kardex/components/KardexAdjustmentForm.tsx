@@ -77,6 +77,7 @@ export default function KardexAdjustmentForm({
       successMessage: 'Ajuste de inventario registrado',
       errorMessage: 'No se pudo registrar el ajuste',
       showSuccessToast: true,
+      throwOnError: true,
       onSuccess: (kardex: Kardex) => {
         onItemCreated(kardex)
         // El balance cambió: invalida el caché para que las demás vistas lo reflejen.
@@ -130,6 +131,7 @@ export default function KardexAdjustmentForm({
             setFormError('')
           }}
           clearable
+          autoSelectExactMatchOnBlur
           noOptionsText="No se encontraron productos"
         />
         {selectedProduct && (

@@ -15,9 +15,12 @@ export default function PageHeader<T extends object, TFilter = object, CreateInp
   return (
     <GenericHeader<T>
       title={config.entityNamePlural}
-      createButtonText="Crear"
-      modalTitle={`Crear ${config.entityName}`}
-      modalDescription={`Completa los detalles del ${config.entityName}. Los campos marcados con * son requeridos.`}
+      createButtonText={config.createButtonText ?? 'Crear'}
+      modalTitle={config.createModalTitle ?? `Crear ${config.entityName}`}
+      modalDescription={
+        config.createModalDescription ??
+        `Completa los detalles del ${config.entityName}. Los campos marcados con * son requeridos.`
+      }
       modalClassName={config.modalClassName}
       onItemCreated={addItem}
       extraActions={config.renderHeaderActions?.()}

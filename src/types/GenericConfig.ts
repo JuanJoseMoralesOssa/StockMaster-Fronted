@@ -167,4 +167,10 @@ export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>
   renderCreateButton?: (onClick: () => void) => ReactNode
   /** Acciones extra que se muestran junto al botón de crear en el header (ej: botón Escanear) */
   renderHeaderActions?: () => ReactNode
+  /** Texto del botón de crear (por defecto "Crear"). */
+  createButtonText?: string
+  /** Título del modal de crear (por defecto "Crear {entityName}"). */
+  createModalTitle?: string
+  /** Descripción del modal de crear. */
+  createModalDescription?: string
 }
