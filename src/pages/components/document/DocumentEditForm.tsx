@@ -1,26 +1,38 @@
 import { useState } from 'react'
 import { useToast } from '@/hooks/useToast'
 import { extractErrorInfo } from '@/utils/error'
-import { FieldGroup, Input, Button } from '@/components/ui'
-import { toDateInputValue } from '@/utils/date'
+import { Alert, FieldGroup, Input, Button } from '@/components/ui'
+import { toCalendarDate, toDateInputValue } from '@/utils/date'
 import DocumentDetailsTable from '@/pages/components/common/DocumentDetailsTable'
 import type { DocumentDetailLike, DocumentLike } from '@/types/DocumentBase'
+import {
+  DetailFieldKey,
+  DetailValidationErrors,
+  formatDetailValidationMessage,
+  getDetailValidationKey,
+  validateDocumentDetails,
+} from './documentDetailsValidation'
 
 export interface DocumentEditMessages {
   missingId: string
   missingDate: string
   success: string
+  deleted: string
   error: string
 }
 
 interface DocumentEditFormProps<TDoc, K extends string> {
   initialDocument: TDoc
-  service: { updateWithDetails: (doc: TDoc) => Promise<TDoc> }
+  service: {
+    updateWithDetails: (doc: TDoc) => Promise<TDoc>
+    delete: (id: number | string, item?: TDoc) => Promise<void>
+  }
   detailsKey: K
   detailsTitle: string
   messages: DocumentEditMessages
   onSuccess: () => void
   onItemUpdated: (item: TDoc) => void
+  onItemDeleted: (id: number | string) => void
 }
 
 /**
@@ -39,10 +51,14 @@ export default function DocumentEditForm<
   messages,
   onSuccess,
   onItemUpdated,
+  onItemDeleted,
 }: Readonly<DocumentEditFormProps<TDoc, K>>) {
   const [isSaving, setIsSaving] = useState(false)
   // Borrador local: snapshot del documento al abrir el modal de edición.
   const [draft, setDraft] = useState<TDoc>(initialDocument)
+  const [validationErrors, setValidationErrors] = useState<DetailValidationErrors>({})
+  const [validationMessage, setValidationMessage] = useState('')
+  const [hasValidatedDetails, setHasValidatedDetails] = useState(false)
   const { showSuccess, showError } = useToast()
 
   const details = (draft[detailsKey] ?? []) as TDetail[]
@@ -62,10 +78,29 @@ export default function DocumentEditForm<
         return
       }
 
+      const documentId = draft.id
       const payload: TDoc = { ...draft }
-      if (payload.date.includes('T')) {
-        payload.date = payload.date.split('T')[0]
+      payload.date = toCalendarDate(payload.date)
+
+      const visibleDetails = ((payload[detailsKey] ?? []) as TDetail[]).filter((detail) => !detail.toDelete)
+      if (visibleDetails.length === 0) {
+        await service.delete(documentId, payload)
+        onItemDeleted(documentId)
+        showSuccess(messages.deleted, 'Eliminación exitosa')
+        onSuccess()
+        return
       }
+
+      const validation = validateDocumentDetails(visibleDetails)
+      setHasValidatedDetails(true)
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors)
+        setValidationMessage(validation.message)
+        return
+      }
+
+      setValidationErrors({})
+      setValidationMessage('')
 
       const updated = await service.updateWithDetails(payload)
       onItemUpdated(updated)
@@ -90,6 +125,47 @@ export default function DocumentEditForm<
     const next = { ...draft, total_kg } as TDoc
     ;(next as Partial<Record<K, TDetail[]>>)[detailsKey] = newDetails
     setDraft(next)
+    const visibleDetails = newDetails.filter((detail) => !detail.toDelete)
+    if (visibleDetails.length === 0) {
+      setValidationErrors({})
+      setValidationMessage('')
+      setHasValidatedDetails(false)
+      return
+    }
+
+    if (hasValidatedDetails) {
+      const validation = validateDocumentDetails(visibleDetails)
+      setValidationErrors(validation.errors)
+      setValidationMessage(validation.message)
+    }
+  }
+
+  const handleDetailValidationChange = (detail: TDetail, index: number, field: DetailFieldKey, hasError: boolean) => {
+    if (!hasValidatedDetails) return
+
+    setValidationErrors((currentErrors) => {
+      const key = getDetailValidationKey(detail, index)
+      const rowErrors = currentErrors[key] ?? {}
+      if (rowErrors[field] === hasError) return currentErrors
+
+      const nextRowErrors = { ...rowErrors }
+      if (hasError) {
+        nextRowErrors[field] = true
+      } else {
+        delete nextRowErrors[field]
+      }
+
+      const nextErrors = { ...currentErrors }
+      if (Object.keys(nextRowErrors).length > 0) {
+        nextErrors[key] = nextRowErrors
+      } else {
+        delete nextErrors[key]
+      }
+
+      const visibleDetails = details.filter((row) => !row.toDelete)
+      setValidationMessage(formatDetailValidationMessage(nextErrors, visibleDetails))
+      return nextErrors
+    })
   }
 
   return (
@@ -116,7 +192,15 @@ export default function DocumentEditForm<
         setDetails={handleDetailsChange}
         mode='edit'
         title={detailsTitle}
+        validationErrors={validationErrors}
+        onDetailValidationChange={handleDetailValidationChange}
       />
+
+      {validationMessage && (
+        <Alert variant='warning' title='Completa los detalles'>
+          {validationMessage}
+        </Alert>
+      )}
 
       <section className='sticky bottom-0 z-10 flex flex-col-reverse gap-3 border-t border-(--color-border) bg-(--color-bg-surface) pt-4 pb-1 sm:flex-row sm:justify-end'>
         <Button type='button' variant='secondary' onClick={onSuccess} className='w-full sm:w-auto'>

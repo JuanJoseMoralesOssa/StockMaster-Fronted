@@ -19,7 +19,7 @@ export function Input({ hasError, className, ref, ...props }: InputProps) {
         "disabled:bg-(--color-bg-subtle) disabled:cursor-not-allowed disabled:opacity-60",
         "transition-colors",
         hasError
-          ? "border-danger-500"
+          ? "border-danger-500 bg-danger-50"
           : "border-(--color-border) hover:border-(--color-border-strong)",
         className
       )}

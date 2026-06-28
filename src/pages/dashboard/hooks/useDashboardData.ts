@@ -16,6 +16,11 @@ export interface DashboardFilters {
 export type SelectedFilter = 'all' | 'withDebt' | 'fullyPaid'
 export type SummaryType = 'both' | 'purchases' | 'expenses'
 
+const dateInputToUtcTime = (value: string): number => {
+  const [year, month, day] = value.split('-').map(Number)
+  return Date.UTC(year, month - 1, day)
+}
+
 export function useDashboardData() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -109,7 +114,7 @@ export function useDashboardData() {
         return
       }
       const daysDiff = Math.ceil(
-        (new Date(filters.endDate).getTime() - new Date(filters.startDate).getTime()) /
+        (dateInputToUtcTime(filters.endDate) - dateInputToUtcTime(filters.startDate)) /
           (1000 * 60 * 60 * 24),
       )
       if (daysDiff > 365) {

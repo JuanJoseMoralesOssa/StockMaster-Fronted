@@ -6,6 +6,7 @@ interface PaginationProps {
   totalPages: number
   totalItems: number
   itemsPerPage: number
+  visibleItemsCount?: number
   onPageChange: (page: number) => void
   onItemsPerPageChange?: (itemsPerPage: number) => void
   showItemsPerPageSelector?: boolean
@@ -18,6 +19,7 @@ export default function Pagination({
   totalPages,
   totalItems,
   itemsPerPage,
+  visibleItemsCount,
   onPageChange,
   onItemsPerPageChange,
   showItemsPerPageSelector = true,
@@ -25,8 +27,11 @@ export default function Pagination({
   className = '',
 }: Readonly<PaginationProps>) {
   const isDesktop = useMediaQuery('(min-width: 1024px)')
-  const startItem = (currentPage - 1) * itemsPerPage + 1
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems)
+  const hasItems = totalItems > 0 && (visibleItemsCount ?? itemsPerPage) > 0
+  const startItem = hasItems ? (currentPage - 1) * itemsPerPage + 1 : 0
+  const endItem = hasItems
+    ? Math.min(startItem + (visibleItemsCount ?? itemsPerPage) - 1, totalItems)
+    : 0
 
   const getVisiblePages = () => {
     const delta = 2

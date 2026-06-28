@@ -27,7 +27,12 @@ interface GenericTableProps<T> {
     renderExpandedContent: (item: T) => React.ReactNode
     expandedTitle?: (item: T) => string
   }
-  renderEditForm?: (item: T, onSuccess: () => void, onItemUpdated: (item: T) => void) => React.ReactNode
+  renderEditForm?: (
+    item: T,
+    onSuccess: () => void,
+    onItemUpdated: (item: T) => void,
+    onItemDeleted: (id: string | number) => void,
+  ) => React.ReactNode
   fetchForEdit?: (id: string | number) => Promise<T>
 }
 
@@ -56,6 +61,7 @@ export default function GenericTable<T extends Record<string, any>>({
     itemsPerPage,
     goToPage,
     setItemsPerPage,
+    refresh,
     updateItem,
     removeItem,
     handleDelete: serviceDelete,
@@ -80,6 +86,16 @@ export default function GenericTable<T extends Record<string, any>>({
     })
   }
 
+  const refreshAfterRemoval = () => {
+    if (data.length === 1 && currentPage > 1) return
+    refresh()
+  }
+
+  const removeItemAndRefresh = (itemId: string | number, idFieldArg: keyof T) => {
+    removeItem(itemId, idFieldArg)
+    refreshAfterRemoval()
+  }
+
   const {
     isEditModalOpen,
     selectedItem,
@@ -96,6 +112,7 @@ export default function GenericTable<T extends Record<string, any>>({
     removeItem,
     fetchForEdit,
     idField,
+    refreshAfterRemoval,
   )
 
   if (showLoadingSkeleton) {
@@ -177,6 +194,7 @@ export default function GenericTable<T extends Record<string, any>>({
           totalPages={totalPages}
           totalItems={totalItems}
           itemsPerPage={itemsPerPage}
+          visibleItemsCount={data.length}
           onPageChange={goToPage}
           onItemsPerPageChange={setItemsPerPage}
         />
@@ -206,6 +224,7 @@ export default function GenericTable<T extends Record<string, any>>({
         prepareDataForSubmit={prepareDataForSubmit}
         className={modalClassName}
         onEditSuccess={(updatedItem) => handleEditSuccess(updatedItem, idField)}
+        onEditDeleted={(id) => removeItemAndRefresh(id, idField)}
         onClose={closeEditModal}
       />
 

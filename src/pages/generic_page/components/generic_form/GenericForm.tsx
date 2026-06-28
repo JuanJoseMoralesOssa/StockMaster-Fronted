@@ -4,6 +4,7 @@ import FormError from './FormError'
 import FieldWrapper from './FieldWrapper'
 import FormActions from './FormActions'
 import { type GenericField } from '../../../../types/GenericConfig'
+import { extractErrorInfo } from '../../../../utils/error'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -99,8 +100,9 @@ export default function GenericForm<T extends Record<string, any>>({
       await onSubmit(data as Partial<T>)
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } }
+      const { message } = extractErrorInfo(error)
       setError('root', {
-        message: err.response?.data?.message ?? 'Error al procesar la solicitud',
+        message: err.response?.data?.message ?? message ?? 'Error al procesar la solicitud',
       })
     }
   }

@@ -135,7 +135,7 @@ describe('GenericForm', () => {
     )
   })
 
-  it('usa el mensaje genérico cuando onSubmit lanza sin response.data.message', async () => {
+  it('usa error.message cuando onSubmit lanza sin response.data.message', async () => {
     const onSubmit = vi.fn().mockRejectedValue(new Error('Network error'))
     renderForm([textField({ required: false })], onSubmit)
 
@@ -143,7 +143,7 @@ describe('GenericForm', () => {
     await submitForm()
 
     await waitFor(() =>
-      expect(screen.getByText('Error al procesar la solicitud')).toBeInTheDocument(),
+      expect(screen.getByText('Network error')).toBeInTheDocument(),
     )
   })
 

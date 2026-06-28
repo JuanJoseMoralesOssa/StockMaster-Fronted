@@ -46,7 +46,7 @@ export const expensePageConfig = buildDocumentPageConfig<
         onCreated={onItemCreated}
       />
     ),
-    renderEditForm: (item, onSuccess, onItemUpdated) => (
+    renderEditForm: (item, onSuccess, onItemUpdated, onItemDeleted) => (
       <DocumentEditForm<'expense_details', ExpenseDetails, Expense>
         key={item.id}
         initialDocument={item}
@@ -57,10 +57,12 @@ export const expensePageConfig = buildDocumentPageConfig<
           missingId: 'Error al editar el gasto: ID no definido',
           missingDate: 'Error al editar el gasto: Fecha no definida',
           success: 'Gasto actualizado exitosamente',
+          deleted: 'Gasto eliminado porque no tenía productos',
           error: 'Error al actualizar el gasto',
         }}
         onSuccess={onSuccess}
         onItemUpdated={onItemUpdated}
+        onItemDeleted={onItemDeleted}
       />
     ),
   },

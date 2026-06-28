@@ -23,7 +23,15 @@ interface AutocompleteProps {
   className?: string
   inputClassName?: string
   labelClassName?: string
+  hasError?: boolean
+  onInputChange?: (value: string) => void
+  autoSelectExactMatchOnBlur?: boolean
 }
+
+const OPTION_MIN_HEIGHT = 44
+const MIN_VISIBLE_OPTIONS = 3
+const DROPDOWN_GAP = 4
+const DROPDOWN_MAX_HEIGHT = 240
 
 export default function Autocomplete({
   options = [],
@@ -39,12 +47,15 @@ export default function Autocomplete({
   initialValue = "",
   className = "",
   inputClassName = "",
-  labelClassName = ""
+  labelClassName = "",
+  hasError = false,
+  onInputChange,
+  autoSelectExactMatchOnBlur = false
 }: Readonly<AutocompleteProps>) {
   const [inputValue, setInputValue] = useState(initialValue)
   const [showDropdown, setShowDropdown] = useState(false)
   const [highlightIndex, setHighlightIndex] = useState(-1)
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: DROPDOWN_MAX_HEIGHT })
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -70,12 +81,22 @@ export default function Autocomplete({
     if (!input) return
 
     const rect = input.getBoundingClientRect()
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const spaceBelow = viewportHeight - rect.bottom - DROPDOWN_GAP
+    const spaceAbove = rect.top - DROPDOWN_GAP
+    const minDropdownHeight = OPTION_MIN_HEIGHT * Math.min(MIN_VISIBLE_OPTIONS, Math.max(filteredOptions.length, 1))
+    const preferredMaxHeight = Math.min(DROPDOWN_MAX_HEIGHT, OPTION_MIN_HEIGHT * Math.max(filteredOptions.length, 1))
+    const shouldOpenAbove = spaceBelow < minDropdownHeight && spaceAbove > spaceBelow
+    const availableHeight = Math.max(OPTION_MIN_HEIGHT, shouldOpenAbove ? spaceAbove : spaceBelow)
+    const maxHeight = Math.min(preferredMaxHeight, availableHeight)
+
     setDropdownPosition({
-      top: rect.bottom + 4,
+      top: shouldOpenAbove ? Math.max(DROPDOWN_GAP, rect.top - DROPDOWN_GAP - maxHeight) : rect.bottom + DROPDOWN_GAP,
       left: rect.left,
       width: rect.width,
+      maxHeight,
     })
-  }, [])
+  }, [filteredOptions.length])
 
   // Handle initial value - sync inputValue with initialValue
   useEffect(() => {
@@ -146,14 +167,16 @@ export default function Autocomplete({
     setInputValue('')
     setShowDropdown(false)
     setHighlightIndex(-1)
+    onInputChange?.('')
     onSelect(null)
     inputRef.current?.focus()
-  }, [onSelect])
+  }, [onInputChange, onSelect])
 
   // El filtrado es síncrono (sin debounce): las opciones ya están en memoria
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setInputValue(value)
+    onInputChange?.(value)
 
     if (value.trim()) {
       updateDropdownPosition()
@@ -161,7 +184,23 @@ export default function Autocomplete({
     } else {
       setShowDropdown(false)
     }
-  }, [updateDropdownPosition])
+  }, [onInputChange, updateDropdownPosition])
+
+  const handleBlur = useCallback(() => {
+    if (!autoSelectExactMatchOnBlur) return
+
+    const normalizedValue = inputValue.trim().toLowerCase()
+    if (!normalizedValue) return
+
+    const exactMatch = options.find((option) => {
+      const displayValue = option[displayKey]
+      return typeof displayValue === 'string' && displayValue.trim().toLowerCase() === normalizedValue
+    })
+
+    if (exactMatch) {
+      handleSelect(exactMatch)
+    }
+  }, [autoSelectExactMatchOnBlur, displayKey, handleSelect, inputValue, options])
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -248,7 +287,7 @@ export default function Autocomplete({
           ref={inputRef}
           id={inputId}
           type="text"
-          hasError={required && !inputValue}
+          hasError={hasError || (required && !inputValue)}
           className={cn("pr-9", inputClassName)}
           value={inputValue}
           placeholder={placeholder}
@@ -266,6 +305,7 @@ export default function Autocomplete({
           }
           onChange={handleInputChange}
           onFocus={handleFocus}
+          onBlur={handleBlur}
           onKeyDown={handleKeyDown}
         />
 
@@ -287,47 +327,61 @@ export default function Autocomplete({
       {showDropdown && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed z-9999 max-h-[min(15rem,40dvh)] overflow-hidden rounded-md border border-(--color-border) bg-(--color-bg-surface) shadow-lg"
+          className="fixed z-9999 overflow-hidden rounded-md border border-(--color-border) bg-(--color-bg-surface) shadow-lg"
           style={{
             top: dropdownPosition.top,
             left: dropdownPosition.left,
             width: dropdownPosition.width,
+            maxHeight: dropdownPosition.maxHeight,
           }}
         >
           {filteredOptions.length > 0 ? (
             <div
               ref={listRef}
               id={listId}
-              className="max-h-[min(15rem,40dvh)] overflow-y-auto flex flex-col"
+              className="overflow-y-auto flex flex-col"
+              style={{ maxHeight: dropdownPosition.maxHeight }}
               role="listbox"
               aria-labelledby={inputId}
             >
-              {filteredOptions.map((option, i) => (
-                <button
-                  key={option.id || i}
-                  type="button"
-                  id={`option-${option.id}`}
-                  role="option"
-                  aria-selected={i === highlightIndex}
-                  tabIndex={-1}
-                  className={`flex min-h-11 w-full items-center text-left px-4 py-2.5 transition-colors border-none bg-transparent cursor-pointer
-                    ${i === highlightIndex
-                      ? "bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link)) font-semibold shadow-sm"
-                      : "hover:bg-(--color-bg-subtle) text-(--color-text-primary)"
-                    }
-                  `}
-                  onClick={() => handleSelect(option)}
-                  onMouseEnter={() => setHighlightIndex(i)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      handleSelect(option)
-                    }
-                  }}
-                >
-                  {typeof option[displayKey] === 'string' ? option[displayKey] : 'Sin nombre'}
-                </button>
-              ))}
+              {filteredOptions.map((option, i) => {
+                const optionLabel = typeof option[displayKey] === 'string' ? option[displayKey] : 'Sin nombre'
+
+                return (
+                  <button
+                    key={option.id || i}
+                    type="button"
+                    id={`option-${option.id}`}
+                    role="option"
+                    aria-selected={i === highlightIndex}
+                    tabIndex={-1}
+                    title={optionLabel}
+                    className={`flex min-h-11 w-full flex-none text-left px-4 py-2.5 transition-colors border-none bg-transparent cursor-pointer
+                      ${i === highlightIndex
+                        ? "items-start bg-(--view-accent-soft,var(--color-bg-subtle)) text-(--view-accent-text,var(--color-text-link)) font-semibold shadow-sm"
+                        : "items-center hover:bg-(--color-bg-subtle) text-(--color-text-primary)"
+                      }
+                    `}
+                    onClick={() => handleSelect(option)}
+                    onMouseEnter={() => setHighlightIndex(i)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleSelect(option)
+                      }
+                    }}
+                  >
+                    <span
+                      className={cn(
+                        "block min-w-0 flex-1 leading-5",
+                        i === highlightIndex ? "whitespace-normal break-words" : "truncate",
+                      )}
+                    >
+                      {optionLabel}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           ) : (
             <div className="px-4 py-2 text-(--color-text-secondary) text-sm">

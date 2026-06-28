@@ -8,7 +8,7 @@ import type { ReactNode } from 'react'
 export function MobileChartScroll({ children }: { readonly children: ReactNode }) {
   return (
     <div className="overflow-x-auto md:overflow-x-visible">
-      <div className="min-w-[480px] md:min-w-0">{children}</div>
+      <div className="min-w-120 md:min-w-0">{children}</div>
     </div>
   )
 }

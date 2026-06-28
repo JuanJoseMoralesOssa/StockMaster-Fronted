@@ -33,10 +33,11 @@ export class ApiService<T> {
 
         // Intentar extraer mensaje de error del cuerpo de la respuesta
         if (axiosError.response.data) {
-          const errorData = axiosError.response.data as { message?: string }
-          if (errorData.message) {
-            console.error(`${errorMessage}: ${errorData.message}`)
-            throw new Error(`${errorMessage}: ${errorData.message}`, { cause: error as Error })
+          const errorData = axiosError.response.data as { message?: string; error?: { message?: string } }
+          const backendMessage = errorData.error?.message ?? errorData.message
+          if (backendMessage) {
+            console.error(`${errorMessage}: ${backendMessage}`)
+            throw new Error(`${errorMessage}: ${backendMessage}`, { cause: error as Error })
           }
         }
 

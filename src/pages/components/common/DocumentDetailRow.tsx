@@ -4,6 +4,7 @@ import Product from '../../../types/Product'
 import Person from '../../../types/Person'
 import Autocomplete from './Autocomplete'
 import { Button } from '../../../components/ui'
+import type { DetailFieldErrors, DetailFieldKey } from '../document/documentDetailsValidation'
 
 export type DocumentUpdateValue =
     | { id: string | number; name: unknown }
@@ -31,6 +32,8 @@ interface DocumentDetailRowProps<T extends BaseDocumentDetail> {
     mode?: 'add' | 'edit'
     /** `row` = table row (md+); `card` = stacked card (mobile). */
     variant?: 'row' | 'card'
+    validationErrors?: DetailFieldErrors
+    onValidationChange?: (field: DetailFieldKey, hasError: boolean) => void
 }
 
 const DocumentDetailRow = <T extends BaseDocumentDetail>({
@@ -40,6 +43,8 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
     products,
     suppliers,
     variant = 'row',
+    validationErrors,
+    onValidationChange,
 }: Readonly<DocumentDetailRowProps<T>>) => {
     const isNew = detail.id !== undefined && typeof detail.id === 'number' && detail.id < 0
     const canDelete = true
@@ -70,6 +75,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
 
     // Manejar selección de producto desde autocomplete
     const handleProductSelect = (option: { id: string | number;[key: string]: unknown } | null) => {
+        onValidationChange?.('product', !option)
         if (typeof detail.id === 'number') {
             onUpdate(detail.id, 'product', option ? {
                 id: option.id,
@@ -80,6 +86,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
 
     // Manejar selección de proveedor desde autocomplete
     const handleSupplierSelect = (option: { id: string | number;[key: string]: unknown } | null) => {
+        onValidationChange?.('supplier', !option)
         if (typeof detail.id === 'number') {
             onUpdate(detail.id, 'person', option ? {
                 id: option.id,
@@ -97,6 +104,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
                 }
                 // Guardamos como máximo 3 decimales (precisión de kg)
                 value = Math.round(value * 1000) / 1000
+                onValidationChange?.('weight', value <= 0)
                 onUpdate(detail.id, field, (value == 0 ? '' : value))
             }
         }
@@ -113,6 +121,14 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
             clearable={true}
             noOptionsText="No se encontraron productos"
             className="text-sm"
+            hasError={validationErrors?.product}
+            autoSelectExactMatchOnBlur
+            onInputChange={(value) => {
+                onValidationChange?.('product', true)
+                if (selectedProduct && value !== selectedProduct.label) {
+                    handleProductSelect(null)
+                }
+            }}
         />
     )
 
@@ -127,6 +143,14 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
             clearable={true}
             noOptionsText="No se encontraron proveedores"
             className="text-sm"
+            hasError={validationErrors?.supplier}
+            autoSelectExactMatchOnBlur
+            onInputChange={(value) => {
+                onValidationChange?.('supplier', true)
+                if (selectedSupplier && value !== selectedSupplier.label) {
+                    handleSupplierSelect(null)
+                }
+            }}
         />
     )
 
@@ -154,6 +178,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
 
     const numberInputBase =
         'block h-input rounded-md border border-(--color-border) bg-(--color-bg-surface) px-2 text-sm pointer-coarse:text-[1rem] text-(--color-text-primary) transition-colors hover:border-(--color-border-strong) focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-focus-ring)'
+    const numberInputError = validationErrors?.weight ? 'border-danger-500 bg-danger-50 hover:border-danger-500' : ''
 
     if (variant === 'card') {
         return (
@@ -169,7 +194,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
                             >
                                 Peso (kg)
                             </label>
-                            {weightInput(`${numberInputBase} w-full text-left`)}
+                            {weightInput(`${numberInputBase} ${numberInputError} w-full text-left`)}
                         </div>
                         <Button
                             type='button'
@@ -190,20 +215,20 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
 
     return (
         <tr className={`text-sm transition-colors hover:bg-(--color-bg-subtle) ${isNew ? 'bg-success-50' : 'bg-(--color-bg-surface)'}`} key={detail.id}>
-            <td className='px-4 py-3 whitespace-nowrap'>
-                <div className="w-48">
+            <td className='w-[36%] min-w-64 px-4 py-3 pr-6 whitespace-nowrap'>
+                <div className="w-full max-w-96">
                     {productAutocomplete('')}
                 </div>
             </td>
-            <td className='px-4 py-3 whitespace-nowrap'>
-                <div className="w-48">
+            <td className='w-[36%] min-w-64 px-4 py-3 pr-6 whitespace-nowrap'>
+                <div className="w-full max-w-96">
                     {supplierAutocomplete('')}
                 </div>
             </td>
-            <td className='px-4 py-3 whitespace-nowrap'>
-                {weightInput(`${numberInputBase} w-24 text-center`)}
+            <td className='w-[16%] min-w-36 px-4 py-3 pr-6 whitespace-nowrap'>
+                {weightInput(`${numberInputBase} ${numberInputError} w-full max-w-40 text-center`)}
             </td>
-            <td className='px-4 py-3 text-center'>
+            <td className='w-24 px-4 py-3 text-center'>
                 <button
                     type='button'
                     className={`inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors ${

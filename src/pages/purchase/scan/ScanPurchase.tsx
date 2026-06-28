@@ -18,7 +18,7 @@ import { formExtractionService } from "../../../services/FormExtractionService";
 import { useApiRequest } from "../../../hooks/useApiRequest";
 import { useToast } from "../../../hooks/useToast";
 import { ExtractionResult } from "../../../types/FormExtraction";
-import { todayBogota } from "../../../utils/date";
+import { todayBogota, toDateInputValue } from "../../../utils/date";
 import { extractErrorInfo } from "../../../utils/error";
 import {
   analyzeScanImageCrop,
@@ -306,7 +306,7 @@ export default function ScanPurchase() {
     }
 
     setResult(res);
-    setDate(res.date?.value ?? todayBogota());
+    setDate(toDateInputValue(res.date?.value ?? todayBogota()));
     setDetails(buildDetails(res));
     if (res.details.length === 0) {
       setScanFeedback({

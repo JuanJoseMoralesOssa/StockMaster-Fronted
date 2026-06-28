@@ -9,6 +9,7 @@ export function useTableActions<T>(
   removeItem?: (itemId: string | number, idField?: keyof T) => void,
   fetchForEdit?: (id: string | number) => Promise<T>,
   idField?: keyof T,
+  onDeleteSuccess?: () => void,
 ) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<T | null>(null)
@@ -32,6 +33,7 @@ export function useTableActions<T>(
       // para el bloqueo optimista del DELETE.
       await onDelete(itemId, item)
       if (removeItem) removeItem(itemId, idFieldArg)
+      onDeleteSuccess?.()
       showSuccess(`${entityName} eliminado exitosamente`, 'Eliminación exitosa')
     } catch (error) {
       const { message } = extractErrorInfo(error)

@@ -7,12 +7,18 @@ interface EditModalProps<T> {
   isOpen: boolean
   selectedItem: T | null
   entityName: string
-  renderEditForm?: (item: T, onSuccess: () => void, onItemUpdated: (item: T) => void) => React.ReactNode
+  renderEditForm?: (
+    item: T,
+    onSuccess: () => void,
+    onItemUpdated: (item: T) => void,
+    onItemDeleted: (id: string | number) => void,
+  ) => React.ReactNode
   formFields?: GenericField<T>[]
   onUpdate?: (id: number | string, data: Partial<T>) => Promise<T>
   prepareDataForSubmit?: (data: Partial<T>, isEdit: boolean) => Promise<Partial<T>>
   className?: string
   onEditSuccess: (updatedItem: T) => void
+  onEditDeleted: (id: string | number) => void
   onClose: () => void
 }
 
@@ -39,6 +45,7 @@ export default function EditModal<T extends Record<string, any>>({
   prepareDataForSubmit,
   className,
   onEditSuccess,
+  onEditDeleted,
   onClose
 }: EditModalProps<T>) {
   if (!selectedItem) return null
@@ -57,6 +64,10 @@ export default function EditModal<T extends Record<string, any>>({
           () => onClose(),
           (updatedItem) => {
             onEditSuccess(updatedItem)
+            onClose()
+          },
+          (id) => {
+            onEditDeleted(id)
             onClose()
           }
         )

@@ -7,6 +7,8 @@ import { useSupplierStore } from '../../../stores/useSupplierStore'
 import SummaryTable from './SummaryTable'
 import { Alert, Button, TableSkeleton, EmptyState } from '../../../components/ui'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
+import type { DetailFieldKey, DetailValidationErrors } from '../document/documentDetailsValidation'
+import { getDetailValidationKey } from '../document/documentDetailsValidation'
 
 const MAX_DOCUMENT_DETAILS = 100
 
@@ -15,6 +17,8 @@ interface DocumentDetailsTableProps<T extends { id?: number | string }> {
     setDetails: (details: T[]) => void
     title: string
     mode?: 'add' | 'edit'
+    validationErrors?: DetailValidationErrors
+    onDetailValidationChange?: (detail: T, index: number, field: DetailFieldKey, hasError: boolean) => void
 }
 
 export default function DocumentDetailsTable<T extends { id?: number | string; productId?: number | null; weight_kg?: number | null; toDelete?: boolean }>({
@@ -22,13 +26,15 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
     setDetails,
     title,
     mode,
+    validationErrors = {},
+    onDetailValidationChange,
 }: Readonly<DocumentDetailsTableProps<T>>) {
     const visibleDetails = details.filter(d => !d.toDelete)
     const detailsLength = visibleDetails.length
     const reachedDetailsLimit = detailsLength >= MAX_DOCUMENT_DETAILS
-    // Table on md+ (fits with horizontal scroll); stacked cards on mobile so the
+    // Table on lg+; stacked cards on mobile/tablet so the
     // two autocompletes + weight input never force a cramped horizontal scroll.
-    const isDesktop = useMediaQuery('(min-width: 768px)')
+    const isDesktop = useMediaQuery('(min-width: 1024px)')
     const {
         products,
         isLoading: productsLoading,
@@ -88,11 +94,17 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
         const newDetails = details.map((row) => {
             if (row.id !== id) return row
             const updated = { ...row, [field]: value }
+            if (field === 'product' && value === null) {
+                return { ...updated, productId: 0 } as T
+            }
+            if (field === 'person' && value === null) {
+                return { ...updated, personId: 0 } as T
+            }
             if (field === 'product' && value && typeof value === 'object' && 'id' in value) {
-                return { ...updated, productId: (value as { id?: number }).id } as T
+                return { ...updated, productId: Number((value as { id?: number | string }).id) } as T
             }
             if (field === 'person' && value && typeof value === 'object' && 'id' in value) {
-                return { ...updated, personId: (value as { id?: number }).id } as T
+                return { ...updated, personId: Number((value as { id?: number | string }).id) } as T
             }
             return updated as T
         })
@@ -195,6 +207,8 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
                                                     products={products}
                                                     suppliers={suppliers}
                                                     mode={mode}
+                                                    validationErrors={validationErrors[getDetailValidationKey(detail, index)]}
+                                                    onValidationChange={(field, hasError) => onDetailValidationChange?.(detail, index, field, hasError)}
                                                 />
                                             ))}
                                         </tbody>
@@ -212,6 +226,8 @@ export default function DocumentDetailsTable<T extends { id?: number | string; p
                                             suppliers={suppliers}
                                             mode={mode}
                                             variant='card'
+                                            validationErrors={validationErrors[getDetailValidationKey(detail, index)]}
+                                            onValidationChange={(field, hasError) => onDetailValidationChange?.(detail, index, field, hasError)}
                                         />
                                     ))}
                                 </ul>

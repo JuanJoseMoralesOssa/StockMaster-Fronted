@@ -169,6 +169,18 @@ describe('processDailyEntries', () => {
     expect(out[0].day).toBe(5)
   })
 
+  it('keeps UTC midnight ISO dates on their calendar day', () => {
+    const results = [
+      { date: '2024-03-05T00:00:00.000Z', type: PURCHASE, weight_kg: 80 },
+      { date: '2024-03-05T00:00:00.000Z', type: EXPENSE, weight_kg: 30 },
+    ]
+    const out = processDailyEntries(results)
+
+    expect(out).toHaveLength(1)
+    expect(out[0].date).toBe('2024-03-05')
+    expect(out[0].day).toBe(5)
+  })
+
   it('sorts output by date ascending', () => {
     const results = [
       { date: '2024-03-10', type: PURCHASE, weight_kg: 10 },
@@ -197,6 +209,15 @@ describe('processMonthlyEntries', () => {
     expect(jan?.total).toBe(100)
     expect(jan?.pagado).toBe(40)
     expect(jan?.pendiente).toBe(60)
+  })
+
+  it('keeps UTC midnight ISO dates in the intended month', () => {
+    const results = [
+      { date: '2024-03-01T00:00:00.000Z', type: PURCHASE, weight_kg: 100 },
+    ]
+    const out = processMonthlyEntries(results)
+
+    expect(out[0].month).toBe('Mar 2024')
   })
 })
 

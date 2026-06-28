@@ -3,11 +3,14 @@
  * Pruebas de useApiRequest: estados de carga/éxito/error, deduplicación de
  * peticiones en vuelo, retry manual y reintentos ante errores de red.
  */
+import { createElement, StrictMode, type ReactNode } from 'react'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useApiRequest } from '../useApiRequest'
 
 const showError = vi.fn()
 const showSuccess = vi.fn()
+const StrictModeWrapper = ({ children }: { children: ReactNode }) =>
+  createElement(StrictMode, null, children)
 
 vi.mock('../useToast', () => ({
   useToast: () => ({ showError, showSuccess }),
@@ -115,6 +118,21 @@ describe('useApiRequest', () => {
     })
 
     expect(showSuccess).toHaveBeenCalledWith('Guardado')
+  })
+
+  it('ejecuta la petición después del ciclo extra de StrictMode', async () => {
+    const requestFn = vi.fn().mockResolvedValue('ok')
+    const { result } = renderHook(() => useApiRequest(requestFn), {
+      wrapper: StrictModeWrapper,
+    })
+
+    let returned: unknown
+    await act(async () => {
+      returned = await result.current.execute()
+    })
+
+    expect(returned).toBe('ok')
+    expect(requestFn).toHaveBeenCalledTimes(1)
   })
 
   it('reset() limpia data, error y últimos argumentos', async () => {

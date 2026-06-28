@@ -15,7 +15,8 @@ export const useDetailsSummary = <T extends DetailWithProduct>(details: T[]) => 
     const summary: Record<string, ProductSummary> = {}
 
     details.filter((row) => !row.toDelete).forEach((detail) => {
-      if (detail.productId) {
+      const weight = detail.weight_kg ?? 0
+      if (detail.productId && detail.productId > 0 && weight > 0) {
         const product = products.find((p) => p.id === detail.productId)
         if (product) {
           const productId = String(detail.productId)
@@ -26,7 +27,7 @@ export const useDetailsSummary = <T extends DetailWithProduct>(details: T[]) => 
               total_weight: 0,
             }
           }
-          summary[productId].total_weight += detail.weight_kg ?? 0
+          summary[productId].total_weight += weight
         }
       }
     })

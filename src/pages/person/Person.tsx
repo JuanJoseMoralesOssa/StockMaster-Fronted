@@ -2,64 +2,34 @@ import GenericPage from '../generic_page/GenericPage'
 import Person from '../../types/Person'
 import { personPageConfig } from '../../config/personPageConfig'
 import { PersonFilters, personService } from '../../services/PersonService'
-import { useApiRequest } from '../../hooks/useApiRequest'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useToast } from '../../hooks/useToast'
 
 function PersonPage() {
     const navigate = useNavigate()
-    const createPerson = useCallback(
-        (data: Partial<Person>) => personService.create(data as Omit<Person, 'id'>),
-        []
-    )
-    const updatePerson = useCallback(
-        (id: number | string, data: Partial<Person>) => personService.update(Number(id), data as Person),
-        []
-    )
-    const updatePersonPartial = useCallback(
-        (id: number | string, data: Partial<Person>) => personService.updatePartial(Number(id), data),
-        []
-    )
-
-    const createReq = useApiRequest<Person, [Partial<Person>]>(
-        createPerson,
-        { successMessage: 'Proveedor creado exitosamente', showSuccessToast: true }
-    )
-
-    const updateReq = useApiRequest<Person, [number | string, Partial<Person>]>(
-        updatePerson,
-        { successMessage: 'Proveedor actualizado', showSuccessToast: true }
-    )
-
-    const updatePartialReq = useApiRequest<Person, [number | string, Partial<Person>]>(
-        updatePersonPartial,
-        { successMessage: 'Proveedor actualizado', showSuccessToast: true }
-    )
+    const { showSuccess } = useToast()
 
     const createServiceHooks = useCallback((service: unknown) => {
         const svc = service as typeof personService
         return {
             getAllPaginated: svc.getAllPaginated.bind(svc),
             create: async (data: Partial<Person>) => {
-                const res = await createReq.execute(data)
-                if (!res) throw new Error('No se pudo crear el proveedor')
-                return res
+                const created = await svc.create(data as Omit<Person, 'id'>)
+                showSuccess('Proveedor creado exitosamente')
+                return created
             },
             update: async (id: number | string, data: Partial<Person>) => {
-                const res = await updateReq.execute(Number(id), data)
-                if (!res) throw new Error('No se pudo actualizar el proveedor')
-                return res
+                return svc.update(Number(id), data as Person)
             },
             updatePartial: async (id: number | string, data: Partial<Person>) => {
-                const res = await updatePartialReq.execute(Number(id), data)
-                if (!res) throw new Error('No se pudo actualizar el proveedor')
-                return res
+                return svc.updatePartial(Number(id), data)
             },
             delete: async (id: number | string) => {
-                await personService.delete(Number(id))
+                await svc.delete(Number(id))
             }
         }
-    }, [createReq.execute, updateReq.execute, updatePartialReq.execute])
+    }, [showSuccess])
 
     const pageConfig = useMemo(() => ({
         ...personPageConfig,

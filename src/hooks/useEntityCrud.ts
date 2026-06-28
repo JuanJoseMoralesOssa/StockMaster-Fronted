@@ -1,5 +1,5 @@
-import { useApiRequest } from './useApiRequest'
 import { PaginatedResponse } from '../types/PaginatedResponse'
+import { useToast } from './useToast'
 
 /** Operaciones CRUD que envuelve este hook (subconjunto de GenericService, sin filtros). */
 export type CrudOps<T> = {
@@ -25,45 +25,28 @@ export function useEntityCrud<T extends object>(
   service: CrudOps<T>,
   label: string,
 ): (svc: CrudOps<T>) => Partial<CrudOps<T>> {
-  const lower = label.toLowerCase()
-
-  const createReq = useApiRequest<T, [Partial<T>]>((data) => service.create(data), {
-    successMessage: `${label} creado exitosamente`,
-    showSuccessToast: true,
-  })
-  const updateReq = useApiRequest<T, [number | string, Partial<T>]>(
-    (id, data) => service.update(id, data),
-    { successMessage: `${label} actualizado`, showSuccessToast: true },
-  )
-  const updatePartialReq = useApiRequest<T, [number | string, Partial<T>]>(
-    (id, data) => service.updatePartial(id, data),
-    { successMessage: `${label} actualizado`, showSuccessToast: true },
-  )
-  const deleteReq = useApiRequest<void, [number | string, T | undefined]>((id, item) => service.delete(id, item), {
-    successMessage: `${label} eliminado`,
-    showSuccessToast: true,
-  })
+  const { showSuccess } = useToast()
 
   return (svc: CrudOps<T>): Partial<CrudOps<T>> => ({
     getAllPaginated: svc.getAllPaginated.bind(svc),
     create: async (data) => {
-      const res = await createReq.execute(data)
-      if (!res) throw new Error(`No se pudo crear el ${lower}`)
-      return res
+      const created = await service.create(data)
+      showSuccess(`${label} creado exitosamente`)
+      return created
     },
     update: async (id, data) => {
-      const res = await updateReq.execute(id, data)
-      if (!res) throw new Error(`No se pudo actualizar el ${lower}`)
-      return res
+      const updated = await service.update(id, data)
+      showSuccess(`${label} actualizado`)
+      return updated
     },
     updatePartial: async (id, data) => {
-      const res = await updatePartialReq.execute(id, data)
-      if (!res) throw new Error(`No se pudo actualizar el ${lower}`)
-      return res
+      const updated = await service.updatePartial(id, data)
+      showSuccess(`${label} actualizado`)
+      return updated
     },
     delete: async (id, item) => {
-      const res = await deleteReq.execute(id, item)
-      if (res === null) throw new Error(`No se pudo eliminar el ${lower}`)
+      await service.delete(id, item)
+      showSuccess(`${label} eliminado`)
     },
   })
 }

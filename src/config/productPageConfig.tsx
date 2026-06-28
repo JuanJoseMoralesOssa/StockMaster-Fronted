@@ -40,7 +40,7 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       name: 'name',
       label: 'Nombre del Producto',
       type: 'text',
-      placeholder: 'Ej: Laptop HP 15"',
+      placeholder: 'Ej: Hueso, sebo o piel',
       required: true,
       // Campo principal y largo: ocupa la fila completa en el form 2-col de desktop
       // (deja `stock` solo debajo, y en edición —sin stock— queda full).

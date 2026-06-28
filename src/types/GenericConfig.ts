@@ -147,7 +147,12 @@ export interface GenericPageConfig<T, TFilter = object, CreateInput = Partial<T>
   /** Función para obtener un item completo (con relaciones) antes de abrir el modal de edición */
   fetchForEdit?: (id: string | number) => Promise<T>
   /** Renderizado personalizado para el formulario de editar */
-  renderEditForm?: (item: T, onSuccess: () => void, onItemUpdated: (item: T) => void) => ReactNode
+  renderEditForm?: (
+    item: T,
+    onSuccess: () => void,
+    onItemUpdated: (item: T) => void,
+    onItemDeleted: (id: string | number) => void,
+  ) => ReactNode
   /** Función para preparar datos antes de enviar (ej: hash passwords) */
   prepareDataForSubmit?: (data: Partial<T>, isEdit: boolean) => Promise<Partial<T>>
   /** Función para validar datos personalizados */

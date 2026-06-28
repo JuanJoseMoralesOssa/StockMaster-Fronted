@@ -15,6 +15,8 @@ export interface UseApiRequestOptions<T> {
   onSuccess?: (data: T) => void
   /** Callback al fallar */
   onError?: (error: unknown) => void
+  /** Re-lanzar el error después de actualizar estado/toasts. Útil para formularios que muestran errores inline. */
+  throwOnError?: boolean
   /** Número máximo de reintentos en caso de fallo de red (por defecto 0) */
   maxRetries?: number
   /** Retardo base en ms para backoff exponencial (por defecto 500) */
@@ -46,6 +48,7 @@ export function useApiRequest<T, Args extends unknown[] = []>(
     showErrorToast = true,
     onSuccess,
     onError,
+    throwOnError = false,
     maxRetries,
     retryDelayMs,
   }: UseApiRequestOptions<T> = {},
@@ -64,6 +67,10 @@ export function useApiRequest<T, Args extends unknown[] = []>(
   const { showError, showSuccess } = useToast()
 
   useEffect(() => {
+    // React StrictMode ejecuta setup/cleanup/setup en desarrollo.
+    // Si no reactivamos esta bandera, execute() puede quedar retornando null.
+    isMountedRef.current = true
+
     return () => {
       isMountedRef.current = false
       // Invalida respuestas en vuelo para evitar setState tras desmontar.
@@ -138,6 +145,10 @@ export function useApiRequest<T, Args extends unknown[] = []>(
             onError?.(error)
           }
 
+          if (throwOnError) {
+            throw error
+          }
+
           return null
         }
       }
@@ -161,6 +172,7 @@ export function useApiRequest<T, Args extends unknown[] = []>(
       showSuccess,
       onSuccess,
       onError,
+      throwOnError,
       maxRetries,
       retryDelayMs,
     ],

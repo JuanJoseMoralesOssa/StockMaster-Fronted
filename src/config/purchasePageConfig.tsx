@@ -47,7 +47,7 @@ const basePurchasePageConfig = buildDocumentPageConfig<
         onCreated={onItemCreated}
       />
     ),
-    renderEditForm: (item, onSuccess, onItemUpdated) => (
+    renderEditForm: (item, onSuccess, onItemUpdated, onItemDeleted) => (
       <DocumentEditForm<'purchase_details', PurchaseDetails, Purchase>
         key={item.id}
         initialDocument={item}
@@ -58,10 +58,12 @@ const basePurchasePageConfig = buildDocumentPageConfig<
           missingId: 'Error al editar la compra: ID no definido',
           missingDate: 'Error al editar la compra: Fecha no definida',
           success: 'Compra actualizada exitosamente',
+          deleted: 'Compra eliminada porque no tenía productos',
           error: 'Error al actualizar la compra',
         }}
         onSuccess={onSuccess}
         onItemUpdated={onItemUpdated}
+        onItemDeleted={onItemDeleted}
       />
     ),
   },

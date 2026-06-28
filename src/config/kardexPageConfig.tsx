@@ -2,6 +2,7 @@ import { GenericPageConfig } from '../types/GenericConfig'
 import Kardex from '../types/Kardex'
 import { kardexService } from '../services/KardexService'
 import { coerceNumericFields } from '../utils/form'
+import { formatLocalDate, toCalendarDate } from '../utils/date'
 import KardexFiltersSection from '../pages/kardex/components/KardexFiltersSection'
 import { KARDEX_OPERATION_OPTIONS, KardexFilters, buildInitialKardexFilters } from '../pages/kardex/kardexFilters'
 
@@ -23,7 +24,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       label: 'Fecha',
       render: (entry) => (
         <span className='font-medium text-(--color-text-primary)'>
-          {new Date(entry.date).toLocaleDateString('es-ES')}
+          {formatLocalDate(entry.date)}
         </span>
       ),
     },
@@ -176,7 +177,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
     )
 
     if (preparedData.date) {
-      preparedData.date = new Date(preparedData.date).toISOString()
+      preparedData.date = toCalendarDate(preparedData.date)
     }
 
     if (!isEdit) {
