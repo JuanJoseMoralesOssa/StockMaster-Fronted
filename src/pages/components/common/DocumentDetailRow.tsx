@@ -4,6 +4,8 @@ import Product from '../../../types/Product'
 import Person from '../../../types/Person'
 import Autocomplete from './Autocomplete'
 import { Button } from '../../../components/ui'
+import { toNumber } from '../../../utils/format'
+import { MAX_WEIGHT_KG } from '../document/documentDetailsValidation'
 import type { DetailFieldErrors, DetailFieldKey } from '../document/documentDetailsValidation'
 
 export type DocumentUpdateValue =
@@ -105,7 +107,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
                 // Guardamos como máximo 3 decimales (precisión de kg)
                 value = Math.round(value * 1000) / 1000
                 onValidationChange?.('weight', value <= 0)
-                onUpdate(detail.id, field, (value == 0 ? '' : value))
+                onUpdate(detail.id, field, value == 0 ? '' : value)
             }
         }
 
@@ -154,21 +156,27 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
         />
     )
 
-    const weightInput = (className: string) => (
-        <input
-            type='number'
-            inputMode='decimal'
-            className={className}
-            name='weight_kg'
-            id={`weight_kg_${detail.id}`}
-            value={detail.weight_kg ?? ''}
-            min={0}
-            step='0.001'
-            required
-            onChange={handleNumberInputChange('weight_kg')}
-            aria-label="Peso en kilogramos"
-        />
-    )
+    const weightInput = (className: string) => {
+        // weight_kg llega como string del numeric ("12.000"); lo coaccionamos para
+        // que el input nativo muestre "12" y no "12.000".
+        const weightValue = toNumber(detail.weight_kg)
+        return (
+            <input
+                type='number'
+                inputMode='decimal'
+                className={className}
+                name='weight_kg'
+                id={`weight_kg_${detail.id}`}
+                value={weightValue > 0 ? weightValue : ''}
+                min={0}
+                max={MAX_WEIGHT_KG}
+                step='0.001'
+                required
+                onChange={handleNumberInputChange('weight_kg')}
+                aria-label="Peso en kilogramos"
+            />
+        )
+    }
 
     const handleDelete = () => {
         if (canDelete && detail.id !== undefined) {

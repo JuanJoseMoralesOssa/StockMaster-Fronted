@@ -3,6 +3,10 @@ interface RankingItem {
   id: number;
   name: string;
   primaryValue: number;
+  /** Entradas (compras). Si se provee, la fila muestra compras/pagos por separado. */
+  purchaseValue?: number;
+  /** Salidas (pagos). */
+  paymentValue?: number;
   secondaryValue?: number;
   primaryLabel: string;
   secondaryLabel?: string;
@@ -40,7 +44,11 @@ function RankingList({
         {title}
       </h3>
       <div className="space-y-2">
-        {displayItems.map((item, index) => (
+        {displayItems.map((item, index) => {
+          const showPurchase = (item.purchaseValue ?? 0) > 0
+          const showPayment = (item.paymentValue ?? 0) > 0
+          const showSplit = showPurchase || showPayment
+          return (
           <div
             key={item.id}
             className={`${index >= mobileMaxItems ? "hidden lg:flex" : "flex"} justify-between items-center text-sm text-(--color-text-primary) ${onItemClick ? "rounded -mx-1 px-1 py-0.5 transition-colors hover:bg-(--color-bg-surface)/60" : ""}`}
@@ -64,10 +72,27 @@ function RankingList({
               )}
             </span>
             <div className="text-right tabular-nums">
-              <div className="font-bold">
-                {valueFormatter(item.primaryValue)}
-                <span className="text-xs ml-1 opacity-75">{item.primaryLabel}</span>
-              </div>
+              {showSplit ? (
+                <div className="flex flex-col items-end leading-tight">
+                  {showPurchase && (
+                    <span className="font-semibold text-success-700" title="Compras (entradas)">
+                      ↑ {valueFormatter(item.purchaseValue!)}
+                      <span className="text-xs ml-0.5 opacity-75">{item.primaryLabel}</span>
+                    </span>
+                  )}
+                  {showPayment && (
+                    <span className="font-semibold text-danger-700" title="Pagos (salidas)">
+                      ↓ {valueFormatter(item.paymentValue!)}
+                      <span className="text-xs ml-0.5 opacity-75">{item.primaryLabel}</span>
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="font-bold">
+                  {valueFormatter(item.primaryValue)}
+                  <span className="text-xs ml-1 opacity-75">{item.primaryLabel}</span>
+                </div>
+              )}
               {item.secondaryValue !== undefined && item.secondaryLabel && (
                 <div className="text-xs opacity-75">
                   {item.secondaryValue} {item.secondaryLabel}
@@ -75,7 +100,8 @@ function RankingList({
               )}
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   );

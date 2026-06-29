@@ -4,7 +4,11 @@ import { httpClient } from './httpClient'
 import {
   DashboardSummaryResponse,
   AnalyticsFilters,
-  InventorySummaryResponse
+  InventorySummaryResponse,
+  PendingTrendPoint,
+  PendingTrendInterval,
+  PendingBySupplier,
+  PendingByProduct,
 } from '../types/Analytics'
 
 const API_BASE_URL = Config.LOGIC_URL
@@ -74,6 +78,42 @@ export class AnalyticsService {
       return response.data
     } catch (error) {
       this.handleError(error, 'Error obteniendo el resumen de inventario')
+    }
+  }
+
+  async getPendingTrend(
+    startDate: string,
+    endDate: string,
+    interval: PendingTrendInterval = 'day',
+  ): Promise<PendingTrendPoint[]> {
+    try {
+      const params = new URLSearchParams({ startDate, endDate, interval })
+      const response = await httpClient.get(
+        `${this.getUrl('pending-trend')}?${params.toString()}`,
+      )
+      return response.data
+    } catch (error) {
+      this.handleError(error, 'Error obteniendo la tendencia del pendiente')
+    }
+  }
+
+  async getPendingBySupplier(limit?: number): Promise<PendingBySupplier[]> {
+    try {
+      const query = limit != null ? `?limit=${limit}` : ''
+      const response = await httpClient.get(`${this.getUrl('pending-by-supplier')}${query}`)
+      return response.data
+    } catch (error) {
+      this.handleError(error, 'Error obteniendo el pendiente por proveedor')
+    }
+  }
+
+  async getPendingByProduct(limit?: number): Promise<PendingByProduct[]> {
+    try {
+      const query = limit != null ? `?limit=${limit}` : ''
+      const response = await httpClient.get(`${this.getUrl('pending-by-product')}${query}`)
+      return response.data
+    } catch (error) {
+      this.handleError(error, 'Error obteniendo el pendiente por producto')
     }
   }
 }

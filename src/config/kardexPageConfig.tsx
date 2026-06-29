@@ -2,6 +2,7 @@ import { GenericPageConfig } from '../types/GenericConfig'
 import Kardex from '../types/Kardex'
 import { kardexService } from '../services/KardexService'
 import { formatLocalDate } from '../utils/date'
+import { formatKg } from '../utils/format'
 import KardexFiltersSection from '../pages/kardex/components/KardexFiltersSection'
 import KardexAdjustmentForm from '../pages/kardex/components/KardexAdjustmentForm'
 import { KARDEX_OPERATION_OPTIONS, KARDEX_OPERATION_MANUAL, KardexFilters, buildInitialKardexFilters } from '../pages/kardex/kardexFilters'
@@ -52,7 +53,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       label: 'Entrada',
       align: 'right',
       render: (entry) => (
-        <span className='font-semibold text-success-700'>+{entry.input}</span>
+        <span className='font-semibold text-success-700'>+{formatKg(entry.input)}</span>
       ),
     },
     {
@@ -60,7 +61,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       label: 'Salida',
       align: 'right',
       render: (entry) => (
-        <span className='font-semibold text-danger-700'>-{entry.output}</span>
+        <span className='font-semibold text-danger-700'>-{formatKg(entry.output)}</span>
       ),
     },
     {
@@ -69,7 +70,7 @@ export const kardexPageConfig: GenericPageConfig<Kardex, KardexFilters> = {
       align: 'right',
       render: (entry) => (
         <span className='inline-flex items-center rounded-md border border-(--view-accent-border,var(--color-border-strong)) bg-(--color-bg-surface) px-2 py-1 text-xs font-semibold text-(--view-accent-text,var(--color-text-link)) shadow-xs'>
-          {entry.balance}
+          {formatKg(entry.balance)}
         </span>
       ),
     },

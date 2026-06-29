@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import { Badge } from '../components/ui'
 import { GenericPageConfig } from '../types/GenericConfig'
 import { formatLocalDate } from '../utils/date'
+import { formatKg, toNumber } from '../utils/format'
 import type { DocumentDetailLike, DocumentLike } from '../types/DocumentBase'
 
 export interface DocumentPageDeps<
@@ -55,7 +56,10 @@ export function buildDocumentPageConfig<
         key: 'total_kg',
         label: 'Total kg',
         align: 'right',
-        render: (item) => (item.total_kg ? `${item.total_kg} kg` : '—'),
+        render: (item) => {
+          const total = toNumber(item.total_kg)
+          return total ? `${formatKg(total)} kg` : '—'
+        },
       },
       {
         key: 'products',

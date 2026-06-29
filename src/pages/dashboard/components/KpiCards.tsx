@@ -1,7 +1,8 @@
-import { BarChart3, TrendingUp, TrendingDown, Users, FileText, Scale } from 'lucide-react'
+import { Percent, TrendingUp, TrendingDown, Users, FileText, Scale } from 'lucide-react'
 import DeltaBadge from './DeltaBadge'
 import { Skeleton } from '../../../components/ui'
 import { AnalyticsSummary } from '../../../types/Analytics'
+import { formatKg, formatInt, formatPercent } from '../../../utils/format'
 
 interface KpiCardsProps {
   current: AnalyticsSummary | undefined
@@ -35,7 +36,7 @@ function KpiCardsSkeleton() {
 const pct = (cur: number, prev: number): number | null =>
   prev === 0 ? null : ((cur - prev) / prev) * 100
 
-const kg = (n: number) => `${n.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`
+const kg = (n: number) => `${formatKg(n)} kg`
 
 function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps>) {
   if (loading && !current) return <KpiCardsSkeleton />
@@ -47,7 +48,8 @@ function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps
   const balance = c?.pendingWeight ?? 0
   const suppliers = c?.totalSuppliers ?? 0
   const docs = (c?.purchaseCount ?? 0) + (c?.paymentCount ?? 0)
-  const lines = c?.totalTransactions ?? 0
+  // % de lo comprado que ya se entregó/pagó. Cerca de 100% = flujo sano.
+  const deliveredPct = purchaseWeight > 0 ? (paymentWeight / purchaseWeight) * 100 : null
 
   const hasPrev = !!p
   const prevDocs = (p?.purchaseCount ?? 0) + (p?.paymentCount ?? 0)
@@ -74,12 +76,24 @@ function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps
       icon: <TrendingDown className="w-4 h-4" />,
     },
     {
-      label: 'Balance',
+      // "período" lo distingue del "Balance pendiente" histórico (InventoryKpis,
+      // independiente de fechas): este es el neto del rango filtrado.
+      label: 'Balance período',
       value: kg(balance),
       delta: pct(balance, p?.pendingWeight ?? 0),
       icon: <Scale className="w-4 h-4" />,
-      hint: 'Compras − Pagos',
+      hint: 'Compras − Pagos (rango)',
       valueClass: balance < 0 ? 'text-danger-700' : 'text-(--color-text-primary)',
+    },
+    {
+      label: '% Entregado',
+      // Sin compras en el rango no hay divisor → mostramos el motivo, no un "—"
+      // ambiguo que parece un error.
+      value: deliveredPct === null ? 'Sin compras' : formatPercent(deliveredPct, 0),
+      delta: null,
+      icon: <Percent className="w-4 h-4" />,
+      hint: deliveredPct === null ? 'sin compras en el rango' : 'de lo comprado, pagado',
+      valueClass: deliveredPct !== null && deliveredPct >= 90 ? 'text-success-700' : undefined,
     },
     {
       label: 'Proveedores',
@@ -89,16 +103,10 @@ function KpiCards({ current, previous, loading = false }: Readonly<KpiCardsProps
     },
     {
       label: 'Documentos',
-      value: docs.toLocaleString(),
+      value: formatInt(docs),
       delta: pct(docs, prevDocs),
       icon: <FileText className="w-4 h-4" />,
       hint: `${c?.purchaseCount ?? 0} compras · ${c?.paymentCount ?? 0} pagos`,
-    },
-    {
-      label: 'Líneas',
-      value: lines.toLocaleString(),
-      delta: pct(lines, p?.totalTransactions ?? 0),
-      icon: <BarChart3 className="w-4 h-4" />,
     },
   ]
 

@@ -6,9 +6,9 @@ import { EmptyState } from '../../../components/ui'
 import RankingList from './components/base/RankingList'
 import { supplierToRankingItems, productToRankingItems, formatWeight } from './components/adapters/analyticsAdapters'
 import AnalyticsInsights from './components/AnalyticsInsights'
+import PendingInsights from './components/PendingInsights'
 import LoadingSkeleton from './components/LoadingSkeleton'
 import ErrorState from './components/ErrorState'
-import SummaryStats from './components/SummaryStats'
 import { useDashboard } from '../DashboardContext'
 
 type RankingTabKey = 'weight' | 'activity' | 'bottom'
@@ -23,7 +23,7 @@ interface RankingTab {
 }
 
 function GeneralDashboard() {
-  const { analytics: { data, loading, error }, refreshAnalytics } = useDashboard()
+  const { analytics: { data, loading, error }, refreshAnalytics, filters } = useDashboard()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<RankingTabKey>('weight')
 
@@ -63,7 +63,22 @@ function GeneralDashboard() {
     },
   ]
 
-  const current = tabs.find((t) => t.key === activeTab) ?? tabs[0]
+  // Con pocos proveedores/productos los tres rankings (mayor peso, más activo,
+  // menor volumen) caen sobre el MISMO conjunto de entidades, así que cambiar de
+  // tab "no cambia nada". Mostramos solo las tabs cuyo conjunto de entidades es
+  // único; las demás se ocultan hasta que haya datos suficientes para diferir.
+  const tabEntityKey = (t: RankingTab): string =>
+    [
+      ...t.suppliers.map((s) => `s${s.personId}`),
+      ...t.products.map((p) => `p${p.productId}`),
+    ]
+      .sort((a, b) => a.localeCompare(b))
+      .join(',')
+  const visibleTabs = tabs.filter(
+    (t, i) => tabs.findIndex((o) => tabEntityKey(o) === tabEntityKey(t)) === i,
+  )
+
+  const current = visibleTabs.find((t) => t.key === activeTab) ?? visibleTabs[0]
   const supplierColor = current.supplierAccent
     ? 'bg-(--view-accent-soft,var(--color-bg-subtle)) border-(--view-accent-border,var(--color-border))'
     : 'bg-(--color-bg-surface) border-(--color-border)'
@@ -77,16 +92,13 @@ function GeneralDashboard() {
             <span className="h-6 w-1 rounded-full bg-(--view-accent,var(--color-action-bg))" aria-hidden="true" />
             Tablero General
           </h2>
-          <SummaryStats
-            purchaseWeight={data.summary.totalPurchaseWeight}
-            paymentWeight={data.summary.totalPaymentWeight}
-          />
         </div>
 
         <div className="mb-6">
+          {visibleTabs.length > 1 && (
           <div role="tablist" aria-label="Rankings" className="flex flex-wrap gap-2 mb-4 border-b border-(--color-border)">
-            {tabs.map((tab) => {
-              const selected = tab.key === activeTab
+            {visibleTabs.map((tab) => {
+              const selected = tab.key === current.key
               return (
                 <button
                   key={tab.key}
@@ -106,6 +118,7 @@ function GeneralDashboard() {
               )
             })}
           </div>
+          )}
 
           {currentIsEmpty ? (
             <div role="tabpanel">
@@ -136,6 +149,8 @@ function GeneralDashboard() {
 
         <AnalyticsInsights data={data} />
       </div>
+
+      <PendingInsights startDate={filters.startDate} endDate={filters.endDate} />
     </div>
   )
 }

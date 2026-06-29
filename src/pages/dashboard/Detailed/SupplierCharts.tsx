@@ -15,6 +15,7 @@ import {
 } from 'recharts'
 import { PersonReportRow } from '../../../types/DashboardResults'
 import Product from '../../../types/Product'
+import { formatKg } from '../../../utils/format'
 import {
   formatChartValue,
   formatChartPercent,
@@ -107,8 +108,8 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
 
   const pieTotal = totals.Pagado + totals.Pendiente
   const pieChartData = [
-    { name: `Total Pagado (${formatChartPercent(pieTotal ? totals.Pagado / pieTotal : 0)})`, value: totals.Pagado, fill: CHART_COLORS.pieBlue },
-    { name: `Total Pendiente (${formatChartPercent(pieTotal ? totals.Pendiente / pieTotal : 0)})`, value: totals.Pendiente, fill: CHART_COLORS.pieOrange },
+    { name: `Total Pagado (${formatChartPercent(pieTotal ? totals.Pagado / pieTotal : 0)})`, value: totals.Pagado, fill: CHART_COLORS.paid },
+    { name: `Total Pendiente (${formatChartPercent(pieTotal ? totals.Pendiente / pieTotal : 0)})`, value: totals.Pendiente, fill: CHART_COLORS.pending },
   ]
 
   const exportToCsv = (): void => {
@@ -164,15 +165,15 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pedido</h3>
-          <p className="text-2xl font-bold text-(--color-text-primary)">{totals.Total.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-(--color-text-primary)">{formatKg(totals.Total)}</p>
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pagado</h3>
-          <p className="text-2xl font-bold text-success-700">{totals.Pagado.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-success-700">{formatKg(totals.Pagado)}</p>
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pendiente</h3>
-          <p className="text-2xl font-bold text-danger-700">{totals.Pendiente.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-danger-700">{formatKg(totals.Pendiente)}</p>
         </div>
       </div>
 
@@ -188,7 +189,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
               <YAxis fontSize={12} />
               <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
-              <Bar dataKey="Total" name="Total Pedido" fill={CHART_COLORS.purchase}>
+              <Bar dataKey="Total" name="Total Pedido" fill={CHART_COLORS.total}>
                 <LabelList {...BAR_VALUE_LABEL} />
               </Bar>
               <Bar dataKey="Pagado" name="Total Pagado" fill={CHART_COLORS.paid}>
@@ -239,7 +240,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
                     <YAxis fontSize={12} />
                     <Tooltip formatter={(value) => formatChartValue(value)} />
                     <Legend />
-                    <Bar dataKey="Total" name="Total" fill={CHART_COLORS.purchase}>
+                    <Bar dataKey="Total" name="Total" fill={CHART_COLORS.total}>
                       <LabelList {...BAR_VALUE_LABEL} />
                     </Bar>
                     <Bar dataKey="Pagado" name="Pagado" fill={CHART_COLORS.paid}>
@@ -289,7 +290,7 @@ const ProductReport: React.FC<ProductReportProps> = ({ results, products, filter
                           contentStyle={{ fontSize: '12px' }}
                         />
                         <Legend iconSize={8} />
-                        <Bar dataKey="Total" name="Total" fill={CHART_COLORS.purchase} />
+                        <Bar dataKey="Total" name="Total" fill={CHART_COLORS.total} />
                         <Bar dataKey="Pagado" name="Pagado" fill={CHART_COLORS.paid} />
                         <Bar dataKey="Pendiente" name="Pendiente" fill={CHART_COLORS.pending} />
                       </BarChart>

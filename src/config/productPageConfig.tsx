@@ -1,8 +1,9 @@
 import { GenericPageConfig } from '../types/GenericConfig'
 import Product from '../types/Product'
 import { productService } from '../services/ProductService'
-import { Package, Receipt, Search, ShoppingCart } from 'lucide-react'
-import { Button, Input } from '../components/ui'
+import { Package, Receipt, ShoppingCart } from 'lucide-react'
+import NameSearchFilter from '../pages/components/common/NameSearchFilter'
+import { formatKg, toNumber } from '../utils/format'
 
 export interface ProductFilters {
   name: string
@@ -24,13 +25,13 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       width: 'w-24',
       align: 'right',
       render: (product) => {
-        const balance = product.balance ?? 0
+        const balance = toNumber(product.balance)
         const balanceClass = balance < 10
           ? 'text-danger-700 font-semibold'
           : balance < 50
             ? 'text-warning-700'
             : 'text-success-700'
-        return <span className={balanceClass}>{balance}</span>
+        return <span className={balanceClass}>{formatKg(balance)}</span>
       },
     },
   ],
@@ -42,8 +43,7 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       type: 'text',
       placeholder: 'Ej: Hueso, sebo o piel',
       required: true,
-      // Campo principal y largo: ocupa la fila completa en el form 2-col de desktop
-      // (deja `balance` solo debajo, y en edición —sin balance— queda full).
+      // Ocupa la fila completa en el form 2-col de desktop.
       fullWidth: true,
       validate: (value) => {
         if (value && typeof value === 'string' && value.length < 3) {
@@ -60,6 +60,8 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
       required: false,
       min: 0,
       defaultValue: 0,
+      // Ocupa la fila completa en desktop (no queda a media columna).
+      fullWidth: true,
       // El backend ignora balance en updates (solo lo modifica la reconciliación
       // de compras/pagos), así que solo se muestra al crear.
       hideOnEdit: true,
@@ -71,34 +73,16 @@ export const productPageConfig: GenericPageConfig<Product, ProductFilters> = {
   },
 
   renderCustomFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
-    <form
-      className="flex flex-col gap-3 md:flex-row md:items-end"
-      onSubmit={(event) => {
-        event.preventDefault()
-        onSearch()
-      }}
-    >
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <label htmlFor="product-name-filter" className="text-sm font-medium text-(--color-text-secondary)">
-          Buscar por nombre
-        </label>
-        <Input
-          id="product-name-filter"
-          type="search"
-          value={filters.name}
-          placeholder="Nombre del producto..."
-          onChange={(event) => setFilters({ ...filters, name: event.target.value })}
-        />
-      </div>
-      <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:justify-end">
-        <Button type="submit" variant="secondary" size="sm" className="w-full sm:w-fit" loading={loading} leftIcon={<Search className="h-4 w-4" />}>
-          Buscar
-        </Button>
-        <Button type="button" variant="secondary" size="sm" className="w-full sm:w-fit" disabled={loading} onClick={onClear}>
-          Limpiar
-        </Button>
-      </div>
-    </form>
+    <NameSearchFilter
+      id="product-name-filter"
+      label="Buscar por nombre"
+      placeholder="Nombre del producto..."
+      value={filters.name}
+      onChange={(name) => setFilters({ ...filters, name })}
+      onSearch={onSearch}
+      onClear={onClear}
+      loading={loading}
+    />
   ),
 
   actions: {

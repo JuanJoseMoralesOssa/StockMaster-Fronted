@@ -10,6 +10,17 @@ export type DocumentDetailFlags = {
   toDelete?: boolean
 }
 
+/**
+ * Coacciona weight_kg a número con 3 decimales (gramos). Las filas que vienen de
+ * la API conservan el string del `numeric(14,3)` de Postgres ("12.000"); el
+ * esquema del backend valida `type: number` (exclusiveMinimum 0), así que enviar
+ * el string da 422. El backend vuelve a redondear server-side (roundWeightKg).
+ */
+function roundKg(value: unknown): number {
+  const n = Number(value)
+  return Number.isFinite(n) ? Math.round(n * 1000) / 1000 : 0
+}
+
 export interface DocumentWithDetailsConfig {
   endpoint: string
   payloadDetailsKey: string
@@ -34,7 +45,7 @@ export class DocumentWithDetailsService<
     }
 
     const payloadDetails = details.map((det) => ({
-      weight_kg: det.weight_kg,
+      weight_kg: roundKg(det.weight_kg),
       productId: det.productId,
       personId: det.personId,
     }))
@@ -60,12 +71,20 @@ export class DocumentWithDetailsService<
     const details = ((parentWithDetails[this.cfg.entityDetailsKey] as TDetail[] | undefined) ?? [])
       .filter((d) => !d.toDelete)
       .map((d) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { toCreate, toUpdate, toDelete, ...cleanDetail } = d
-        if (cleanDetail.id && cleanDetail.id < 0) {
-          delete cleanDetail.id
+        // Enviamos SOLO los campos del contrato (igual que createWithDetails), no el
+        // objeto completo: así no se filtran purchaseId/relaciones ni flags de UI.
+        // weight_kg de filas no editadas llega como string del numeric ("12.000");
+        // roundKg lo coacciona a número con 3 decimales para no romper la validación.
+        const detail: Record<string, unknown> = {
+          weight_kg: roundKg(d.weight_kg),
+          productId: d.productId,
+          personId: d.personId,
         }
-        return cleanDetail
+        // Conserva el id de filas existentes; las nuevas (id < 0) van sin id.
+        if (typeof d.id === 'number' && d.id > 0) {
+          detail.id = d.id
+        }
+        return detail
       })
 
     const payload: Record<string, unknown> = {

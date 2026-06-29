@@ -1,8 +1,8 @@
 import { GenericPageConfig } from '../types/GenericConfig'
 import Person from '../types/Person'
 import { PersonFilters, personService } from '../services/PersonService'
-import { Button, FieldGroup, Input } from '../components/ui'
-import { Building2, Mail, Phone, Search, X } from 'lucide-react'
+import NameSearchFilter from '../pages/components/common/NameSearchFilter'
+import { Building2, Mail, Phone } from 'lucide-react'
 
 export const personPageConfig: GenericPageConfig<Person, PersonFilters> = {
   entityName: 'Proveedor',
@@ -68,46 +68,16 @@ export const personPageConfig: GenericPageConfig<Person, PersonFilters> = {
   updatePartial: true,
 
   renderCustomFilters: ({ filters, setFilters, onSearch, onClear, loading }) => (
-    <form
-      className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
-      onSubmit={(event) => {
-        event.preventDefault()
-        onSearch()
-      }}
-    >
-      <div className="w-full md:max-w-md">
-        <FieldGroup label="Buscar por nombre">
-          <Input
-            value={filters.name}
-            onChange={(event) => setFilters({ ...filters, name: event.target.value })}
-            placeholder="Nombre del proveedor"
-            aria-label="Buscar proveedor por nombre"
-          />
-        </FieldGroup>
-      </div>
-
-      <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:justify-end">
-        <Button
-          type="submit"
-          variant="secondary"
-          className="w-full sm:w-fit"
-          loading={loading}
-          leftIcon={<Search className="h-4 w-4" />}
-        >
-          Buscar
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          className="w-full sm:w-fit"
-          disabled={loading}
-          leftIcon={<X className="h-4 w-4" />}
-          onClick={onClear}
-        >
-          Limpiar
-        </Button>
-      </div>
-    </form>
+    <NameSearchFilter
+      id="supplier-name-filter"
+      label="Buscar por nombre"
+      placeholder="Nombre del proveedor..."
+      value={filters.name}
+      onChange={(name) => setFilters({ ...filters, name })}
+      onSearch={onSearch}
+      onClear={onClear}
+      loading={loading}
+    />
   ),
 
   prepareDataForSubmit: async (data: Partial<Person>) => {

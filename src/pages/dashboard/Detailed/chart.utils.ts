@@ -1,3 +1,5 @@
+import { formatKg } from '../../../utils/format'
+
 export const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
 export const CHART_HEIGHTS = {
@@ -17,15 +19,15 @@ export const CHART_MARGINS = {
   inline: { top: 20, right: 30, left: 20, bottom: 5 },
 } as const
 
+// Paleta semántica unificada para TODOS los charts y pies del dashboard. El
+// color codifica el SIGNIFICADO de la serie (no qué gráfico es), así la leyenda
+// se aprende una sola vez y coincide con la tabla de detalle, donde Pagado ya es
+// verde (success) y Pendiente rojo (danger). Tonos 500 (≈ tokens de estado).
 export const CHART_COLORS = {
-  purchase: '#8884d8',
-  paid: '#82ca9d',
-  pending: '#ff8042',
-  blue: '#60a5fa',
-  green: '#4ade80',
-  red: '#f87171',
-  pieBlue: '#0088FE',
-  pieOrange: '#FF8042',
+  total: '#3b82f6', // Total / Compras / Pedido — azul base (neutro)
+  paid: '#22c55e', // Pagado / Pago — verde (≈ --color-success-500)
+  pending: '#ef4444', // Pendiente — rojo (≈ --color-danger-500)
+  // Rellenos de encabezado para exportación a Excel (ARGB, sin '#').
   headerFill: 'D9E1F2',
   headerFillBlue: '4472C4',
 } as const
@@ -35,8 +37,13 @@ export const formatMonthName = (date: Date): string =>
 
 export const formatChartValue = (value: unknown): string => {
   if (Array.isArray(value)) return value.map(item => String(item)).join(', ')
-  if (typeof value === 'number') return value.toLocaleString()
-  if (typeof value === 'string') return value
+  // Pesos con punto decimal, sin ceros sobrantes. Coacciona strings numéricos
+  // (columnas `numeric` del backend).
+  if (typeof value === 'number') return formatKg(value)
+  if (typeof value === 'string') {
+    const n = Number(value)
+    return Number.isFinite(n) ? formatKg(n) : value
+  }
   return ''
 }
 
@@ -74,7 +81,10 @@ export const BAR_VALUE_LABEL = {
 type CsvCell = string | number | boolean | null | undefined
 
 function serializeCsvCell(value: CsvCell, delimiter: string): string {
-  const rawText = value == null ? '' : String(value)
+  // Los números se exportan con el MISMO formato que en pantalla (formatKg: punto
+  // decimal, máx. 3 decimales). String() crudo filtraría ruido de coma flotante
+  // (0.1+0.2 → "0.30000000000000004") y notación exponencial en valores enormes.
+  const rawText = value == null ? '' : typeof value === 'number' ? formatKg(value) : String(value)
   const text = typeof value === 'string' && /^[=+\-@]/.test(rawText)
     ? `'${rawText}`
     : rawText

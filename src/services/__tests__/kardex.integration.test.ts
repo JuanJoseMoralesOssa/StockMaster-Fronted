@@ -1,7 +1,8 @@
 /**
  * Pruebas de integración – KardexService
  *
- * Cubre todos los métodos del servicio: GET, DELETE, PUT, PATCH
+ * El kardex es de solo lectura (append-only): se prueban las lecturas paginadas
+ * y por id; crear/editar/eliminar y getAll() están bloqueados (lanzan error).
  */
 import MockAdapter from 'axios-mock-adapter'
 import { httpClient } from '../httpClient'
@@ -24,14 +25,8 @@ beforeEach(() => { mock = new MockAdapter(httpClient) })
 afterEach(() => { mock.restore() })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GET
+// GET (lecturas permitidas)
 // ─────────────────────────────────────────────────────────────────────────────
-describe('KardexService – getAll()', () => {
-  it('lanza error: el kardex no expone /all (es append-only y paginado)', async () => {
-    await expect(kardexService.getAll()).rejects.toThrow()
-  })
-})
-
 describe('KardexService – getPaginated()', () => {
   it('retorna kardex paginado con estructura correcta', async () => {
     mock.onGet(new RegExp(`${BASE}/kardexes\\?`)).reply(200, paginated(KARDEXES))
@@ -71,62 +66,15 @@ describe('KardexService – getById()', () => {
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DELETE
+// Escritura bloqueada (append-only): el backend devuelve 405 y no expone /all,
+// así que el servicio bloquea estas operaciones en cliente.
 // ─────────────────────────────────────────────────────────────────────────────
-describe('KardexService – delete()', () => {
-  it('elimina un registro kardex por su id', async () => {
-    mock.onDelete(`${BASE}/kardexes/1`).reply(204)
-
-    await expect(kardexService.delete(1)).resolves.toBeUndefined()
-  })
-
-  it('lanza error si el registro no existe al eliminar (404)', async () => {
-    mock.onDelete(`${BASE}/kardexes/999`).reply(404)
-
-    await expect(kardexService.delete(999)).rejects.toThrow()
-  })
-})
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PUT
-// ─────────────────────────────────────────────────────────────────────────────
-describe('KardexService – update() PUT', () => {
-  it('actualiza un registro kardex y retorna los datos', async () => {
-    const updated = { ...KARDEX_1, input: 150, balance: 150 }
-    mock.onPut(`${BASE}/kardexes/1`).reply(200, updated)
-
-    const result = await kardexService.update(1, { ...updated })
-
-    expect(result.input).toBe(150)
-    expect(result.balance).toBe(150)
-  })
-
-  it('elimina el id del payload antes de enviar el PUT', async () => {
-    mock.onPut(`${BASE}/kardexes/1`).reply(200, KARDEX_1)
-
-    await kardexService.update(1, { ...KARDEX_1 })
-
-    const payload = JSON.parse(mock.history.put[0].data)
-    expect(payload).not.toHaveProperty('id')
-  })
-})
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PATCH
-// ─────────────────────────────────────────────────────────────────────────────
-describe('KardexService – updatePartial() PATCH', () => {
-  it('actualiza parcialmente el balance y output de un kardex', async () => {
-    mock.onPatch(`${BASE}/kardexes/1`).reply(200, { ...KARDEX_1, output: 20, balance: 80 })
-
-    const result = await kardexService.updatePartial(1, { output: 20, balance: 80 })
-
-    expect(result.output).toBe(20)
-    expect(result.balance).toBe(80)
-  })
-
-  it('lanza error en PATCH si el registro no existe (404)', async () => {
-    mock.onPatch(`${BASE}/kardexes/999`).reply(404)
-
-    await expect(kardexService.updatePartial(999, { balance: 0 })).rejects.toThrow()
+describe('KardexService – escritura bloqueada (append-only)', () => {
+  it('getAll(), create(), update(), updatePartial() y delete() lanzan error', async () => {
+    await expect(kardexService.getAll()).rejects.toThrow()
+    await expect(kardexService.create()).rejects.toThrow()
+    await expect(kardexService.update()).rejects.toThrow()
+    await expect(kardexService.updatePartial()).rejects.toThrow()
+    await expect(kardexService.delete()).rejects.toThrow()
   })
 })

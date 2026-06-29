@@ -1,7 +1,8 @@
-import { Boxes, PackageX, AlertTriangle, ArrowRight } from 'lucide-react'
+import { Scale, CheckCircle2, Clock, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { InventorySummaryResponse } from '../../../types/Analytics'
 import { Skeleton } from '../../../components/ui'
+import { formatKg } from '../../../utils/format'
 
 interface InventoryKpisProps {
   data: InventorySummaryResponse | null
@@ -31,8 +32,10 @@ function InventoryKpisSkeleton() {
 }
 
 /**
- * Current inventory snapshot cards: total balance, low-balance and out-of-balance
- * counts. Independent of the dashboard date filters.
+ * Snapshot del pendiente (modelo de flujo, NO retail): el `balance` es lo
+ * comprado que aún no se entrega/paga, así que un balance BAJO es bueno.
+ * "Al día" = productos sin pendiente; "Con pendiente" = los que falta mover.
+ * Independiente de los filtros de fecha del dashboard.
  */
 function InventoryKpis({ data, loading }: Readonly<InventoryKpisProps>) {
   if (loading && !data) return <InventoryKpisSkeleton />
@@ -40,33 +43,33 @@ function InventoryKpis({ data, loading }: Readonly<InventoryKpisProps>) {
 
   const cards = [
     {
-      label: 'Balance Total',
-      value: `${data.totalBalance.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`,
-      hint: `${data.inBalanceCount} de ${data.productCount} productos con existencias`,
-      icon: <Boxes className="w-4 h-4" />,
+      label: 'Balance pendiente',
+      value: `${formatKg(data.totalBalance)} kg`,
+      hint: `${data.inBalanceCount} de ${data.productCount} con pendiente`,
+      icon: <Scale className="w-4 h-4" />,
       tone: 'neutral' as const,
     },
     {
-      label: 'Bajo Balance',
-      value: String(data.lowBalanceCount),
-      hint: data.lowBalanceThreshold > 0 ? `≤ ${data.lowBalanceThreshold} kg` : 'umbral no definido',
-      icon: <AlertTriangle className="w-4 h-4" />,
-      tone: data.lowBalanceCount > 0 ? ('warn' as const) : ('neutral' as const),
+      label: 'Al día',
+      value: String(data.outOfBalanceCount),
+      hint: 'productos sin pendiente',
+      icon: <CheckCircle2 className="w-4 h-4" />,
+      tone: 'good' as const,
     },
     {
-      label: 'Sin Balance',
-      value: String(data.outOfBalanceCount),
-      hint: 'sin existencias',
-      icon: <PackageX className="w-4 h-4" />,
-      tone: data.outOfBalanceCount > 0 ? ('danger' as const) : ('neutral' as const),
-      link: data.outOfBalanceCount > 0 ? '/productos' : undefined,
+      label: 'Con pendiente',
+      value: String(data.inBalanceCount),
+      hint: 'por entregar / pagar',
+      icon: <Clock className="w-4 h-4" />,
+      tone: data.inBalanceCount > 0 ? ('warn' as const) : ('good' as const),
+      link: data.inBalanceCount > 0 ? '/productos' : undefined,
     },
   ]
 
-  const toneText: Record<'neutral' | 'warn' | 'danger', string> = {
+  const toneText: Record<'neutral' | 'good' | 'warn', string> = {
     neutral: 'text-(--color-text-primary)',
+    good: 'text-success-700',
     warn: 'text-warning-700',
-    danger: 'text-danger-700',
   }
 
   return (
@@ -92,7 +95,7 @@ function InventoryKpis({ data, loading }: Readonly<InventoryKpisProps>) {
             {'link' in card && card.link && (
               <Link
                 to={card.link}
-                className="flex items-center gap-0.5 text-xs text-danger-700 hover:underline font-medium"
+                className="flex items-center gap-0.5 text-xs text-(--color-text-link) hover:underline font-medium"
               >
                 Ver <ArrowRight className="w-3 h-3" />
               </Link>

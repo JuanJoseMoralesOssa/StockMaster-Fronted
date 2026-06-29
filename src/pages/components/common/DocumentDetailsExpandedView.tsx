@@ -1,6 +1,7 @@
 import Person from '../../../types/Person'
 import Product from '../../../types/Product'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
+import { formatKg } from '../../../utils/format'
 
 interface DetailLike {
   id?: number
@@ -54,7 +55,7 @@ export default function DocumentDetailsExpandedView<TDetail extends DetailLike>(
                 <tr key={detail.id ?? `detail-${index}`} className='bg-(--color-bg-surface) transition-colors hover:bg-(--color-bg-subtle)'>
                   <td className='px-4 py-3 text-(--color-text-primary)'>{productName(detail)}</td>
                   <td className='px-4 py-3 text-(--color-text-primary)'>{supplierName(detail)}</td>
-                  <td className='px-4 py-3 text-right tabular-nums text-(--color-text-primary)'>{detail.weight_kg ?? 0} kg</td>
+                  <td className='px-4 py-3 text-right tabular-nums text-(--color-text-primary)'>{formatKg(detail.weight_kg ?? 0)} kg</td>
                 </tr>
               ))}
             </tbody>
@@ -72,7 +73,7 @@ export default function DocumentDetailsExpandedView<TDetail extends DetailLike>(
                 <dt className='text-(--color-text-secondary)'>Proveedor</dt>
                 <dd className='text-right text-(--color-text-primary)'>{supplierName(detail)}</dd>
                 <dt className='text-(--color-text-secondary)'>Peso</dt>
-                <dd className='text-right tabular-nums text-(--color-text-primary)'>{detail.weight_kg ?? 0} kg</dd>
+                <dd className='text-right tabular-nums text-(--color-text-primary)'>{formatKg(detail.weight_kg ?? 0)} kg</dd>
               </dl>
             </li>
           ))}

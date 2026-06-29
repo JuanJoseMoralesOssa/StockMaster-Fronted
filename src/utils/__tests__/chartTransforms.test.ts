@@ -14,17 +14,18 @@ import {
 const PURCHASE = 'Compra'
 const PAYMENT = 'Pago'
 
-// Helpers
-const purchase = (date: string, entityId: number, kg: number) => ({
+// Helpers. kg acepta string para cubrir el caso real: las columnas numeric de
+// Postgres se serializan como texto ("100"), y los transforms deben coaccionarlas.
+const purchase = (date: string, entityId: number, kg: number | string) => ({
   date,
   type: PURCHASE,
-  weight_kg: kg,
+  weight_kg: kg as number,
   entityId,
 })
-const payment = (date: string, entityId: number, kg: number) => ({
+const payment = (date: string, entityId: number, kg: number | string) => ({
   date,
   type: PAYMENT,
-  weight_kg: kg,
+  weight_kg: kg as number,
   entityId,
 })
 
@@ -60,6 +61,17 @@ describe('aggregateByMonthAndEntity', () => {
 
   it('returns empty object for empty input', () => {
     expect(aggregateByMonthAndEntity([], () => 'x')).toEqual({})
+  })
+
+  it('coacciona weight_kg string (numeric de Postgres) y suma como número, no concatena', () => {
+    const out = aggregateByMonthAndEntity(
+      [purchase('2024-01-15', 1, '100'), payment('2024-01-20', 1, '60')],
+      (id) => `E${id}`,
+    )
+    const jan = Object.values(out).find((d) => d.name.startsWith('Ene'))
+    expect(jan?.Total).toBe(100) // no "10060"
+    expect(jan?.Pagado).toBe(60)
+    expect(jan?.Pendiente).toBe(40)
   })
 })
 

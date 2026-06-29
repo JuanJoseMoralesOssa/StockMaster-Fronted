@@ -19,6 +19,7 @@ import { useApiRequest } from "../../../hooks/useApiRequest";
 import { useToast } from "../../../hooks/useToast";
 import { ExtractionResult } from "../../../types/FormExtraction";
 import { todayBogota, toDateInputValue } from "../../../utils/date";
+import { formatKg } from "../../../utils/format";
 import { extractErrorInfo } from "../../../utils/error";
 import {
   analyzeScanImageCrop,
@@ -700,7 +701,7 @@ export default function ScanPurchase() {
                 </div>
                 <p className="mt-1 text-sm text-(--color-text-secondary)">
                   {hasDetectedDetails
-                    ? `${visibleDetails.length} producto${visibleDetails.length === 1 ? "" : "s"} · ${detectedWeightKg.toFixed(3)} kg`
+                    ? `${visibleDetails.length} producto${visibleDetails.length === 1 ? "" : "s"} · ${formatKg(detectedWeightKg)} kg`
                     : "El modelo leyó la imagen, pero no encontró pesos para crear una compra."}
                 </p>
               </div>
@@ -712,7 +713,10 @@ export default function ScanPurchase() {
             <div className="mt-3 grid gap-2 text-xs text-(--color-text-secondary) sm:grid-cols-3">
               <span>Fecha: {result.date.value ?? "Sin detectar"}</span>
               <span>
-                Total formulario: {result.librasTotal.value ?? "Sin detectar"}
+                Total formulario:{" "}
+                {result.librasTotal.value != null
+                  ? `${formatKg(result.librasTotal.value)} lb`
+                  : "Sin detectar"}
               </span>
               <span>
                 Proveedor: {result.supplier.rawName || "Sin detectar"}

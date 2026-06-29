@@ -1,5 +1,6 @@
 // Adapters to convert analytics data to base component formats
 import { SupplierAnalytics, ProductAnalytics } from "../../../../../types/Analytics";
+import { formatKg } from "@/utils/format";
 
 // Single Responsibility: Convert supplier analytics to ranking items
 export const supplierToRankingItems = (suppliers: SupplierAnalytics[]) => {
@@ -7,6 +8,8 @@ export const supplierToRankingItems = (suppliers: SupplierAnalytics[]) => {
     id: supplier.personId,
     name: supplier.personName,
     primaryValue: supplier.totalWeight,
+    purchaseValue: supplier.purchaseWeight,
+    paymentValue: supplier.paymentWeight,
     secondaryValue: supplier.transactionCount,
     primaryLabel: "kg",
     secondaryLabel: "transacciones"
@@ -19,20 +22,17 @@ export const productToRankingItems = (products: ProductAnalytics[]) => {
     id: product.productId,
     name: product.productName,
     primaryValue: product.totalWeight,
+    purchaseValue: product.purchaseWeight,
+    paymentValue: product.paymentWeight,
     secondaryValue: product.transactionCount,
     primaryLabel: "kg",
     secondaryLabel: "transacciones"
   }));
 };
 
-// Single Responsibility: Format weight values
+// Single Responsibility: Format weight values (punto decimal, sin ceros sobrantes)
 export const formatWeight = (value: number): string => {
-  return value.toFixed(2);
-};
-
-// Single Responsibility: Format percentage values
-export const formatPercentage = (value: number): string => {
-  return `${value.toFixed(1)}%`;
+  return formatKg(value);
 };
 
 // Single Responsibility: Calculate insights from analytics data

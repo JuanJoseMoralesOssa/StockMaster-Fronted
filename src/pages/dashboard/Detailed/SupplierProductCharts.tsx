@@ -16,6 +16,7 @@ import {
 } from '../../../utils/chartTransforms'
 import { Button } from '../../../components/ui'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
+import { formatKg } from '../../../utils/format'
 
 const TH = 'px-3 sm:px-6 py-3 text-left text-xs font-medium text-(--color-text-secondary) uppercase tracking-wider'
 const TH_NUMERIC = 'px-3 sm:px-6 py-3 text-right text-xs font-medium text-(--color-text-secondary) uppercase tracking-wider tabular-nums'
@@ -108,8 +109,8 @@ function SupplierProductCharts({
 
   const pieTotal = totalPayments + pendingAmount
   const pieData = [
-    { name: `Total Pagado (${formatChartPercent(pieTotal ? totalPayments / pieTotal : 0)})`, value: totalPayments, fill: CHART_COLORS.green },
-    { name: `Total Pendiente (${formatChartPercent(pieTotal ? pendingAmount / pieTotal : 0)})`, value: pendingAmount, fill: CHART_COLORS.red },
+    { name: `Total Pagado (${formatChartPercent(pieTotal ? totalPayments / pieTotal : 0)})`, value: totalPayments, fill: CHART_COLORS.paid },
+    { name: `Total Pendiente (${formatChartPercent(pieTotal ? pendingAmount / pieTotal : 0)})`, value: pendingAmount, fill: CHART_COLORS.pending },
   ]
 
   return (
@@ -118,15 +119,15 @@ function SupplierProductCharts({
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6 justify-center items-center">
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pedido</h3>
-          <p className="text-xl sm:text-2xl font-bold text-(--color-text-secondary)">{totalPurchases.toLocaleString()}</p>
+          <p className="text-xl sm:text-2xl font-bold text-(--color-text-secondary)">{formatKg(totalPurchases)}</p>
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pagado</h3>
-          <p className="text-xl sm:text-2xl font-bold text-success-700">{totalPayments.toLocaleString()}</p>
+          <p className="text-xl sm:text-2xl font-bold text-success-700">{formatKg(totalPayments)}</p>
         </div>
         <div className="bg-(--color-bg-surface) p-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col justify-between items-center">
           <h3 className="text-sm font-medium text-(--color-text-secondary)">Total Pendiente</h3>
-          <p className="text-xl sm:text-2xl font-bold text-danger-700">{pendingAmount.toLocaleString()}</p>
+          <p className="text-xl sm:text-2xl font-bold text-danger-700">{formatKg(pendingAmount)}</p>
         </div>
         <div className='bg-(--color-bg-surface) py-3 px-4 rounded-lg border border-(--color-border) shadow-xs flex flex-col gap-1'>
           {(selectedFilter === 'all' || selectedFilter === 'withDebt') &&
@@ -161,13 +162,13 @@ function SupplierProductCharts({
               <YAxis fontSize={12} />
               <Tooltip formatter={(value) => formatChartValue(value)} />
               <Legend />
-              <Bar dataKey="Total" fill={CHART_COLORS.blue}>
+              <Bar dataKey="Total" fill={CHART_COLORS.total}>
                 <LabelList {...BAR_VALUE_LABEL} />
               </Bar>
-              <Bar dataKey="Pagado" fill={CHART_COLORS.green}>
+              <Bar dataKey="Pagado" fill={CHART_COLORS.paid}>
                 <LabelList {...BAR_VALUE_LABEL} />
               </Bar>
-              <Bar dataKey="Pendiente" fill={CHART_COLORS.red}>
+              <Bar dataKey="Pendiente" fill={CHART_COLORS.pending}>
                 <LabelList {...BAR_VALUE_LABEL} />
               </Bar>
             </BarChart>
@@ -221,9 +222,9 @@ function SupplierProductCharts({
                   <YAxis fontSize={10} />
                   <Tooltip formatter={(value) => formatChartValue(value)} />
                   <Legend />
-                  <Bar dataKey="Compra" fill={CHART_COLORS.blue} />
-                  <Bar dataKey="Pago" fill={CHART_COLORS.green} />
-                  <Bar dataKey="Pendiente" fill={CHART_COLORS.red} />
+                  <Bar dataKey="Compra" fill={CHART_COLORS.total} />
+                  <Bar dataKey="Pago" fill={CHART_COLORS.paid} />
+                  <Bar dataKey="Pendiente" fill={CHART_COLORS.pending} />
                 </BarChart>
               </ResponsiveContainer>
               </MobileChartScroll>
@@ -266,9 +267,9 @@ function SupplierProductCharts({
                 <tr key={day.date} className="hover:bg-(--color-bg-subtle)">
                   <td className={`${TD} font-medium text-(--color-text-primary)`}>{day.date}</td>
                   <td className={`${TD} text-(--color-text-primary)`}>{day.day}</td>
-                  <td className={`${TD_NUMERIC} text-(--color-text-primary)`}>{day.compra.toLocaleString()}</td>
-                  <td className={`${TD_NUMERIC} text-success-700`}>{day.pago.toLocaleString()}</td>
-                  <td className={`${TD_NUMERIC} text-danger-700`}>{day.pendiente.toLocaleString()}</td>
+                  <td className={`${TD_NUMERIC} text-(--color-text-primary)`}>{formatKg(day.compra)}</td>
+                  <td className={`${TD_NUMERIC} text-success-700`}>{formatKg(day.pago)}</td>
+                  <td className={`${TD_NUMERIC} text-danger-700`}>{formatKg(day.pendiente)}</td>
                   <td className={TD}>
                     {day.pendiente === 0 && day.compra > 0 ? (
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-50 text-success-700">
@@ -290,9 +291,9 @@ function SupplierProductCharts({
               <tr className="bg-(--color-bg-subtle) font-bold lg:sticky lg:bottom-0 lg:z-10">
                 <td className={`${TD} text-(--color-text-primary)`}>TOTAL</td>
                 <td className={`${TD} text-(--color-text-primary)`}>-</td>
-                <td className={`${TD_NUMERIC} text-(--color-text-primary)`}>{totalPurchases.toLocaleString()}</td>
-                <td className={`${TD_NUMERIC} text-success-700`}>{totalPayments.toLocaleString()}</td>
-                <td className={`${TD_NUMERIC} text-danger-700`}>{pendingAmount.toLocaleString()}</td>
+                <td className={`${TD_NUMERIC} text-(--color-text-primary)`}>{formatKg(totalPurchases)}</td>
+                <td className={`${TD_NUMERIC} text-success-700`}>{formatKg(totalPayments)}</td>
+                <td className={`${TD_NUMERIC} text-danger-700`}>{formatKg(pendingAmount)}</td>
                 <td className={TD}>
                   {paymentStatus === 'Completo' ? (
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-50 text-success-700">

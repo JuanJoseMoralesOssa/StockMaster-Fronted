@@ -1,6 +1,7 @@
 import { PAYMENT, PURCHASE } from '../constants/cts'
 import { monthNames } from '../pages/dashboard/Detailed/chart.utils'
 import { getCalendarDateParts, toCalendarDate } from './date'
+import { toNumber } from './format'
 
 export interface FinancialTotals {
   Total: number
@@ -84,8 +85,9 @@ export function aggregateByMonthAndEntity(
       }
     }
 
-    if (item.type === PURCHASE) acc[key].Total += item.weight_kg
-    else if (item.type === PAYMENT) acc[key].Pagado += item.weight_kg
+    const weight = toNumber(item.weight_kg)
+    if (item.type === PURCHASE) acc[key].Total += weight
+    else if (item.type === PAYMENT) acc[key].Pagado += weight
 
     acc[key].Pendiente = acc[key].Total - acc[key].Pagado
     return acc
@@ -144,8 +146,9 @@ export function groupDailyByEntityAndMonth(
       daily[item.entityId][monthName].push(entry)
     }
 
-    if (item.type === PURCHASE) entry.Total += item.weight_kg
-    else if (item.type === PAYMENT) entry.Pagado += item.weight_kg
+    const weight = toNumber(item.weight_kg)
+    if (item.type === PURCHASE) entry.Total += weight
+    else if (item.type === PAYMENT) entry.Pagado += weight
     entry.Pendiente = entry.Total - entry.Pagado
   })
 
@@ -208,8 +211,9 @@ export function processDailyEntries(results: TransactionRecord[]): DailyEntry[] 
     }
 
     const entry = dailyMap.get(dateKey)!
-    if (result.type === PURCHASE) entry.compra += result.weight_kg
-    else entry.pago += result.weight_kg
+    const weight = toNumber(result.weight_kg)
+    if (result.type === PURCHASE) entry.compra += weight
+    else entry.pago += weight
     entry.pendiente = entry.compra - entry.pago
   })
 
@@ -228,8 +232,9 @@ export function processMonthlyEntries(results: TransactionRecord[]): MonthlyEntr
     }
 
     const entry = monthlyMap.get(key)!
-    if (result.type === PURCHASE) entry.total += result.weight_kg
-    else entry.pagado += result.weight_kg
+    const weight = toNumber(result.weight_kg)
+    if (result.type === PURCHASE) entry.total += weight
+    else entry.pagado += weight
     entry.pendiente = entry.total - entry.pagado
   })
 

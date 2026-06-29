@@ -1,14 +1,24 @@
 export interface SupplierAnalytics {
   personId: number
   personName: string
+  /** Compras + pagos combinados (para ordenar / compatibilidad). */
   totalWeight: number
+  /** Peso comprado a este proveedor (entradas / "Compra"). */
+  purchaseWeight: number
+  /** Peso pagado a este proveedor (salidas / "Pago"). */
+  paymentWeight: number
   transactionCount: number
 }
 
 export interface ProductAnalytics {
   productId: number
   productName: string
+  /** Compras + pagos combinados (para ordenar / compatibilidad). */
   totalWeight: number
+  /** Peso comprado de este producto (entradas / "Compra"). */
+  purchaseWeight: number
+  /** Peso pagado de este producto (salidas / "Pago"). */
+  paymentWeight: number
   transactionCount: number
 }
 
@@ -63,4 +73,32 @@ export interface InventorySummaryResponse {
   lowBalanceCount: number
   lowBalanceThreshold: number
   lowBalanceProducts: LowBalanceProduct[]
+}
+
+export type PendingTrendInterval = 'day' | 'week' | 'month'
+
+/** Un punto de la serie de pendiente en el tiempo (saldo absoluto). */
+export interface PendingTrendPoint {
+  period: string
+  purchased: number
+  paid: number
+  pending: number
+}
+
+/** Pendiente (comprado − pagado) por proveedor, en kg. */
+export interface PendingBySupplier {
+  personId: number
+  personName: string
+  purchased: number
+  paid: number
+  pending: number
+}
+
+/** Pendiente actual por producto + desde cuándo lo arrastra. */
+export interface PendingByProduct {
+  productId: number
+  productName: string
+  balance: number
+  /** Fecha ISO desde la que el balance está pendiente; null si se desconoce. */
+  pendingSince: string | null
 }

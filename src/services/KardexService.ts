@@ -3,6 +3,9 @@ import { PaginatedResponse } from '../types/PaginatedResponse'
 import { ApiService } from './ApiService'
 import { httpClient } from './httpClient'
 
+const KARDEX_READ_ONLY =
+  'El kardex es de solo lectura (append-only). Usa getAllPaginated()/getAllPaginatedFiltered(); para corregir inventario usa el ajuste (POST /products/{id}/adjustment).'
+
 export class KardexService extends ApiService<Kardex> {
   constructor() {
     super('kardexes', 'kardex')
@@ -27,13 +30,24 @@ export class KardexService extends ApiService<Kardex> {
     }
   }
 
-  // El kardex no expone `/kardexes/all` (es append-only y siempre paginado).
-  // Sobrescribimos el getAll() heredado para que un uso accidental falle claro
-  // en lugar de pegarle a un 404. Usa getAllPaginated()/getAllPaginatedFiltered().
+  // El kardex es un libro append-only generado por el sistema: el backend bloquea
+  // crear/editar/eliminar (405) y no expone `/kardexes/all`. Bloqueamos las
+  // operaciones de escritura y `getAll()` heredadas de ApiService para que un uso
+  // accidental falle claro en vez de pegarle a un endpoint inexistente/bloqueado.
   override async getAll(): Promise<Kardex[]> {
-    throw new Error(
-      'Kardex no expone /all; usa getAllPaginated() o getAllPaginatedFiltered()',
-    )
+    throw new Error(KARDEX_READ_ONLY)
+  }
+  override async create(): Promise<Kardex> {
+    throw new Error(KARDEX_READ_ONLY)
+  }
+  override async update(): Promise<Kardex> {
+    throw new Error(KARDEX_READ_ONLY)
+  }
+  override async updatePartial(): Promise<Kardex> {
+    throw new Error(KARDEX_READ_ONLY)
+  }
+  override async delete(): Promise<void> {
+    throw new Error(KARDEX_READ_ONLY)
   }
 
   async getAllPaginatedFiltered(

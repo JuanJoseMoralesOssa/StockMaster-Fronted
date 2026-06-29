@@ -4,6 +4,7 @@ import Autocomplete from '@/pages/components/common/Autocomplete'
 import { useProductStore } from '@/stores'
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { productService, BalanceAdjustmentInput } from '@/services/ProductService'
+import { formatKg } from '@/utils/format'
 import type Kardex from '@/types/Kardex'
 
 interface KardexAdjustmentFormProps {
@@ -136,7 +137,7 @@ export default function KardexAdjustmentForm({
         />
         {selectedProduct && (
           <p className="text-sm text-(--color-text-secondary)">
-            Balance actual: <span className="font-semibold text-(--color-text-primary)">{currentBalance}</span>
+            Balance actual: <span className="font-semibold text-(--color-text-primary)">{formatKg(currentBalance)}</span>
           </p>
         )}
       </div>
@@ -188,7 +189,7 @@ export default function KardexAdjustmentForm({
           <p className="text-sm text-(--color-text-secondary)">
             Balance resultante:{' '}
             <span className="font-semibold text-(--view-accent-text,var(--color-text-link))">
-              {resultingBalance}
+              {formatKg(resultingBalance)}
             </span>
           </p>
         )}

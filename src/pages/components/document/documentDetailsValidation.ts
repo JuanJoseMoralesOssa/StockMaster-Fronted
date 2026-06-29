@@ -9,6 +9,11 @@ export type DetailFieldErrors = {
 export type DetailFieldKey = keyof DetailFieldErrors
 export type DetailValidationErrors = Record<string, DetailFieldErrors>
 
+// La columna es numeric(14,3) (11 dígitos enteros). Tope de negocio holgado que
+// además bloquea pegados accidentales (códigos de barras, teléfonos) antes de que
+// el backend responda un 422 críptico por overflow.
+export const MAX_WEIGHT_KG = 99_999_999
+
 const FIELD_LABELS: Record<DetailFieldKey, string> = {
   product: 'producto',
   supplier: 'proveedor',
@@ -24,7 +29,11 @@ function hasPositiveId(value: unknown) {
 }
 
 function hasPositiveWeight(value: unknown) {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0
+  // weight_kg de detalles existentes llega como STRING (columnas numeric de
+  // Postgres); solo los detalles que el usuario editó traen number. Coaccionamos
+  // igual que hasPositiveId para no marcar en rojo un kg válido sin tocar.
+  const n = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(n) && n > 0 && n <= MAX_WEIGHT_KG
 }
 
 export function validateDocumentDetails<TDetail extends BaseDocumentDetail>(details: TDetail[]) {

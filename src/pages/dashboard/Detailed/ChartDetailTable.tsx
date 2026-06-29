@@ -1,6 +1,7 @@
 import { FileSpreadsheet } from 'lucide-react'
 import { Button } from '../../../components/ui'
 import PaymentStatusBadge from './PaymentStatusBadge'
+import { formatKg } from '../../../utils/format'
 
 export interface ChartMonthlyRow {
   name: string
@@ -69,9 +70,9 @@ export default function ChartDetailTable({
             {rows.map((month) => (
               <tr key={month.name} className="hover:bg-(--color-bg-subtle) transition-colors">
                 <td className={`${TD} font-medium`}>{month.name}</td>
-                <td className={TD_NUMERIC}>{month.Total.toLocaleString()}</td>
-                <td className={`${TD_NUMERIC} text-success-700`}>{month.Pagado.toLocaleString()}</td>
-                <td className={`${TD_NUMERIC} text-danger-700`}>{month.Pendiente.toLocaleString()}</td>
+                <td className={TD_NUMERIC}>{formatKg(month.Total)}</td>
+                <td className={`${TD_NUMERIC} text-success-700`}>{formatKg(month.Pagado)}</td>
+                <td className={`${TD_NUMERIC} text-danger-700`}>{formatKg(month.Pendiente)}</td>
                 <td className={TD}>
                   <PaymentStatusBadge total={month.Total} pagado={month.Pagado} pendiente={month.Pendiente} />
                 </td>
@@ -79,9 +80,9 @@ export default function ChartDetailTable({
             ))}
             <tr className="bg-(--color-bg-subtle) font-semibold lg:sticky lg:bottom-0 lg:z-10">
               <td className={TD}>TOTAL</td>
-              <td className={TD_NUMERIC}>{totals.Total.toLocaleString()}</td>
-              <td className={`${TD_NUMERIC} text-success-700`}>{totals.Pagado.toLocaleString()}</td>
-              <td className={`${TD_NUMERIC} text-danger-700`}>{totals.Pendiente.toLocaleString()}</td>
+              <td className={TD_NUMERIC}>{formatKg(totals.Total)}</td>
+              <td className={`${TD_NUMERIC} text-success-700`}>{formatKg(totals.Pagado)}</td>
+              <td className={`${TD_NUMERIC} text-danger-700`}>{formatKg(totals.Pendiente)}</td>
               <td className={TD}>
                 <PaymentStatusBadge total={totals.Total} pagado={totals.Pagado} pendiente={totals.Pendiente} />
               </td>

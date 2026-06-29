@@ -78,6 +78,53 @@ describe('DocumentWithDetailsService Unit Tests', () => {
     expect(response.version).toBe(4)
   })
 
+  it('updateWithDetails coerces string weight_kg to a 3-decimal number and sends only contract fields', async () => {
+    const payload: TestDocument = {
+      id: 9,
+      version: 3,
+      date: '2026-03-05',
+      test_details: [
+        // Fila no editada: weight_kg llega como el STRING del numeric de Postgres.
+        { id: 10, weight_kg: '8.000' as unknown as number, productId: 1, personId: 5, toUpdate: true },
+        { id: 12, weight_kg: 1.23456, productId: 2, personId: 5 },
+      ],
+    }
+    // Un FK del padre (purchaseId) NO debe llegar al backend.
+    ;(payload.test_details![0] as Record<string, unknown>).purchaseId = 9
+
+    mock.onPut(`${service.buildUrl()}/with-details`).reply((config) => {
+      const data = JSON.parse(config.data) as { testDetails: Array<Record<string, unknown>> }
+
+      const updated = data.testDetails.find((d) => d.productId === 1)!
+      expect(typeof updated.weight_kg).toBe('number')
+      expect(updated.weight_kg).toBe(8)
+      expect(updated.id).toBe(10)
+      expect(updated.purchaseId).toBeUndefined() // sin fuga
+      expect(updated.toUpdate).toBeUndefined()
+
+      const rounded = data.testDetails.find((d) => d.productId === 2)!
+      expect(rounded.weight_kg).toBe(1.235) // redondeo a 3 decimales
+
+      return [200, { ...payload, version: 4, test_details: data.testDetails }]
+    })
+
+    await service.updateWithDetails(payload)
+  })
+
+  it('createWithDetails coerces string weight_kg to a number', async () => {
+    mock.onPost(`${service.buildUrl()}/with-details`).reply((config) => {
+      const data = JSON.parse(config.data) as { testDetails: Array<Record<string, unknown>> }
+      expect(typeof data.testDetails[0].weight_kg).toBe('number')
+      expect(data.testDetails[0].weight_kg).toBe(12)
+      return [200, {}]
+    })
+
+    await service.createWithDetails({
+      date: '2026-03-01',
+      test_details: [{ weight_kg: '12.000' as unknown as number, productId: 1, personId: 2 }],
+    })
+  })
+
   it('updateWithDetails should correctly surface 409 Conflict application errors', async () => {
     mock.onPut(`${service.buildUrl()}/with-details`).reply(409, {
       error: {

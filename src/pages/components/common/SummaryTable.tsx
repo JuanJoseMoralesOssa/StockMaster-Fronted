@@ -1,4 +1,5 @@
 import { ProductSummary } from '../../../types/ProductSummary'
+import { formatKg } from '../../../utils/format'
 
 interface SummaryTableProps {
     data: ProductSummary[]
@@ -32,23 +33,14 @@ const SummaryTable: React.FC<SummaryTableProps> = ({
                         <tr className='bg-(--color-bg-surface) hover:bg-(--color-bg-subtle) transition-colors' key={item.id}>
                             <td className='px-4 py-3 whitespace-normal wrap-break-word text-(--color-text-primary)'>{item.name}</td>
                             <td className='px-4 py-3 whitespace-nowrap text-right text-(--color-text-primary)'>
-                                {(item[valueField] as number).toLocaleString(
-                                    'es-ES',
-                                    {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                    }
-                                )}
+                                {formatKg(item[valueField] as number)}
                             </td>
                         </tr>
                     ))}
                     <tr className='bg-(--color-bg-subtle) font-semibold border-t border-(--color-border)'>
                         <td className='px-4 py-3 whitespace-nowrap text-(--color-text-primary)'>Total</td>
                         <td className='px-4 py-3 whitespace-nowrap text-right text-(--color-text-primary)'>
-                            {total.toLocaleString('es-ES', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            })}
+                            {formatKg(total)}
                         </td>
                     </tr>
                 </tbody>
