@@ -1,7 +1,11 @@
 // @vitest-environment jsdom
 import MockAdapter from "axios-mock-adapter";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { formExtractionService } from "../FormExtractionService";
+import {
+  EXTRACTION_BACKEND_BUDGET_MS,
+  EXTRACTION_HTTP_TIMEOUT_MS,
+  formExtractionService,
+} from "../FormExtractionService";
 import { httpClient } from "../httpClient";
 import { optimizeScanImageWithMetadata } from "../scanImagePreprocessor";
 
@@ -127,5 +131,68 @@ describe("FormExtractionService", () => {
     expect(optimizeScanImageWithMetadata).toHaveBeenCalledWith(original, {
       crop,
     });
+  });
+
+  it("passes the abort signal through to the HTTP request", async () => {
+    const original = new File(["original"], "receipt.png", {
+      type: "image/png",
+    });
+    const optimized = new File(["optimized"], "receipt.jpg", {
+      type: "image/jpeg",
+    });
+    vi.mocked(optimizeScanImageWithMetadata).mockResolvedValue({
+      file: optimized,
+      metadata: {
+        original: { width: 100, height: 80, sizeBytes: 8, type: "image/png" },
+        cropRect: { x: 0, y: 0, width: 100, height: 80 },
+        output: {
+          width: 100,
+          height: 80,
+          sizeBytes: 9,
+          type: "image/jpeg",
+          quality: 0.82,
+        },
+      },
+    });
+
+    const controller = new AbortController();
+    mock.onPost(/purchases\/extract$/).reply((config) => {
+      expect(config.signal).toBe(controller.signal);
+      return [
+        200,
+        {
+          date: { value: null, confidence: 0, needsReview: true },
+          librasTotal: { value: null, confidence: 0 },
+          supplier: {
+            rawName: null,
+            confidence: 0,
+            needsReview: true,
+            candidates: [],
+          },
+          details: [],
+          totalWeightCheck: { passed: false, formTotalLb: null, sumLb: 0 },
+          needsReview: true,
+          reviewReasons: [],
+        },
+      ];
+    });
+
+    await formExtractionService.extractFromImage(original, {
+      signal: controller.signal,
+    });
+
+    // The signal must not leak into the image-optimizer options.
+    expect(optimizeScanImageWithMetadata).toHaveBeenCalledWith(original, {});
+  });
+});
+
+// El backend prueba varios modelos de visión en cadena y Gemini le factura cada
+// intento. Cortar antes de que agote su presupuesto paga la cadena entera y tira
+// el resultado: la relación entre los dos timeouts es la que evita ese gasto.
+describe("presupuesto de extracción", () => {
+  it("espera más de lo que el backend tarda en agotar su cadena de modelos", () => {
+    expect(EXTRACTION_HTTP_TIMEOUT_MS).toBeGreaterThan(
+      EXTRACTION_BACKEND_BUDGET_MS,
+    );
   });
 });

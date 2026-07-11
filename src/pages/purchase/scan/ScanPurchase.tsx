@@ -14,7 +14,10 @@ import DocumentDetailsTable from "../../components/common/DocumentDetailsTable";
 import PurchaseDetails from "../../../types/PurchaseDetails";
 import Purchase from "../../../types/Purchase";
 import { purchaseService } from "../../../services/PurchaseService";
-import { formExtractionService } from "../../../services/FormExtractionService";
+import {
+  EXTRACTION_HTTP_TIMEOUT_MS,
+  formExtractionService,
+} from "../../../services/FormExtractionService";
 import { useApiRequest } from "../../../hooks/useApiRequest";
 import { useToast } from "../../../hooks/useToast";
 import { ExtractionResult } from "../../../types/FormExtraction";
@@ -30,7 +33,13 @@ import {
 } from "../../../services/scanImagePreprocessor";
 
 type Step = "upload" | "processing" | "review";
-const EXTRACTION_UI_TIMEOUT_MS = 28000;
+/**
+ * Último escalón de la escalera: la UI se rinde solo después del timeout HTTP,
+ * que a su vez espera más que el presupuesto del backend. Si la UI cortara
+ * primero abortaríamos —y pagaríamos— una cadena de modelos que aún podía
+ * responder (ver FormExtractionService).
+ */
+export const EXTRACTION_UI_TIMEOUT_MS = EXTRACTION_HTTP_TIMEOUT_MS + 2000;
 const MIN_PROCESSING_VISIBLE_MS = 700;
 const EMPTY_CROP: ScanImageCrop = { left: 0, top: 0, right: 0, bottom: 0 };
 
@@ -59,8 +68,13 @@ const formatBytes = (bytes: number) => {
 /** Build editable purchase-detail rows from the extraction result. */
 function buildDetails(result: ExtractionResult): PurchaseDetails[] {
   const supplierId = result.supplier?.personId;
-  const supplierName =
-    result.supplier?.candidates?.[0]?.name ?? result.supplier?.rawName ?? "";
+  // Sin match confiable la celda de proveedor queda vacía: precargar el nombre
+  // del top-1 invita a guardar sin seleccionar conscientemente.
+  const supplierName = supplierId
+    ? (result.supplier.candidates?.find((c) => c.id === supplierId)?.name ??
+      result.supplier.rawName ??
+      "")
+    : "";
 
   if (!result.details) return [];
 
@@ -223,10 +237,12 @@ export default function ScanPurchase() {
   const runExtraction = async (
     img: File,
     scanCrop?: ScanImageCrop,
+    signal?: AbortSignal,
   ): Promise<ExtractionResult | null> => {
     try {
       return await formExtractionService.extractFromImage(img, {
         crop: scanCrop,
+        signal,
         onOptimizedImage: (optimized) => {
           setOptimizationMetadata(optimized.metadata);
           setOptimizedPreviewUrl((previousUrl) => {
@@ -236,6 +252,9 @@ export default function ScanPurchase() {
         },
       });
     } catch (error) {
+      // El timeout de la UI ganó la carrera y abortó la petición: el mensaje
+      // de timeout ya se mostró, no dupliques un toast por el aborto.
+      if (signal?.aborted) return null;
       const message =
         extractErrorInfo(error).message ??
         "No se pudo leer el formulario. Intenta con otra foto.";
@@ -268,8 +287,9 @@ export default function ScanPurchase() {
     });
 
     const scanCrop = hasVisibleCrop(crop) ? crop : undefined;
+    const abortController = new AbortController();
     const res = await Promise.race([
-      runExtraction(file, scanCrop),
+      runExtraction(file, scanCrop, abortController.signal),
       timeoutPromise,
     ]);
     if (timeoutId) clearTimeout(timeoutId);
@@ -281,6 +301,9 @@ export default function ScanPurchase() {
     );
 
     if (res === timeoutResult) {
+      // Aborta la petición HTTP en vuelo: dejarla viva seguiría consumiendo
+      // cuota de Gemini para una respuesta que ya nadie va a leer.
+      abortController.abort();
       const message =
         "El escaneo está tardando demasiado. Intenta de nuevo en unos segundos.";
       setScanFeedback({
@@ -760,8 +783,8 @@ export default function ScanPurchase() {
           {hasDetectedDetails && visibleReviewReasons.length > 0 && (
             <Alert variant="warning" title="Revisa los datos detectados">
               <ul className="list-disc pl-4 text-sm">
-                {visibleReviewReasons.map((reason, i) => (
-                  <li key={i}>{reason}</li>
+                {visibleReviewReasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
                 ))}
               </ul>
             </Alert>
