@@ -424,14 +424,6 @@ export function analyzeScanImageCropFromPixels(
   });
 }
 
-export function suggestScanImageCropFromPixels(
-  pixels: Uint8ClampedArray,
-  width: number,
-  height: number,
-): ScanImageCrop | null {
-  return analyzeScanImageCropFromPixels(pixels, width, height).crop;
-}
-
 function blobToFile(blob: Blob, originalFile: File): File {
   return new File([blob], getOutputFilename(originalFile.name), {
     type: SCAN_IMAGE_OUTPUT_TYPE,
@@ -467,12 +459,6 @@ async function decodeImage(
   return decodeWithImageElement(file);
 }
 
-export async function suggestScanImageCrop(
-  file: File,
-): Promise<ScanImageCrop | null> {
-  return (await analyzeScanImageCrop(file)).crop;
-}
-
 export async function analyzeScanImageCrop(
   file: File,
 ): Promise<ScanImageCropAnalysis> {
@@ -503,13 +489,6 @@ export async function analyzeScanImageCrop(
 
   const imageData = context.getImageData(0, 0, width, height);
   return analyzeScanImageCropFromPixels(imageData.data, width, height);
-}
-
-export async function optimizeScanImage(
-  file: File,
-  options: ScanImagePreprocessOptions = {},
-): Promise<File> {
-  return (await optimizeScanImageWithMetadata(file, options)).file;
 }
 
 export async function optimizeScanImageWithMetadata(

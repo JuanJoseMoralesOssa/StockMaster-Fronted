@@ -1,13 +1,12 @@
 import { GenericColumn } from "../../../../types/GenericConfig"
 
-interface Props {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  columns: GenericColumn<any>[]
+interface Props<T> {
+  columns: GenericColumn<T>[]
   showActions: boolean
   hasExpandable?: boolean
 }
 
-export default function GenericTableHeader({ columns, showActions, hasExpandable }: Props) {
+export default function GenericTableHeader<T>({ columns, showActions, hasExpandable }: Props<T>) {
   return (
     <thead className='sticky top-0 z-10 border-b border-(--color-border) bg-(--view-accent-soft,var(--color-bg-subtle))'>
       <tr>
@@ -16,9 +15,9 @@ export default function GenericTableHeader({ columns, showActions, hasExpandable
             <span className='sr-only'>Ver detalles</span>
           </th>
         )}
-        {columns.map((column, index) => (
+        {columns.map((column) => (
           <th
-            key={index}
+            key={String(column.key)}
             className={`px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) ${column.align === 'right' ? 'text-right' : 'text-left'} ${column.hideOnMobile ? 'hidden md:table-cell' : ''} ${column.width || ''}`}
           >
             {column.label}

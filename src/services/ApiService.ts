@@ -1,6 +1,7 @@
-import axios, { AxiosError, AxiosResponse } from 'axios'
+import { AxiosResponse } from 'axios'
 import { Config } from '../config/Config'
 import { httpClient } from './httpClient'
+import { extractErrorInfo } from '../utils/error'
 import { PaginatedResponse } from '../types/PaginatedResponse'
 
 // Base URL para todas las peticiones
@@ -22,50 +23,21 @@ export class ApiService<T> {
     return `${API_BASE_URL}${this.endpoint}${path ? '/' + path : ''}`
   }
 
-  // Método genérico para manejar errores con mensajes contextualizados
+  /**
+   * Contextualiza el error con el nombre de la entidad y lo relanza. Loguea UNA
+   * sola vez, acá: los llamadores muestran el mensaje pero no vuelven a loguear.
+   */
   protected handleError(error: unknown, errorMessage: string): never {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError
+    const { message } = extractErrorInfo(error)
+    const detail = message ?? 'Error inesperado'
 
-      if (axiosError.response) {
-        const status = axiosError.response.status
-        const statusText = axiosError.response.statusText
-
-        // Intentar extraer mensaje de error del cuerpo de la respuesta
-        if (axiosError.response.data) {
-          const errorData = axiosError.response.data as { message?: string; error?: { message?: string } }
-          const backendMessage = errorData.error?.message ?? errorData.message
-          if (backendMessage) {
-            console.error(`${errorMessage}: ${backendMessage}`)
-            throw new Error(`${errorMessage}: ${backendMessage}`, { cause: error as Error })
-          }
-        }
-
-        console.error(`${errorMessage}: ${status} ${statusText}`)
-        throw new Error(`${errorMessage}: Error HTTP ${status} ${statusText}`, { cause: error as Error })
-      } else if (axiosError.request) {
-        console.error(`${errorMessage}: No se recibió respuesta del servidor`)
-        throw new Error(`${errorMessage}: No se recibió respuesta del servidor`, { cause: error as Error })
-      } else {
-        console.error(`${errorMessage}: ${axiosError.message}`)
-        throw new Error(`${errorMessage}: ${axiosError.message}`, { cause: error as Error })
-      }
-    }
-
-    // Para errores que no son de Axios
-    console.error(errorMessage, error)
-    throw new Error(`${errorMessage}: Error inesperado`, { cause: error as Error })
+    console.error(`[ApiService.${this.entityLabel}] ${errorMessage}: ${detail}`, error)
+    throw new Error(`${errorMessage}: ${detail}`, { cause: error })
   }
 
   // Método genérico para procesar respuestas
   protected async handleResponse<R>(promise: Promise<AxiosResponse<R>>): Promise<R> {
-    try {
-      const response = await promise
-      return response.data
-    } catch (error) {
-      console.error('Error processing response:', error)
-      throw error
-    }
+    return (await promise).data
   }
 
   // Public helper to build URLs for external use (e.g., tests or logging)

@@ -49,7 +49,6 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
     onValidationChange,
 }: Readonly<DocumentDetailRowProps<T>>) => {
     const isNew = detail.id !== undefined && typeof detail.id === 'number' && detail.id < 0
-    const canDelete = true
     // Transformar datos para el autocomplete
     const productOptions = products
         .filter(product => product.id !== undefined && product.name !== undefined)
@@ -179,7 +178,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
     }
 
     const handleDelete = () => {
-        if (canDelete && detail.id !== undefined) {
+        if (detail.id !== undefined) {
             onDelete(Number(detail.id))
         }
     }
@@ -211,7 +210,7 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
                             onClick={handleDelete}
                             aria-label='Eliminar producto'
                             title='Eliminar producto'
-                            className='action-icon-delete shrink-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11'
+                            className='action-icon-delete shrink-0 pointer-coarse:h-11 pointer-coarse:w-11'
                         >
                             <Trash2 className='h-4 w-4' aria-hidden='true' />
                         </Button>
@@ -239,15 +238,10 @@ const DocumentDetailRow = <T extends BaseDocumentDetail>({
             <td className='w-24 px-4 py-3 text-center'>
                 <button
                     type='button'
-                    className={`inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-                        canDelete
-                            ? 'action-icon-delete'
-                            : 'text-(--color-text-muted) cursor-not-allowed'
-                    }`}
+                    className='action-icon-delete inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors'
                     onClick={handleDelete}
                     aria-label="Eliminar producto"
-                    title="Eliminar producto"
-                    disabled={!canDelete}>
+                    title="Eliminar producto">
                     <Trash2 className='w-4 h-4' />
                 </button>
             </td>

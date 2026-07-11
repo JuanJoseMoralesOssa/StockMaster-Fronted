@@ -64,7 +64,8 @@ function dayFromDate(value: string): number {
 
 /**
  * Aggregates transactions by (month, entityId) and computes Total/Pagado/Pendiente.
- * Works for both supplier-grouped (ProductChart) and product-grouped (SupplierCharts) views.
+ * La entidad es el eje del desglose, sea proveedor o producto: ambas vistas del
+ * dashboard detallado comparten esta función (ver EntityBreakdownCharts).
  */
 export function aggregateByMonthAndEntity(
   results: TransactionWithEntity[],

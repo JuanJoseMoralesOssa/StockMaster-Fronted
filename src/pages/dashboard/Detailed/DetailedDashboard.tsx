@@ -1,6 +1,6 @@
 import SupplierProductCharts from './SupplierProductCharts'
-import SupplierCharts from './SupplierCharts'
-import ProductChart from './ProductChart'
+import ProductBreakdownCharts from './ProductBreakdownCharts'
+import SupplierBreakdownCharts from './SupplierBreakdownCharts'
 import type Person from '../../../types/Person'
 import { ErrorBoundary } from '../../../components/ErrorBoundary'
 import { useDashboard } from '../DashboardContext'
@@ -40,7 +40,7 @@ function DetailedDashboard() {
         !filters.productId &&
         productsResults.length > 0 && (
           <ErrorBoundary key={`supplier-${filters.supplierId}`}>
-            <SupplierCharts
+            <ProductBreakdownCharts
               key={`supplier-${filters.supplierId}-${filters.startDate}-${filters.endDate}`}
               results={productsResults}
               products={products}
@@ -54,7 +54,7 @@ function DetailedDashboard() {
         filters.productId &&
         suppliersResults.length > 0 && (
           <ErrorBoundary key={`product-${filters.productId}`}>
-            <ProductChart
+            <SupplierBreakdownCharts
               key={`product-${filters.productId}-${filters.startDate}-${filters.endDate}`}
               results={suppliersResults}
               suppliers={suppliers}

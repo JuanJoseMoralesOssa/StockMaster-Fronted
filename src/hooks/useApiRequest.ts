@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AxiosError } from 'axios'
+import { extractErrorInfo } from '../utils/error'
 import { useToast } from './useToast'
 
 export interface UseApiRequestOptions<T> {
@@ -79,8 +79,6 @@ export function useApiRequest<T, Args extends unknown[] = []>(
     }
   }, [])
 
-  // (error extraction is inlined inside the catch block below)
-
   const execute = useCallback(
     async (...args: Args): Promise<T | null> => {
       if (!isMountedRef.current) {
@@ -119,10 +117,10 @@ export function useApiRequest<T, Args extends unknown[] = []>(
           return result
         } catch (error) {
           attempt += 1
-          const axiosError = error as AxiosError<{ message?: string; error?: { message?: string } } | undefined>
-          const backendMessage = axiosError.response?.data?.message ?? axiosError.response?.data?.error?.message
-          const isTimeout = axiosError.code === 'ECONNABORTED' || /timeout/i.test(axiosError.message)
-          const isNetwork = axiosError.code === 'ERR_NETWORK' || axiosError.message === 'Network Error'
+          const { backendMessage, isTimeout, isNetwork } = extractErrorInfo(error)
+          // Un mensaje real del backend siempre gana. Si el fallo fue de
+          // transporte, el mensaje del llamador ("Error al crear la compra") es
+          // más útil que el críptico "Network Error" de axios.
           const message = backendMessage
             ?? ((isTimeout || isNetwork) && errorMessage
               ? errorMessage

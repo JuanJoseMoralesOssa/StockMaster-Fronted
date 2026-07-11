@@ -99,11 +99,8 @@ export default function GenericForm<T extends Record<string, any>>({
     try {
       await onSubmit(data as Partial<T>)
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } }
       const { message } = extractErrorInfo(error)
-      setError('root', {
-        message: err.response?.data?.message ?? message ?? 'Error al procesar la solicitud',
-      })
+      setError('root', { message: message ?? 'Error al procesar la solicitud' })
     }
   }
 

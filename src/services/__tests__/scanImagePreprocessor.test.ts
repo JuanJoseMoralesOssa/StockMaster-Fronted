@@ -2,15 +2,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   analyzeScanImageCropFromPixels,
-  optimizeScanImage,
   optimizeScanImageWithMetadata,
   SCAN_IMAGE_JPEG_QUALITY,
   SCAN_IMAGE_MAX_DIMENSION,
   SCAN_IMAGE_OUTPUT_TYPE,
-  suggestScanImageCropFromPixels,
+  type ScanImagePreprocessOptions,
 } from "../scanImagePreprocessor";
 
 const originalCreateElement = document.createElement.bind(document);
+
+// Los tests ejercen la MISMA API que usa producción (optimizeScanImageWithMetadata /
+// analyzeScanImageCropFromPixels); estos helpers solo descartan la parte del
+// resultado que la aserción no mira.
+const optimizeFile = async (
+  file: File,
+  options?: ScanImagePreprocessOptions,
+): Promise<File> => (await optimizeScanImageWithMetadata(file, options)).file;
+
+const cropFromPixels = (
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+) => analyzeScanImageCropFromPixels(pixels, width, height).crop;
 
 function buildSyntheticJaagImage(
   paperColor: [number, number, number],
@@ -118,7 +131,7 @@ describe("optimizeScanImage", () => {
       lastModified: 123,
     });
 
-    const optimized = await optimizeScanImage(original);
+    const optimized = await optimizeFile(original);
 
     expect(drawImage).toHaveBeenCalledWith(
       expect.any(Object),
@@ -148,7 +161,7 @@ describe("optimizeScanImage", () => {
       close,
     } as unknown as ImageBitmap);
 
-    await optimizeScanImage(
+    await optimizeFile(
       new File(["small"], "small.jpg", { type: "image/jpeg" }),
     );
 
@@ -166,7 +179,7 @@ describe("optimizeScanImage", () => {
   });
 
   it("crops before resizing when crop percentages are provided", async () => {
-    await optimizeScanImage(
+    await optimizeFile(
       new File(["cropped"], "cropped.png", { type: "image/png" }),
       {
         crop: { left: 0.1, top: 0.2, right: 0.1, bottom: 0.2 },
@@ -239,7 +252,7 @@ describe("optimizeScanImage", () => {
       revokeObjectURL: vi.fn(),
     });
 
-    await optimizeScanImage(
+    await optimizeFile(
       new File(["fallback"], "fallback.png", { type: "image/png" }),
     );
 
@@ -270,7 +283,7 @@ describe("optimizeScanImage", () => {
       }
     }
 
-    const crop = suggestScanImageCropFromPixels(
+    const crop = cropFromPixels(
       sample.pixels,
       sample.width,
       sample.height,
@@ -289,7 +302,7 @@ describe("optimizeScanImage", () => {
   ])("suggests crop for %s", (_name, paperColor) => {
     const { pixels, width, height } = buildSyntheticJaagImage(paperColor);
 
-    const crop = suggestScanImageCropFromPixels(pixels, width, height);
+    const crop = cropFromPixels(pixels, width, height);
 
     expect(crop).not.toBeNull();
     expect(crop?.top).toBeLessThan(0.18);
@@ -302,7 +315,7 @@ describe("optimizeScanImage", () => {
       [0x9f, 0xab, 0xb8],
     );
 
-    const crop = suggestScanImageCropFromPixels(pixels, width, height);
+    const crop = cropFromPixels(pixels, width, height);
 
     expect(crop).not.toBeNull();
     expect(crop?.top).toBeLessThan(0.18);
@@ -324,7 +337,7 @@ describe("optimizeScanImage", () => {
       }
     }
 
-    const crop = suggestScanImageCropFromPixels(pixels, width, height);
+    const crop = cropFromPixels(pixels, width, height);
 
     expect(crop).not.toBeNull();
     expect(crop?.top).toBeGreaterThanOrEqual(0.08);

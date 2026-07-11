@@ -11,11 +11,6 @@ function token(name: string, fallback: string): string {
 }
 
 /**
- * Posiciones disponibles para los toasts
- */
-export type ToastPosition = 'top' | 'top-start' | 'top-end' | 'center' | 'center-start' | 'center-end' | 'bottom' | 'bottom-start' | 'bottom-end'
-
-/**
  * Configuración base para los toasts
  */
 const TOAST_CONFIG = {
@@ -31,35 +26,9 @@ const TOAST_CONFIG = {
 }
 
 /**
- * Tipos de toast disponibles
- */
-export enum ToastType {
-  SUCCESS = 'success',
-  ERROR = 'error',
-  WARNING = 'warning',
-  INFO = 'info'
-}
-
-/**
- * Interfaz para opciones de toast personalizadas
- */
-export interface ToastOptions {
-  title?: string
-  message: string
-  type?: ToastType
-  duration?: number
-  showProgressBar?: boolean
-  position?: ToastPosition
-}
-
-/**
- * Servicio centralizado para manejo de notificaciones toast
- * Sigue el principio de Single Responsibility Pattern
+ * Servicio centralizado para las notificaciones de la app.
  */
 export class ToastService {
-  /**
-   * Muestra un toast de éxito
-   */
   static success(message: string, title: string = '¡Éxito!'): void {
     Swal.fire({
       ...TOAST_CONFIG,
@@ -69,9 +38,7 @@ export class ToastService {
     })
   }
 
-  /**
-   * Muestra un toast de error
-   */
+  /** El error no se auto-cierra: el usuario debe poder leerlo y actuar. */
   static error(message: string, title: string = 'Error'): void {
     Swal.fire({
       ...TOAST_CONFIG,
@@ -84,9 +51,6 @@ export class ToastService {
     })
   }
 
-  /**
-   * Muestra un toast de advertencia
-   */
   static warning(message: string, title: string = 'Advertencia'): void {
     Swal.fire({
       ...TOAST_CONFIG,
@@ -96,45 +60,7 @@ export class ToastService {
     })
   }
 
-  /**
-   * Muestra un toast informativo
-   */
-  static info(message: string, title: string = 'Información'): void {
-    Swal.fire({
-      ...TOAST_CONFIG,
-      icon: 'info',
-      title,
-      text: message,
-    })
-  }
-
-  /**
-   * Muestra un toast personalizado
-   */
-  static custom(options: ToastOptions): void {
-    const {
-      title,
-      message,
-      type = ToastType.INFO,
-      duration = 3000,
-      showProgressBar = true,
-      position = 'top-end'
-    } = options
-
-    Swal.fire({
-      ...TOAST_CONFIG,
-      icon: type,
-      title,
-      text: message,
-      timer: duration,
-      timerProgressBar: showProgressBar,
-      position,
-    })
-  }
-
-  /**
-   * Muestra un toast de confirmación para acciones destructivas
-   */
+  /** Confirmación para acciones destructivas. Resuelve a `true` si el usuario acepta. */
   static async confirmDelete(
     message: string = '¿Estás seguro de que quieres eliminar este elemento?',
     title: string = 'Confirmar eliminación',
@@ -153,51 +79,5 @@ export class ToastService {
     })
 
     return result.isConfirmed
-  }
-
-  /**
-   * Muestra un toast de confirmación genérico
-   */
-  static async confirm(
-    message: string,
-    title: string = 'Confirmar acción',
-    confirmText: string = 'Confirmar',
-    cancelText: string = 'Cancelar'
-  ): Promise<boolean> {
-    const result = await Swal.fire({
-      title,
-      text: message,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: token('--color-action-bg', '#3b82f6'),
-      cancelButtonColor: token('--color-text-secondary', '#6b7280'),
-      confirmButtonText: confirmText,
-      cancelButtonText: cancelText,
-      reverseButtons: true
-    })
-
-    return result.isConfirmed
-  }
-
-  /**
-   * Muestra un toast de carga
-   */
-  static loading(message: string = 'Cargando...'): void {
-    Swal.fire({
-      title: message,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      showConfirmButton: false,
-      didOpen: () => {
-        Swal.showLoading()
-      }
-    })
-  }
-
-  /**
-   * Cierra el toast actual
-   */
-  static close(): void {
-    Swal.close()
   }
 }
