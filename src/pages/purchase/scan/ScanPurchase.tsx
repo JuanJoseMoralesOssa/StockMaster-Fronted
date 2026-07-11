@@ -1,47 +1,27 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Camera,
-  Crop,
-  Upload,
-  Loader2,
-  ScanLine,
-  RotateCcw,
-} from "lucide-react";
+import { ArrowLeft, Camera, Upload, Loader2, ScanLine } from "lucide-react";
 import { Alert, Badge, Button, Input, Label } from "../../../components/ui";
 import DocumentDetailsTable from "../../components/common/DocumentDetailsTable";
+import { validateDocumentDetails } from "../../components/document/documentDetailsValidation";
 import PurchaseDetails from "../../../types/PurchaseDetails";
 import Purchase from "../../../types/Purchase";
 import { purchaseService } from "../../../services/PurchaseService";
-import {
-  EXTRACTION_HTTP_TIMEOUT_MS,
-  formExtractionService,
-} from "../../../services/FormExtractionService";
 import { useApiRequest } from "../../../hooks/useApiRequest";
+import { useObjectUrl } from "../../../hooks/useObjectUrl";
 import { useToast } from "../../../hooks/useToast";
 import { ExtractionResult } from "../../../types/FormExtraction";
 import { todayBogota, toDateInputValue } from "../../../utils/date";
 import { formatKg } from "../../../utils/format";
-import { extractErrorInfo } from "../../../utils/error";
-import {
-  analyzeScanImageCrop,
-  normalizeScanImageCrop,
-  ScanImageCrop,
-  ScanImageCropDiagnostics,
-  ScanImageOptimizationMetadata,
-} from "../../../services/scanImagePreprocessor";
+import type { ScanImageOptimizationResult } from "../../../services/scanImagePreprocessor";
+import { useScanCrop } from "./hooks/useScanCrop";
+import { useFormExtraction } from "./hooks/useFormExtraction";
+import ScanCropEditor from "./components/ScanCropEditor";
+import ScanOptimizationDebug from "./components/ScanOptimizationDebug";
+
+export { EXTRACTION_UI_TIMEOUT_MS } from "./hooks/useFormExtraction";
 
 type Step = "upload" | "processing" | "review";
-/**
- * Último escalón de la escalera: la UI se rinde solo después del timeout HTTP,
- * que a su vez espera más que el presupuesto del backend. Si la UI cortara
- * primero abortaríamos —y pagaríamos— una cadena de modelos que aún podía
- * responder (ver FormExtractionService).
- */
-export const EXTRACTION_UI_TIMEOUT_MS = EXTRACTION_HTTP_TIMEOUT_MS + 2000;
-const MIN_PROCESSING_VISIBLE_MS = 700;
-const EMPTY_CROP: ScanImageCrop = { left: 0, top: 0, right: 0, bottom: 0 };
 
 interface ScanFeedback {
   variant: "info" | "warning" | "danger";
@@ -49,23 +29,13 @@ interface ScanFeedback {
   message: string;
 }
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
+/** Deja pintar el paso "processing" antes de bloquear con la extracción. */
 const waitForPaint = () =>
   new Promise<void>((resolve) => {
     requestAnimationFrame(() => resolve());
   });
 
-const cropPercent = (value: number) => Math.round(value * 100);
-const hasVisibleCrop = (crop: ScanImageCrop) =>
-  Object.values(crop).some((value) => value > 0);
-const formatBytes = (bytes: number) => {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
-
-/** Build editable purchase-detail rows from the extraction result. */
+/** Filas editables de la compra, a partir de lo que leyó el modelo. */
 function buildDetails(result: ExtractionResult): PurchaseDetails[] {
   const supplierId = result.supplier?.personId;
   // Sin match confiable la celda de proveedor queda vacía: precargar el nombre
@@ -92,41 +62,26 @@ export default function ScanPurchase() {
   const navigate = useNavigate();
   const { showError, showWarning } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cropRequestRef = useRef(0);
-  const extractionErrorRef = useRef<string | null>(null);
 
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [optimizedPreviewUrl, setOptimizedPreviewUrl] = useState<string | null>(
+  const [optimized, setOptimized] = useState<ScanImageOptimizationResult | null>(
     null,
   );
-  const [optimizationMetadata, setOptimizationMetadata] =
-    useState<ScanImageOptimizationMetadata | null>(null);
-  const [crop, setCrop] = useState<ScanImageCrop>(EMPTY_CROP);
-  const [cropDiagnostics, setCropDiagnostics] =
-    useState<ScanImageCropDiagnostics | null>(null);
-  const [editingCrop, setEditingCrop] = useState(false);
-  const [suggestingCrop, setSuggestingCrop] = useState(false);
   const [scanFeedback, setScanFeedback] = useState<ScanFeedback | null>(null);
   const [result, setResult] = useState<ExtractionResult | null>(null);
 
-  // Review state (same shape the manual create form uses)
+  // Estado de revisión (misma forma que usa el alta manual)
   const [date, setDate] = useState<string>(todayBogota());
   const [details, setDetails] = useState<PurchaseDetails[]>([]);
 
-  // Revoke object URL on unmount / change
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
+  // Las vistas previas se derivan del blob: crear y revocar el object URL ya no
+  // es responsabilidad de cada camino de esta pantalla.
+  const previewUrl = useObjectUrl(file);
+  const optimizedPreviewUrl = useObjectUrl(optimized?.file);
 
-  useEffect(() => {
-    return () => {
-      if (optimizedPreviewUrl) URL.revokeObjectURL(optimizedPreviewUrl);
-    };
-  }, [optimizedPreviewUrl]);
+  const crop = useScanCrop({ onWarning: showWarning });
+  const { extract } = useFormExtraction({ onOptimizedImage: setOptimized });
 
   const { loading: saving, execute: runSave } = useApiRequest(
     (data: Purchase) => purchaseService.createWithDetails(data),
@@ -138,201 +93,57 @@ export default function ScanPurchase() {
     },
   );
 
-  const detectCropForFile = async (
-    selected: File,
-    options: { showMessages?: boolean } = {},
-  ) => {
-    const requestId = ++cropRequestRef.current;
-    setSuggestingCrop(true);
-    try {
-      const analysis = await analyzeScanImageCrop(selected);
-      if (requestId !== cropRequestRef.current) return;
-      setCropDiagnostics(analysis.diagnostics);
+  const { detect: detectCrop, reset: resetCrop } = crop;
 
-      if (!analysis.crop) {
-        setCrop(EMPTY_CROP);
-        setEditingCrop(false);
-        if (options.showMessages) {
-          showWarning(analysis.diagnostics.reason);
-        }
-        return;
-      }
-
-      setCrop(analysis.crop);
-      setEditingCrop(true);
-    } catch {
-      if (requestId !== cropRequestRef.current) return;
-      setCrop(EMPTY_CROP);
-      setCropDiagnostics({
-        blueDetected: false,
-        paperDetected: false,
-        valid: false,
-        reason: "No se pudo calcular el recorte sugerido",
-        bluePixelsInside: 0,
-      });
-      setEditingCrop(false);
-      if (options.showMessages) {
-        showWarning("No se pudo calcular el recorte sugerido");
-      }
-    } finally {
-      if (requestId === cropRequestRef.current) {
-        setSuggestingCrop(false);
-      }
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (!selected) return;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    if (optimizedPreviewUrl) URL.revokeObjectURL(optimizedPreviewUrl);
-    setFile(selected);
-    setPreviewUrl(URL.createObjectURL(selected));
-    setOptimizedPreviewUrl(null);
-    setOptimizationMetadata(null);
-    setCrop(EMPTY_CROP);
-    setCropDiagnostics(null);
-    setScanFeedback(null);
-    setEditingCrop(false);
-    setSuggestingCrop(false);
-    void detectCropForFile(selected);
-  };
-
-  const updateCropSide = (side: keyof ScanImageCrop, value: number) => {
-    setCrop((prev) => normalizeScanImageCrop({ ...prev, [side]: value / 100 }));
-  };
-
-  const resetCrop = () => {
-    cropRequestRef.current += 1;
-    setCrop(EMPTY_CROP);
-    setCropDiagnostics(null);
-    setEditingCrop(false);
-    setSuggestingCrop(false);
-  };
-
-  const applyRecommendedCrop = async () => {
-    if (!file || suggestingCrop) return;
-    await detectCropForFile(file, { showMessages: true });
-  };
-
-  const handleCropEditorToggle = async () => {
-    if (editingCrop) {
-      setEditingCrop(false);
-      return;
-    }
-
-    if (hasVisibleCrop(crop)) {
-      setEditingCrop(true);
-      return;
-    }
-
-    if (!file || suggestingCrop) {
-      setEditingCrop(true);
-      return;
-    }
-
-    await detectCropForFile(file, { showMessages: true });
-  };
-
-  const runExtraction = async (
-    img: File,
-    scanCrop?: ScanImageCrop,
-    signal?: AbortSignal,
-  ): Promise<ExtractionResult | null> => {
-    try {
-      return await formExtractionService.extractFromImage(img, {
-        crop: scanCrop,
-        signal,
-        onOptimizedImage: (optimized) => {
-          setOptimizationMetadata(optimized.metadata);
-          setOptimizedPreviewUrl((previousUrl) => {
-            if (previousUrl) URL.revokeObjectURL(previousUrl);
-            return URL.createObjectURL(optimized.file);
-          });
-        },
-      });
-    } catch (error) {
-      // El timeout de la UI ganó la carrera y abortó la petición: el mensaje
-      // de timeout ya se mostró, no dupliques un toast por el aborto.
-      if (signal?.aborted) return null;
-      const message =
-        extractErrorInfo(error).message ??
-        "No se pudo leer el formulario. Intenta con otra foto.";
-      extractionErrorRef.current = message;
-      showError(message);
-      return null;
-    }
-  };
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selected = e.target.files?.[0];
+      if (!selected) return;
+      setFile(selected);
+      setOptimized(null);
+      setScanFeedback(null);
+      resetCrop();
+      void detectCrop(selected);
+    },
+    [detectCrop, resetCrop],
+  );
 
   const handleProcess = async () => {
     if (!file) return;
-    extractionErrorRef.current = null;
     setScanFeedback(null);
-    setOptimizationMetadata(null);
-    setOptimizedPreviewUrl((previousUrl) => {
-      if (previousUrl) URL.revokeObjectURL(previousUrl);
-      return null;
-    });
+    setOptimized(null);
     setStep("processing");
     await waitForPaint();
-    const processingStartedAt = Date.now();
 
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    const timeoutResult = Symbol("extraction-timeout");
-    const timeoutPromise = new Promise<typeof timeoutResult>((resolve) => {
-      timeoutId = setTimeout(
-        () => resolve(timeoutResult),
-        EXTRACTION_UI_TIMEOUT_MS,
-      );
-    });
+    const outcome = await extract(file, crop.croppedArea);
 
-    const scanCrop = hasVisibleCrop(crop) ? crop : undefined;
-    const abortController = new AbortController();
-    const res = await Promise.race([
-      runExtraction(file, scanCrop, abortController.signal),
-      timeoutPromise,
-    ]);
-    if (timeoutId) clearTimeout(timeoutId);
-    await wait(
-      Math.max(
-        0,
-        MIN_PROCESSING_VISIBLE_MS - (Date.now() - processingStartedAt),
-      ),
-    );
-
-    if (res === timeoutResult) {
-      // Aborta la petición HTTP en vuelo: dejarla viva seguiría consumiendo
-      // cuota de Gemini para una respuesta que ya nadie va a leer.
-      abortController.abort();
-      const message =
-        "El escaneo está tardando demasiado. Intenta de nuevo en unos segundos.";
+    if (outcome.status === "timeout") {
       setScanFeedback({
         variant: "warning",
         title: "El procesamiento no terminó a tiempo",
-        message,
+        message: outcome.message,
       });
-      showError(message);
+      showError(outcome.message);
       setStep("upload");
       return;
     }
 
-    if (!res) {
-      const message =
-        extractionErrorRef.current ??
-        "La solicitud terminó sin respuesta de extracción ni error capturado. Revisa la consola del backend para este intento.";
+    if (outcome.status === "error") {
+      showError(outcome.message);
       setScanFeedback({
         variant: "danger",
         title: "No se pudo procesar la imagen",
-        message,
+        message: outcome.message,
       });
       setStep("upload");
       return;
     }
 
-    setResult(res);
-    setDate(toDateInputValue(res.date?.value ?? todayBogota()));
-    setDetails(buildDetails(res));
-    if (res.details.length === 0) {
+    const extracted = outcome.result;
+    setResult(extracted);
+    setDate(toDateInputValue(extracted.date?.value ?? todayBogota()));
+    setDetails(buildDetails(extracted));
+    if (extracted.details.length === 0) {
       setScanFeedback({
         variant: "warning",
         title: "Imagen procesada sin valores",
@@ -347,21 +158,13 @@ export default function ScanPurchase() {
   };
 
   const scanAnotherImage = () => {
-    cropRequestRef.current += 1;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    if (optimizedPreviewUrl) URL.revokeObjectURL(optimizedPreviewUrl);
     if (fileInputRef.current) fileInputRef.current.value = "";
     setFile(null);
-    setPreviewUrl(null);
-    setOptimizedPreviewUrl(null);
-    setOptimizationMetadata(null);
-    setCrop(EMPTY_CROP);
-    setCropDiagnostics(null);
-    setEditingCrop(false);
-    setSuggestingCrop(false);
+    setOptimized(null);
     setResult(null);
     setDetails([]);
     setScanFeedback(null);
+    resetCrop();
     setStep("upload");
   };
 
@@ -370,7 +173,7 @@ export default function ScanPurchase() {
     setDetails([]);
     setScanFeedback(null);
     setStep("upload");
-    setEditingCrop(true);
+    crop.openEditor();
   };
 
   const applySupplierToAll = (personId: number, name: string) => {
@@ -386,16 +189,8 @@ export default function ScanPurchase() {
       showWarning("Agrega al menos un producto antes de guardar");
       return;
     }
-    const incomplete = visible.some(
-      (d) =>
-        !d.productId ||
-        d.productId <= 0 ||
-        !d.personId ||
-        d.personId <= 0 ||
-        !d.weight_kg ||
-        d.weight_kg <= 0,
-    );
-    if (incomplete) {
+    // Misma regla que el alta manual: producto, proveedor y un peso en rango.
+    if (!validateDocumentDetails(visible).isValid) {
       showError(
         "Cada fila debe tener producto, proveedor y peso. Revisa los campos marcados.",
       );
@@ -416,41 +211,12 @@ export default function ScanPurchase() {
     (sum, detail) => sum + Number(detail.weight_kg ?? 0),
     0,
   );
-  const optimizationDebug = optimizationMetadata && (
-    <details className="rounded-lg border border-(--color-border) bg-(--color-bg-subtle) p-3 text-xs text-(--color-text-secondary)">
-      <summary className="cursor-pointer select-none font-medium text-(--color-text-primary)">
-        Imagen enviada al servidor
-      </summary>
-      <div className="mt-2 grid gap-1 sm:grid-cols-2">
-        <span>
-          Original: {optimizationMetadata.original.width}x
-          {optimizationMetadata.original.height} ·{" "}
-          {formatBytes(optimizationMetadata.original.sizeBytes)}
-        </span>
-        <span>
-          Enviada: {optimizationMetadata.output.width}x
-          {optimizationMetadata.output.height} ·{" "}
-          {formatBytes(optimizationMetadata.output.sizeBytes)} ·{" "}
-          {optimizationMetadata.output.type}
-        </span>
-        <span>
-          Crop px: x {optimizationMetadata.cropRect.x}, y{" "}
-          {optimizationMetadata.cropRect.y}
-        </span>
-        <span>
-          Area crop: {optimizationMetadata.cropRect.width}x
-          {optimizationMetadata.cropRect.height} · calidad{" "}
-          {Math.round(optimizationMetadata.output.quality * 100)}%
-        </span>
-      </div>
-      {optimizedPreviewUrl && (
-        <img
-          src={optimizedPreviewUrl}
-          alt="Imagen enviada al backend"
-          className="mt-3 max-h-64 w-full rounded-md border border-(--color-border) bg-(--color-bg-surface) object-contain"
-        />
-      )}
-    </details>
+
+  const optimizationDebug = (
+    <ScanOptimizationDebug
+      metadata={optimized?.metadata ?? null}
+      previewUrl={optimizedPreviewUrl}
+    />
   );
 
   return (
@@ -500,155 +266,20 @@ export default function ScanPurchase() {
           />
 
           {previewUrl ? (
-            <div className="flex flex-col gap-3">
-              <div className="flex justify-center rounded-lg border border-(--color-border) bg-(--color-bg-surface)">
-                <div className="relative overflow-hidden">
-                  <img
-                    src={previewUrl}
-                    alt="Vista previa del formulario"
-                    className="block max-h-96 max-w-full object-contain"
-                  />
-                  {editingCrop && (
-                    <div className="pointer-events-none absolute inset-0">
-                      <div
-                        className="absolute left-0 right-0 top-0 bg-black/45"
-                        style={{ height: `${cropPercent(crop.top)}%` }}
-                      />
-                      <div
-                        className="absolute bottom-0 left-0 right-0 bg-black/45"
-                        style={{ height: `${cropPercent(crop.bottom)}%` }}
-                      />
-                      <div
-                        className="absolute bg-black/45"
-                        style={{
-                          bottom: `${cropPercent(crop.bottom)}%`,
-                          left: 0,
-                          top: `${cropPercent(crop.top)}%`,
-                          width: `${cropPercent(crop.left)}%`,
-                        }}
-                      />
-                      <div
-                        className="absolute bg-black/45"
-                        style={{
-                          bottom: `${cropPercent(crop.bottom)}%`,
-                          right: 0,
-                          top: `${cropPercent(crop.top)}%`,
-                          width: `${cropPercent(crop.right)}%`,
-                        }}
-                      />
-                      <div
-                        className="absolute border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.45)]"
-                        style={{
-                          bottom: `${cropPercent(crop.bottom)}%`,
-                          left: `${cropPercent(crop.left)}%`,
-                          right: `${cropPercent(crop.right)}%`,
-                          top: `${cropPercent(crop.top)}%`,
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={editingCrop ? "secondary" : "outline"}
-                  leftIcon={<Crop className="h-4 w-4" />}
-                  loading={!editingCrop && suggestingCrop}
-                  onClick={handleCropEditorToggle}
-                >
-                  Recortar foto
-                </Button>
-                <Button
-                  variant="outline"
-                  leftIcon={<ScanLine className="h-4 w-4" />}
-                  loading={suggestingCrop}
-                  onClick={applyRecommendedCrop}
-                >
-                  Recalcular recorte
-                </Button>
-                {hasVisibleCrop(crop) && (
-                  <Button
-                    variant="ghost"
-                    leftIcon={<RotateCcw className="h-4 w-4" />}
-                    onClick={resetCrop}
-                  >
-                    Quitar recorte
-                  </Button>
-                )}
-              </div>
-
-              {editingCrop && (
-                <div className="grid gap-3 rounded-lg border border-(--color-border) bg-(--color-bg-subtle) p-3 sm:grid-cols-2">
-                  {[
-                    ["top", "Arriba"],
-                    ["bottom", "Abajo"],
-                    ["left", "Izquierda"],
-                    ["right", "Derecha"],
-                  ].map(([side, label]) => (
-                    <label
-                      key={side}
-                      className="flex flex-col gap-1 text-xs font-medium text-(--color-text-secondary)"
-                    >
-                      <span className="flex items-center justify-between">
-                        {label}
-                        <span>
-                          {cropPercent(crop[side as keyof ScanImageCrop])}%
-                        </span>
-                      </span>
-                      <Input
-                        type="range"
-                        min={0}
-                        max={80}
-                        step={1}
-                        value={cropPercent(crop[side as keyof ScanImageCrop])}
-                        onChange={(event) =>
-                          updateCropSide(
-                            side as keyof ScanImageCrop,
-                            Number(event.target.value),
-                          )
-                        }
-                        className="h-8 px-0"
-                      />
-                    </label>
-                  ))}
-                </div>
-              )}
-
-              {cropDiagnostics && (
-                <details className="rounded-lg border border-(--color-border) bg-(--color-bg-subtle) p-3 text-xs text-(--color-text-secondary)">
-                  <summary className="cursor-pointer select-none font-medium text-(--color-text-primary)">
-                    Diagnóstico del recorte
-                  </summary>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <span>
-                      Estado:{" "}
-                      {cropDiagnostics.valid ? "detectado" : "sin detectar"}
-                    </span>
-                    <span>
-                      Papel: {cropDiagnostics.paperDetected ? "si" : "no"}
-                    </span>
-                    <span>
-                      Azul: {cropDiagnostics.blueDetected ? "si" : "no"}
-                    </span>
-                    <span>
-                      Pixeles azules: {cropDiagnostics.bluePixelsInside}
-                    </span>
-                  </div>
-                  <p className="mt-1">{cropDiagnostics.reason}</p>
-                  {hasVisibleCrop(crop) && (
-                    <p className="mt-1">
-                      Arriba {cropPercent(crop.top)}% · Abajo{" "}
-                      {cropPercent(crop.bottom)}% · Izquierda{" "}
-                      {cropPercent(crop.left)}% · Derecha{" "}
-                      {cropPercent(crop.right)}%
-                    </p>
-                  )}
-                </details>
-              )}
-
+            <>
+              <ScanCropEditor
+                previewUrl={previewUrl}
+                crop={crop.crop}
+                diagnostics={crop.diagnostics}
+                isEditing={crop.isEditing}
+                isDetecting={crop.isDetecting}
+                onToggleEditor={() => void crop.toggleEditor(file)}
+                onRedetect={() => file && void crop.redetect(file)}
+                onReset={resetCrop}
+                onSideChange={crop.setSide}
+              />
               {optimizationDebug}
-            </div>
+            </>
           ) : (
             <button
               type="button"
