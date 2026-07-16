@@ -22,7 +22,7 @@ interface EditModalProps<T> {
   onClose: () => void
 }
 
-function buildEditableInitialData<T extends Record<string, unknown>>(item: T, fields?: GenericField<T>[]) {
+function buildEditableInitialData<T extends object>(item: T, fields?: GenericField<T>[]): Partial<T> {
   if (!fields || fields.length === 0) {
     return item
   }
@@ -34,8 +34,7 @@ function buildEditableInitialData<T extends Record<string, unknown>>(item: T, fi
   }, {})
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function EditModal<T extends Record<string, any>>({
+export default function EditModal<T extends object>({
   isOpen,
   selectedItem,
   entityName,
@@ -83,7 +82,13 @@ export default function EditModal<T extends Record<string, any>>({
             if (prepareDataForSubmit) {
               dataToSubmit = await prepareDataForSubmit(formData, true)
             }
-            const updated = await onUpdate(selectedItem.id, dataToSubmit)
+            // `selectedItem` is only known to be `object` here, but every
+            // GenericPageConfig sets `idField: 'id'` and this default edit-form
+            // path has always assumed the id lives under `.id` — previously
+            // hidden behind `T extends Record<string, any>`'s implicit index
+            // signature. Made explicit instead of implicit; behavior is unchanged.
+            const { id } = selectedItem as unknown as { id: string | number }
+            const updated = await onUpdate(id, dataToSubmit)
             onEditSuccess(updated)
           }}
           onCancel={onClose}

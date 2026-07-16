@@ -18,21 +18,12 @@ const useAuthStore = create<AuthStore>((set) => ({
     checkAuth: async () => {
         set({ isLoading: true })
         try {
-            const token = authService.getToken()
-            if (!token || authService.isTokenExpired(token)) {
-                authService.clearLocalData()
-                set({ isAuthenticated: false, isLoading: false, user: null })
-                return
-            }
-
-            // Validar el token contra el servidor (/whoami) y refrescar el
-            // usuario/rol. Si el token es inválido o revocado, cerrar sesión.
-            const user = await authService.verifyToken(token)
-            authService.saveUser(user)
+            // La sesión vive en una cookie httpOnly: /whoami es la única forma
+            // de saber si hay una sesión activa y quién es el usuario.
+            const user = await authService.fetchCurrentUser()
             set({ isAuthenticated: true, isLoading: false, user })
         } catch (error) {
             console.error('Error checking auth:', error)
-            authService.clearLocalData()
             set({ isAuthenticated: false, isLoading: false, user: null })
         }
     },
@@ -42,9 +33,6 @@ const useAuthStore = create<AuthStore>((set) => ({
         try {
             const response = await authService.login(credentials)
 
-            // Guardar datos en localStorage
-            authService.saveToken(response.token)
-            authService.saveUser(response.user)
             set({
                 isAuthenticated: true,
                 isLoading: false,
@@ -58,17 +46,13 @@ const useAuthStore = create<AuthStore>((set) => ({
 
     logout: async () => {
         set({ isLoading: true })
-        try {
-            authService.clearLocalData()
-        } catch (error) {
-            console.error('Error during logout:', error)
-        } finally {
-            set({
-                isAuthenticated: false,
-                isLoading: false,
-                user: null,
-            })
-        }
+        // authService.logout() es best-effort: nunca lanza.
+        await authService.logout()
+        set({
+            isAuthenticated: false,
+            isLoading: false,
+            user: null,
+        })
     },
 }))
 

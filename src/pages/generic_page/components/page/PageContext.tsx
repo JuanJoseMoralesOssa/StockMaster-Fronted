@@ -2,9 +2,14 @@
 import { createContext, useContext, ReactNode } from 'react'
 import { PageContextValue } from '../../../../types/GenericTypes'
 
-// The context is type-erased internally and reintroduced by the generic helper below.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const PageContext = createContext<PageContextValue<any, any> | undefined>(undefined)
+// `createContext` needs one concrete type; `T`/`TFilter` vary per page and
+// aren't known here. Storing `unknown` (rather than `any`) keeps the module
+// free of explicit `any` and pushes assignability checks to the boundaries:
+// `PageContextProvider` writes into it below (anything is assignable to
+// `unknown`), and `useGenericPageContext` reads back out with the one cast
+// that TypeScript's generic-context pattern requires — `unknown` can be cast
+// to anything, so the cast itself is unconstrained but localized to that spot.
+const PageContext = createContext<unknown>(undefined)
 
 export function useGenericPageContext<T, TFilter = object>() {
   const context = useContext(PageContext)

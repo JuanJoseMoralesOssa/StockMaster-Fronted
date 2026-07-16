@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react'
-import { useForm, Controller, type RegisterOptions, type DefaultValues, type Path } from 'react-hook-form'
+import { useForm, Controller, type RegisterOptions, type DefaultValues, type Path, type FieldValues } from 'react-hook-form'
 import FormError from './FormError'
 import FieldWrapper from './FieldWrapper'
 import FormActions from './FormActions'
@@ -8,8 +8,11 @@ import { extractErrorInfo } from '../../../../utils/error'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildRules<T extends Record<string, any>>(
+// `T extends FieldValues` (react-hook-form's own `Record<string, any>` alias) is
+// what `useForm`/`Controller`/`Path`/`RegisterOptions` require; reusing their
+// exported alias avoids writing a literal `any` in this file while keeping the
+// exact assignability react-hook-form already relies on.
+function buildRules<T extends FieldValues>(
   field: GenericField<T>,
   getValues: () => Partial<T>,
 ): RegisterOptions<T, Path<T>> {
@@ -73,8 +76,10 @@ interface GenericFormProps<T> {
   cancelLabel?: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function GenericForm<T extends Record<string, any>>({
+// Same reasoning as `buildRules` above: `FieldValues` is react-hook-form's own
+// constraint for `useForm<T>`, so this stays exactly as permissive as before
+// without a local `any`.
+export default function GenericForm<T extends FieldValues>({
   fields,
   initialData = {},
   onSubmit,

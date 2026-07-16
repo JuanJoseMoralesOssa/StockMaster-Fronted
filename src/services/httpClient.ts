@@ -1,12 +1,12 @@
-import axios, { AxiosError, AxiosHeaders } from 'axios'
+import axios, { AxiosError } from 'axios'
 import { AppConfig, Config } from '../config/Config'
-import { tokenStorage } from './tokenStorage'
 
 type UnauthenticatedHandler = () => void
 
 const httpClient = axios.create({
   timeout: AppConfig.requestTimeout,
   headers: Config.defaultConfig.headers,
+  withCredentials: true,
 })
 
 let unauthenticatedHandler: UnauthenticatedHandler | null = null
@@ -15,28 +15,14 @@ export function configureHttpClient(options: { onUnauthenticated?: Unauthenticat
   unauthenticatedHandler = options.onUnauthenticated ?? null
 }
 
-// Interceptor de request: adjunta el token JWT si existe
-httpClient.interceptors.request.use(
-  config => {
-    const token = tokenStorage.getToken()
-    if (token) {
-      config.headers = AxiosHeaders.from({
-        ...(config.headers ?? {}),
-        Authorization: `Bearer ${token}`,
-      })
-    }
-    return config
-  },
-  error => Promise.reject(error),
-)
-
 // Interceptor de respuesta: 401 invalida la sesión; 403 se muestra como error de permisos.
+// La sesión vive en una cookie httpOnly gestionada por el backend, así que acá
+// no hay nada local que limpiar: solo se notifica a la app.
 httpClient.interceptors.response.use(
   response => response,
   (error: AxiosError) => {
     const status = error.response?.status
     if (status === 401) {
-      tokenStorage.clear()
       unauthenticatedHandler?.()
     }
 

@@ -36,8 +36,7 @@ interface GenericTableProps<T> {
   fetchForEdit?: (id: string | number) => Promise<T>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function GenericTable<T extends Record<string, any>>({
+export default function GenericTable<T extends object>({
   columns,
   rowClassName,
   actions = { canEdit: true, canDelete: true },

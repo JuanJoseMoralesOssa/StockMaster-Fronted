@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { AppConfig, Config } from '../config/Config'
-import { tokenStorage } from './tokenStorage'
 
 export interface LoginCredentials {
     email: string
@@ -8,7 +7,6 @@ export interface LoginCredentials {
 }
 
 export interface AuthResponse {
-    token: string
     user: {
         id: number
         email: string
@@ -28,12 +26,26 @@ class AuthService {
     // Normalizamos la URL base para evitar dobles barras (`//`) al concatenar rutas
     private readonly baseUrl = Config.LOGIC_URL.replace(/\/+$/, '')
 
+    constructor() {
+        // Limpieza de la sesión pre-cookies: hasta esta migración el token y el
+        // usuario se guardaban en localStorage. Ya no se usan (la sesión vive en
+        // una cookie httpOnly), pero puede quedar basura de sesiones viejas en el
+        // navegador. Se puede borrar este bloque en unos meses.
+        try {
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+        } catch {
+            // Tolerar entornos sin localStorage (tests/SSR)
+        }
+    }
+
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
         try {
             // axios "pelado" a propósito: el interceptor global de 401/403 del
             // httpClient dispararía logout/redirect sobre un login fallido.
             const response = await axios.post<AuthResponse>(`${this.baseUrl}/sign-in`, credentials, {
                 timeout: AppConfig.requestTimeout,
+                withCredentials: true,
             })
             return response.data
         } catch (error) {
@@ -44,61 +56,30 @@ class AuthService {
 
     async logout(): Promise<void> {
         try {
-            // Frontend solo maneja borrado local (stateless JWT en backend)
-            this.clearLocalData()
+            // Best-effort: el backend limpia la cookie httpOnly. Si la petición
+            // falla (red caída, etc.) no tiene sentido lanzar: el logout local
+            // (estado del store) sigue adelante igual.
+            await axios.post(`${this.baseUrl}/sign-out`, null, {
+                timeout: AppConfig.requestTimeout,
+                withCredentials: true,
+            })
         } catch (error) {
             console.error('Error en logout:', error)
         }
     }
 
-    async verifyToken(token: string): Promise<User> {
+    async fetchCurrentUser(): Promise<User> {
         try {
             const response = await axios.get<User>(`${this.baseUrl}/whoami`, {
                 timeout: AppConfig.requestTimeout,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                withCredentials: true,
             })
             return response.data
         } catch (error) {
-            console.error('Error verificando token:', error)
-            throw new Error('Token inválido', { cause: error })
+            console.error('Error obteniendo el usuario actual:', error)
+            throw new Error('No hay una sesión activa', { cause: error })
         }
     }
-
-    // Almacenamiento local de la sesión: delega en tokenStorage (única fuente de claves)
-    saveToken(token: string): void {
-        tokenStorage.setToken(token)
-    }
-
-    getToken(): string | null {
-        return tokenStorage.getToken()
-    }
-
-    saveUser(user: User): void {
-        tokenStorage.setUserRaw(JSON.stringify(user))
-    }
-
-    getUser(): User | null {
-        const userData = tokenStorage.getUserRaw()
-        return userData ? JSON.parse(userData) : null
-    }
-
-    clearLocalData(): void {
-        tokenStorage.clear()
-    }
-
-    isTokenExpired(token: string): boolean {
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]))
-            const currentTime = Date.now() / 1000
-            return payload.exp < currentTime
-        } catch (error) {
-            console.error('Error parsing token:', error)
-            return true
-        }
-    }
-
 }
 
 export const authService = new AuthService()

@@ -19,7 +19,7 @@ export function createEntityStore<T, K extends string>(key: K, service: { getAll
       async [fetchName]() {
         const state = get()
         if (state.isLoading) return
-        if (state.lastFetch && Date.now() - state.lastFetch < CACHE_TIME) return
+        if (state.lastFetch !== null && Date.now() - state.lastFetch < CACHE_TIME) return
 
         set(prev => ({ ...prev, isLoading: true, error: null }))
         try {

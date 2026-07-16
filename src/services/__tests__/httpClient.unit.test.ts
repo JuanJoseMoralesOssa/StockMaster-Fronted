@@ -7,23 +7,20 @@ describe('httpClient', () => {
 
   beforeEach(() => {
     mock = new MockAdapter(httpClient)
-    vi.stubGlobal('localStorage', {
-      getItem: vi.fn(() => 'test-token'),
-      setItem: vi.fn(),
-      removeItem: vi.fn(),
-      clear: vi.fn(),
-    })
   })
 
   afterEach(() => {
     mock.restore()
-    vi.unstubAllGlobals()
     configureHttpClient({ onUnauthenticated: undefined })
   })
 
-  it('adds the Authorization header from localStorage', async () => {
+  it('sends cookies with every request', () => {
+    expect(httpClient.defaults.withCredentials).toBe(true)
+  })
+
+  it('does not inject an Authorization header', async () => {
     mock.onGet('/secure').reply(config => {
-      expect(config.headers?.Authorization).toBe('Bearer test-token')
+      expect(config.headers?.Authorization).toBeUndefined()
       return [200, { ok: true }]
     })
 
@@ -39,11 +36,9 @@ describe('httpClient', () => {
 
     await expect(httpClient.get('/secure')).rejects.toBeTruthy()
     expect(onUnauthenticated).toHaveBeenCalledTimes(1)
-    expect(localStorage.removeItem).toHaveBeenCalledWith('token')
-    expect(localStorage.removeItem).toHaveBeenCalledWith('user')
   })
 
-  it('does not clear the session on permission errors', async () => {
+  it('does not notify the app on permission errors', async () => {
     const onUnauthenticated = vi.fn()
     configureHttpClient({ onUnauthenticated })
 
@@ -51,6 +46,5 @@ describe('httpClient', () => {
 
     await expect(httpClient.get('/admin-only')).rejects.toBeTruthy()
     expect(onUnauthenticated).not.toHaveBeenCalled()
-    expect(localStorage.removeItem).not.toHaveBeenCalled()
   })
 })
